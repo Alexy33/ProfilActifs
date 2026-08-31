@@ -44,8 +44,12 @@ services:
       #    pour macOS/Windows) -> better-sqlite3 refuserait de se charger.
       - /app/node_modules
       - /app/.next
-      # 3. La base vit hors du bind mount, dans un volume nomme
-      - db-data:/data
+      # 3. La base vit hors du bind mount, dans un volume nomme.
+      #    Volume PROPRE au dev : l'image dev tourne en uid 1000 (node) et
+      #    l'image prod en uid 1001 (nextjs). Docker fige le proprietaire d'un
+      #    volume a sa creation, donc un volume partage entre les deux profils
+      #    devient lecture seule pour l'un des deux (SQLITE_READONLY).
+      - db-data-dev:/data
     ports:
       - "${PORT:-3000}:3000"
     restart: unless-stopped
@@ -66,7 +70,8 @@ services:
     volumes:
       # Seul point d'ecriture persistant. Le reste du systeme de fichiers
       # peut rester en lecture seule (voir read_only ci-dessous).
-      - db-data:/data
+      # Volume distinct de celui du dev : voir la note du service web-dev.
+      - db-data-prod:/data
     ports:
       - "${PORT:-3000}:3000"
     read_only: true
@@ -88,6 +93,13 @@ services:
       start_period: 20s
 
 volumes:
-  # Volume nomme : survit a `docker compose down`. Seul `down -v` le detruit.
-  # Contient profilsactifs.db + les fichiers -wal et -shm du mode WAL.
-  db-data:
+  # Volumes nommes : ils survivent a `docker compose down`. Seul `down -v` les
+  # detruit. Chacun contient profilsactifs.db + ses fichiers -wal et -shm.
+  #
+  # Un volume par profil, et non un seul partage : les deux images tournent
+  # sous des utilisateurs differents (node/1000 en dev, nextjs/1001 en prod)
+  # et Docker fige le proprietaire du volume au premier montage. Les deux
+  # bases sont donc independantes, ce qui est aussi plus sain : on ne veut pas
+  # que des essais en dev polluent les donnees de production.
+  db-data-dev:
+  db-data-prod:

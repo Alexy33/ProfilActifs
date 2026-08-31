@@ -106,6 +106,13 @@ Le domaine metier reste entierement a ecrire :
 - **La connexion a la base est paresseuse** (`src/db/index.ts`). L'ouvrir a
   l'import ferait echouer `next build` : plusieurs workers se disputeraient le
   meme fichier SQLite.
+- **Dev et prod ont chacun leur volume de base** (`db-data-dev`,
+  `db-data-prod`). Docker fige le proprietaire d'un volume a sa creation, et
+  les deux images tournent sous des utilisateurs differents (`node`/1000 en
+  dev, `nextjs`/1001 en prod) : un volume partage finirait en lecture seule
+  pour l'un des deux (`SQLITE_READONLY`). Les deux bases sont donc
+  independantes — normal que `make dev` ne montre pas les donnees de
+  `make prod`.
 - **better-auth verifie l'en-tete `Origin`.** `localhost` et `127.0.0.1` sont
   deux origines differentes : toute nouvelle origine doit etre ajoutee a
   `trustedOrigins` dans `src/lib/auth.ts`, sinon les requetes repondent 403.

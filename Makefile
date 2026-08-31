@@ -31,7 +31,7 @@ migrate: ## Genere une migration Drizzle depuis le schema
 
 backup: ## Sauvegarde la base dans ./backups/
 	@mkdir -p backups
-	docker run --rm -v profilsactifs_db-data:/data -v $$(pwd)/backups:/backup \
+	docker run --rm -v profilsactifs_db-data-prod:/data -v $$(pwd)/backups:/backup \
 		alpine sh -c "apk add --no-cache sqlite >/dev/null && \
 		sqlite3 /data/profilsactifs.db \".backup /backup/profilsactifs-$$(date +%Y%m%d-%H%M%S).db\""
 	@echo "Sauvegarde ecrite dans ./backups/"

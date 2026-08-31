@@ -41,3 +41,10 @@ npm-debug.log*
 /backups
 
 *.tsbuildinfo
+
+# Fichiers generes par `next dev` UNIQUEMENT quand un agent IA tourne
+# (detection par variables d'environnement : CLAUDECODE, CURSOR, GEMINI...).
+# Ils n'apparaissent jamais lors d'un `npm run dev` normal : ignores pour que
+# personne ne les commite par accident.
+AGENTS.md
+CLAUDE.md
