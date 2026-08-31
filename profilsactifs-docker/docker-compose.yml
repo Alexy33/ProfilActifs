@@ -1,0 +1,93 @@
+# ---------------------------------------------------------------------------
+# ProfilsActifs - un seul fichier, deux profils
+#
+#   Developpement :  docker compose --profile dev  up
+#   Production    :  docker compose --profile prod up --build
+#
+# Sans --profile, aucun service ne demarre : c'est voulu, ca evite de lancer
+# le mauvais mode par reflexe.
+# ---------------------------------------------------------------------------
+name: profilsactifs
+
+# Bloc reutilise par les deux services (ancre YAML).
+x-app-env: &app-env
+  DATABASE_URL: file:/data/profilsactifs.db
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET manquant - copiez .env.example vers .env}
+  BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+  NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+  NEXT_TELEMETRY_DISABLED: "1"
+
+services:
+  # -------------------------------------------------------------------------
+  # DEV : hot reload, code source monte depuis l'hote
+  # -------------------------------------------------------------------------
+  web-dev:
+    profiles: ["dev"]
+    build:
+      context: .
+      target: dev
+    container_name: profilsactifs-dev
+    environment:
+      <<: *app-env
+      NODE_ENV: development
+      # Docker Desktop (macOS/Windows) et WSL2 ne propagent pas toujours les
+      # evenements inotify a travers le bind mount : sans polling, le hot
+      # reload ne se declenche jamais. Inutile sous Linux natif.
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      # 1. Le code source de l'hote ecrase /app -> edition = rechargement
+      - .:/app
+      # 2. Volumes anonymes qui "re-masquent" les repertoires de l'image.
+      #    Sans eux, le bind mount du point 1 cacherait le node_modules
+      #    compile pour Alpine et remplacerait par celui de l'hote (compile
+      #    pour macOS/Windows) -> better-sqlite3 refuserait de se charger.
+      - /app/node_modules
+      - /app/.next
+      # 3. La base vit hors du bind mount, dans un volume nomme
+      - db-data:/data
+    ports:
+      - "${PORT:-3000}:3000"
+    restart: unless-stopped
+
+  # -------------------------------------------------------------------------
+  # PROD : image standalone, non-root, sans code source monte
+  # -------------------------------------------------------------------------
+  web:
+    profiles: ["prod"]
+    build:
+      context: .
+      target: runner
+    image: profilsactifs:latest
+    container_name: profilsactifs
+    environment:
+      <<: *app-env
+      NODE_ENV: production
+    volumes:
+      # Seul point d'ecriture persistant. Le reste du systeme de fichiers
+      # peut rester en lecture seule (voir read_only ci-dessous).
+      - db-data:/data
+    ports:
+      - "${PORT:-3000}:3000"
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/.next/cache
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  # Volume nomme : survit a `docker compose down`. Seul `down -v` le detruit.
+  # Contient profilsactifs.db + les fichiers -wal et -shm du mode WAL.
+  db-data:

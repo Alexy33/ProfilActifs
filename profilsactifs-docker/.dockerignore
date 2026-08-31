@@ -1,0 +1,36 @@
+# Tout ce qui est ici n'est jamais envoye au daemon Docker.
+# Objectif : contexte de build leger + aucun secret dans l'image.
+
+node_modules
+.next
+out
+build
+dist
+
+.git
+.gitignore
+.github
+
+# Secrets : ne DOIVENT jamais entrer dans une couche d'image
+.env
+.env.*
+!.env.example
+
+# Bases locales : la base de l'image vient du volume, pas du depot
+*.db
+*.db-shm
+*.db-wal
+/data
+
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+README.md
+docs/
+*.log
+npm-debug.log*
+coverage
+.vscode
+.idea
+.DS_Store
