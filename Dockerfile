@@ -34,10 +34,10 @@ COPY package.json package-lock.json ./
 
 # npm ci = installation deterministe depuis le lockfile (jamais "npm install"
 # dans une image : il pourrait resoudre des versions differentes).
-# --mount=type=cache garde le cache npm entre deux builds sans l'embarquer
-# dans la couche finale.
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci
+# Pas de --mount=type=cache ici : cette directive exige BuildKit/buildx, qui
+# n'est pas disponible sur toutes les machines de l'equipe. Le cache de couche
+# Docker suffit tant que package.json et le lockfile ne bougent pas.
+RUN npm ci
 
 # ---------------------------------------------------------------------------
 # 3. DEV : cible utilisee par le profil "dev" du docker-compose

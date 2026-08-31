@@ -1,2 +1,0 @@
-# Ce dossier accueille les migrations generees par drizzle-kit.
-# Il doit exister dans le depot : le Dockerfile le copie dans l image finale.

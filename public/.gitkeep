@@ -1,0 +1,2 @@
+# Ce dossier doit exister : le Dockerfile fait COPY /app/public.
+# Il accueillera les assets statiques (logo ministere, images).

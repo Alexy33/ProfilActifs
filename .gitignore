@@ -1,0 +1,43 @@
+# dependances
+/node_modules
+/.pnp
+.pnp.*
+
+# next
+/.next/
+/out/
+next-env.d.ts
+
+# production
+/build
+/dist
+
+# tests
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/coverage
+
+# base de donnees locale (hors Docker) : jamais versionnee
+*.db
+*.db-shm
+*.db-wal
+/data
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# divers
+.DS_Store
+*.pem
+*.log
+npm-debug.log*
+.vscode/*
+!.vscode/extensions.json
+.idea
+/backups
+
+*.tsbuildinfo

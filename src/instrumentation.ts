@@ -10,7 +10,7 @@ export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
 
   const { migrate } = await import("drizzle-orm/better-sqlite3/migrator");
-  const { db } = await import("./src/db");
+  const { db } = await import("./db");
 
   try {
     migrate(db, { migrationsFolder: "./drizzle" });
