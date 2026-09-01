@@ -61,14 +61,30 @@ export const ApiErrorSchema = named(
 );
 
 /** Reponses d'erreur reutilisables dans les definitions de route. */
-export const errorResponse = (description: string) => ({
+export const errorResponse = (description: string, example?: unknown) => ({
   description,
   schema: ApiErrorSchema,
+  ...(example !== undefined ? { example } : {}),
 });
 
+export const ERROR_BODY = {
+  unauthorized: {
+    error: { code: "unauthorized", message: "Authentification requise." },
+  },
+  forbidden: {
+    error: {
+      code: "forbidden",
+      message: "Cette ressource est reservee au role « candidate ».",
+    },
+  },
+  notFound: {
+    error: { code: "not_found", message: "Ressource introuvable." },
+  },
+} as const;
+
 export const AUTH_RESPONSES = {
-  "401": errorResponse("Aucune session valide."),
-  "403": errorResponse("Session valide, mais role insuffisant."),
+  "401": errorResponse("Aucune session valide.", ERROR_BODY.unauthorized),
+  "403": errorResponse("Session valide, mais role insuffisant.", ERROR_BODY.forbidden),
 } as const;
 
 export const VALIDATION_RESPONSE = {
@@ -76,7 +92,7 @@ export const VALIDATION_RESPONSE = {
 } as const;
 
 export const NOT_FOUND_RESPONSE = {
-  "404": errorResponse("Ressource introuvable."),
+  "404": errorResponse("Ressource introuvable.", ERROR_BODY.notFound),
 } as const;
 
 /* --------------------------------------------------------------------------

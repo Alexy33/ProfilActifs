@@ -1,16 +1,8 @@
 import { buildComponentSchemas } from "./schemas";
 import { operationOf, registeredRoutes } from "./routes";
 import { authPaths } from "./auth-paths";
+import { downgradeToOpenApi30 } from "./downgrade";
 import "./manifest";
-
-/**
- * Assemble la specification OpenAPI 3.1 servie a Scalar.
- *
- * Rien n'est ecrit a la main ici : les chemins viennent des routes reellement
- * enregistrees (via l'import de `manifest`), les schemas du registre Zod. La
- * seule exception est `auth-paths`, qui documente les routes de better-auth —
- * elles sont produites par une bibliotheque et ne passent pas par `defineRoute`.
- */
 
 const TAGS = [
   { name: "Systeme", description: "Sonde de sante et verification du socle." },
@@ -57,8 +49,8 @@ export function buildOpenApiDocument() {
       return acc;
     }, {});
 
-  return {
-    openapi: "3.1.0",
+  const document = {
+    openapi: "3.0.3",
     info: {
       title: "ProfilsActifs — API",
       version: "0.2.0",
@@ -95,6 +87,15 @@ export function buildOpenApiDocument() {
             "Cookie de session pose par better-auth. En production (HTTPS) il est prefixe `__Secure-`.",
         },
       },
+    },
+  };
+
+  return {
+    ...document,
+    paths: downgradeToOpenApi30(document.paths),
+    components: {
+      ...document.components,
+      schemas: downgradeToOpenApi30(document.components.schemas),
     },
   };
 }
