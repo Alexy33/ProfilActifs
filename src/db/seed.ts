@@ -409,11 +409,11 @@ async function wipe() {
  */
 async function createAccount(name: string, email: string, role: "candidate" | "recruiter" | "admin") {
   const result = await auth.api.signUpEmail({
-    body: { name, email, password: PASSWORD, role },
+    body: { name, email, password: PASSWORD },
   });
 
-  if (role === "admin") {
-    await db.update(user).set({ role: "admin" }).where(eq(user.id, result.user.id));
+  if (role !== "candidate") {
+    await db.update(user).set({ role }).where(eq(user.id, result.user.id));
   }
 
   return result.user.id;
