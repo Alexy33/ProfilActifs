@@ -111,7 +111,7 @@ export function StackPanel({
                 onChange={(e) => setPassword(e.target.value)}
               />
             </label>
-            <Button variant="primary" onClick={signIn} disabled={busy}>
+            <Button variant="default" onClick={signIn} disabled={busy}>
               Se connecter
             </Button>
           </div>
