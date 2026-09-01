@@ -16,7 +16,12 @@ import { registeredRoutes } from "../routes";
 const API_DIR = join(process.cwd(), "src/app/api");
 
 /** Routes servies par une bibliotheque ou qui servent la doc elle-meme. */
-const NOT_IN_MANIFEST = ["auth/[...all]/route.ts", "openapi/route.ts", "docs/route.ts"];
+const NOT_IN_MANIFEST = [
+  "auth/[...all]/route.ts",
+  "openapi/route.ts",
+  "docs/route.ts",
+  "swagger/route.ts",
+];
 
 function findRouteFiles(dir: string): string[] {
   const out: string[] = [];
