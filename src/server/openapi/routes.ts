@@ -22,6 +22,7 @@ export type Access = "authenticated" | "candidate" | "recruiter" | "admin";
 export interface ResponseSpec {
   description: string;
   schema?: z.ZodType;
+  example?: unknown;
 }
 
 type Infer<T> = T extends z.ZodType ? z.output<T> : undefined;
@@ -264,11 +265,15 @@ export function operationOf(route: RouteDefinition<any, any, any, any>) {
 
   const responses: Record<string, unknown> = {};
   for (const [status, spec] of Object.entries(route.responses)) {
+    const media = spec.schema
+      ? {
+          schema: schemaObject(spec.schema, "output"),
+          ...(spec.example !== undefined ? { example: spec.example } : {}),
+        }
+      : undefined;
     responses[status] = {
       description: spec.description,
-      ...(spec.schema
-        ? { content: { "application/json": { schema: schemaObject(spec.schema, "output") } } }
-        : {}),
+      ...(media ? { content: { "application/json": media } } : {}),
     };
   }
 

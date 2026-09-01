@@ -14,7 +14,7 @@ se decouvre sur [`/api/docs`](http://localhost:3000/api/docs).
 | Framework | Next.js 16 (App Router) | `src/app/` |
 | Authentification | better-auth (email + mot de passe, 3 roles) | `src/lib/auth.ts` |
 | Base de donnees | SQLite + Drizzle ORM | `src/db/` |
-| Documentation API | Scalar, generee depuis les routes | `/api/docs`, `src/server/openapi/` |
+| Documentation API | OpenAPI 3.0.3 generee depuis les routes — Swagger UI (`/api/swagger`) et Scalar (`/api/docs`) | `src/server/openapi/`, `docs/api-erreurs.md` |
 | Contrats d'API | Zod 4 (validation + OpenAPI) | `src/server/contracts/` |
 | Styles | Tailwind v4 | `src/app/globals.css` |
 | Composants | shadcn/ui | `src/components/ui/` |
@@ -92,8 +92,12 @@ Elle n'est pas decorative : chaque ligne est verifiee a l'execution.
 ## L'API
 
 Toute la surface est documentee et **essayable** sur
+[`/api/swagger`](http://localhost:3000/api/swagger) (Swagger UI) ou
 [`/api/docs`](http://localhost:3000/api/docs) (Scalar). La specification
-OpenAPI 3.1 brute est sur `/api/openapi`.
+**OpenAPI 3.0.3** brute est sur `/api/openapi` (copie hors ligne : `openapi.json`).
+Le catalogue des reponses d'erreur, avec les corps reels et des appels `curl`,
+est dans [`docs/api-erreurs.md`](docs/api-erreurs.md). Le schema de la base est
+dans [`docs/schema-bdd.md`](docs/schema-bdd.md).
 
 ### Une route se declare une seule fois
 
