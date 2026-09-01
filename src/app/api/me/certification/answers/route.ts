@@ -2,7 +2,7 @@ import { db } from "@/db";
 import { certificationAnswer } from "@/db/schema";
 import { ApiError } from "@/server/http";
 import { defineRoute } from "@/server/openapi/routes";
-import { AUTH_RESPONSES, VALIDATION_RESPONSE } from "@/server/contracts/common";
+import { AUTH_RESPONSES, errorResponse } from "@/server/contracts/common";
 import { CertificationStateSchema, SaveAnswersBody } from "@/server/contracts/certification";
 import { certificationState, loadQuestions, openAttempt } from "@/server/services/certification";
 
@@ -19,8 +19,25 @@ export const { PUT } = defineRoute({
   body: SaveAnswersBody,
   responses: {
     "200": { description: "Reponses enregistrees, etat mis a jour.", schema: CertificationStateSchema },
-    ...VALIDATION_RESPONSE,
+    "400": errorResponse("Corps invalide : `answers` absent, ou une valeur non entiere.", {
+      error: {
+        code: "bad_request",
+        message: "Parametres invalides (body).",
+        details: [
+          { path: "body.answers", message: "Invalid input: expected record, received undefined" },
+        ],
+      },
+    }),
     ...AUTH_RESPONSES,
+    "422": errorResponse(
+      "Corps valide, mais une cle ne designe aucune question, ou une valeur ne figure dans aucune option de la question visee.",
+      {
+        error: {
+          code: "unprocessable",
+          message: "Question inconnue : question-inexistante.",
+        },
+      },
+    ),
   },
   handler: async ({ session, body }) => {
     const attempt = await openAttempt(session.user.id);
