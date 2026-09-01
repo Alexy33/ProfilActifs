@@ -6,7 +6,14 @@ const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: "./e2e",
-  fullyParallel: true,
+
+  // Les tests d'un meme fichier s'executent en serie.
+  //
+  // Ils partagent une base SQLite unique : lancer en parallele le test qui
+  // modifie le questionnaire (administration) et celui qui calcule un score
+  // (certification) fait varier le bareme en cours de route, et le second
+  // echoue au hasard. Les fichiers, eux, restent paralleles entre eux.
+  fullyParallel: false,
   // Interdit un .only oublie dans un commit qui passerait la CI en silence.
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
