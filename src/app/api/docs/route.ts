@@ -9,4 +9,7 @@ export const GET = ApiReference({
   url: "/api/openapi",
   pageTitle: "ProfilsActifs — Documentation API",
   theme: "bluePlanet",
+  // Coupe l'assistant « Ask AI » que Scalar ajoute par defaut sur chaque route :
+  // il envoie la specification a un service tiers, inutile ici.
+  agent: { disabled: true },
 });
