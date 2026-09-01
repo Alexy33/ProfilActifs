@@ -9,13 +9,15 @@ const dbPath = (process.env.DATABASE_URL ?? "file:./local.db").replace(/^file:/,
 function connect() {
   const sqlite = new Database(dbPath);
 
+  // Installer l'attente AVANT toute pragma susceptible de prendre un verrou.
+  // `next build` charge plusieurs routes dans des workers paralleles : sans
+  // cela, deux connexions qui initialisent WAL en meme temps echouent aussitot.
+  sqlite.pragma("busy_timeout = 5000");
+
   // WAL : lectures concurrentes pendant une ecriture. Cree deux fichiers
   // voisins (.db-wal, .db-shm) : ils doivent etre sur le meme volume que la
   // base, d'ou un repertoire /data dedie et non un fichier monte tout seul.
   sqlite.pragma("journal_mode = WAL");
-
-  // Attente avant erreur "SQLITE_BUSY" si une ecriture est deja en cours.
-  sqlite.pragma("busy_timeout = 5000");
 
   // SQLite ne verifie PAS les cles etrangeres par defaut : a activer sur
   // chaque connexion.
