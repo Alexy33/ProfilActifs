@@ -1,0 +1,3326 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ProfilsActifs — API",
+    "version": "0.2.0",
+    "description": "API du demonstrateur ProfilsActifs (Ministere du Job et Bonheur, JEB/DNI/2026-003).\n\n**Authentification.** Les routes marquees d'un cadenas exigent une session.\nOuvrez-en une via `POST /api/auth/sign-in/email` : le cookie httpOnly est pose\nautomatiquement et accompagne les requetes suivantes. Depuis un front sur une\nautre origine, pensez a `credentials: \"include\"`.\n\n**Roles.** `candidate` (demandeur d'emploi), `recruiter`, `admin`. Une session\nvalide mais d'un role insuffisant recoit 403, jamais 401.\n\n**Erreurs.** Toutes les reponses non-2xx suivent le schema `ApiError`."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Environnement de developpement"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Systeme",
+      "description": "Sonde de sante et verification du socle."
+    },
+    {
+      "name": "Reference",
+      "description": "Vocabulaires fermes et compteurs publics."
+    },
+    {
+      "name": "Authentification",
+      "description": "Sessions better-auth (e-mail + mot de passe). Le cookie de session est httpOnly : le navigateur le pose et le renvoie seul, aucun jeton n'est a stocker cote front."
+    },
+    {
+      "name": "Catalogue",
+      "description": "Consultation publique des profils publies (CDC 2.1, 3.4)."
+    },
+    {
+      "name": "Espace demandeur",
+      "description": "Gestion de son propre profil et de ses notifications (CDC 2.1, 2.3)."
+    },
+    {
+      "name": "Certification",
+      "description": "Questionnaire et badge JEB (CDC 2.2)."
+    },
+    {
+      "name": "Espace recruteur",
+      "description": "Favoris, prise de contact et suivi des candidats (CDC 2.1)."
+    },
+    {
+      "name": "Administration",
+      "description": "Moderation, gestion des questions et pilotage du dispositif (CDC 2.1)."
+    }
+  ],
+  "paths": {
+    "/api/admin/profiles": {
+      "get": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "File de moderation",
+        "description": "Tous les profils, quel que soit leur statut — c'est la seule route qui expose les profils non publies.",
+        "operationId": "getAdminProfiles",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "published",
+                "removed"
+              ]
+            },
+            "description": "Filtre optionnel. Sans lui, tous les profils sont renvoyes."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profils a moderer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModerationQueue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/admin/profiles/{id}": {
+      "patch": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Moderer un profil",
+        "description": "Publie, retire ou remet en attente un profil, et notifie son titulaire.",
+        "operationId": "patchAdminProfilesById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Identifiant de la ressource."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerateProfileInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Statut applique.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModerationRow"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource introuvable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/admin/questions": {
+      "get": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Questions et ponderations",
+        "description": "Vue complete du bareme, ponderations et points par reponse compris.",
+        "operationId": "getAdminQuestions",
+        "responses": {
+          "200": {
+            "description": "Questions dans l'ordre d'affichage.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminQuestionList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Ajouter une question",
+        "description": "La question est ajoutee en fin de questionnaire et compte des la tentative suivante.",
+        "operationId": "postAdminQuestions",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateQuestionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Question creee.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminQuestion"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/admin/questions/{id}": {
+      "patch": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Modifier une question",
+        "description": "Mise a jour partielle. Fournir `options` remplace TOUTES les reponses de la question : les reponses deja enregistrees par les candidats en cours de tentative peuvent alors ne plus correspondre.",
+        "operationId": "patchAdminQuestionsById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Identifiant de la ressource."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateQuestionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Question mise a jour.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminQuestion"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource introuvable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Supprimer une question",
+        "description": "Les reponses deja enregistrees pour cette question sont supprimees avec elle (cascade), ce qui modifie le bareme des tentatives en cours.",
+        "operationId": "deleteAdminQuestionsById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Identifiant de la ressource."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Question supprimee.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ok"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource introuvable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/admin/settings": {
+      "get": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Reglages du dispositif",
+        "operationId": "getAdminSettings",
+        "responses": {
+          "200": {
+            "description": "Reglages courants.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Modifier les reglages",
+        "description": "Le nouveau seuil s'applique aux tentatives validees APRES la modification : les certifications deja delivrees ne sont pas recalculees.",
+        "operationId": "patchAdminSettings",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSettingsInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reglages mis a jour.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/admin/stats": {
+      "get": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Tableau de bord du dispositif",
+        "operationId": "getAdminStats",
+        "responses": {
+          "200": {
+            "description": "Compteurs globaux.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminStats"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/auth/get-session": {
+      "get": {
+        "tags": [
+          "Authentification"
+        ],
+        "summary": "Session courante",
+        "operationId": "authGetSession",
+        "description": "Renvoie `null` (et non 401) lorsqu'aucune session n'est ouverte : c'est la route que le front interroge au chargement.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session courante, ou null.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/SessionUser"
+                    },
+                    "session": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/sign-in/email": {
+      "post": {
+        "tags": [
+          "Authentification"
+        ],
+        "summary": "Ouvrir une session",
+        "operationId": "authSignInEmail",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session ouverte. Le cookie httpOnly est pose sur la reponse.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/SessionUser"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Identifiants invalides ou compte inexistant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/sign-out": {
+      "post": {
+        "tags": [
+          "Authentification"
+        ],
+        "summary": "Fermer la session",
+        "operationId": "authSignOut",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session fermee, cookie efface."
+          }
+        }
+      }
+    },
+    "/api/auth/sign-up/email": {
+      "post": {
+        "tags": [
+          "Authentification"
+        ],
+        "summary": "Creer un compte",
+        "operationId": "authSignUpEmail",
+        "description": "Un compte `candidate` cree aussi un profil vide, en attente de moderation. Un compte `recruiter` n'en cree pas.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password",
+                  "name"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 4
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "role": {
+                    "$ref": "#/components/schemas/UserRole"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session ouverte. Le cookie httpOnly est pose sur la reponse.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/SessionUser"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identifiants invalides ou compte inexistant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/certification/questions": {
+      "get": {
+        "tags": [
+          "Certification"
+        ],
+        "summary": "Questionnaire de certification",
+        "description": "Les ponderations ne sont PAS exposees ici : les connaitre permettrait d'optimiser ses reponses. Elles ne figurent que dans la vue administration.",
+        "operationId": "getCertificationQuestions",
+        "responses": {
+          "200": {
+            "description": "Questions dans l'ordre d'affichage.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Questionnaire"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": [
+          "Systeme"
+        ],
+        "summary": "Etat de l'application et de la base",
+        "description": "Sonde utilisee par le HEALTHCHECK Docker.",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Application et base operationnelles.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Base injoignable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me/certification": {
+      "get": {
+        "tags": [
+          "Certification"
+        ],
+        "summary": "Etat de ma certification",
+        "description": "Tout ce dont l'ecran a besoin en un appel : avancement, reponses deja enregistrees, seuil et resultat s'il existe.",
+        "operationId": "getMeCertification",
+        "responses": {
+          "200": {
+            "description": "Etat de la tentative courante.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificationState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/me/certification/answers": {
+      "put": {
+        "tags": [
+          "Certification"
+        ],
+        "summary": "Enregistrer des reponses",
+        "description": "Appelable a chaque question : la progression est conservee si le candidat quitte le questionnaire. Les reponses envoyees sont fusionnees avec les precedentes, jamais substituees en bloc.",
+        "operationId": "putMeCertificationAnswers",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveAnswersInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reponses enregistrees, etat mis a jour.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificationState"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/me/certification/restart": {
+      "post": {
+        "tags": [
+          "Certification"
+        ],
+        "summary": "Repasser le questionnaire",
+        "description": "Ouvre une tentative vierge. Les tentatives precedentes sont conservees pour le suivi du dispositif ; aucun delai de carence n'est applique.",
+        "operationId": "postMeCertificationRestart",
+        "responses": {
+          "200": {
+            "description": "Nouvelle tentative ouverte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificationState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/me/certification/submit": {
+      "post": {
+        "tags": [
+          "Certification"
+        ],
+        "summary": "Valider le questionnaire et calculer le score",
+        "description": "Cloture la tentative. Au-dessus du seuil, le badge JEB apparait sur le profil public. En dessous, une certification deja acquise n'est pas retiree.",
+        "operationId": "postMeCertificationSubmit",
+        "responses": {
+          "200": {
+            "description": "Score calcule.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/me/contacts": {
+      "get": {
+        "tags": [
+          "Espace recruteur"
+        ],
+        "summary": "Candidats que j'ai contactes",
+        "description": "Le pipeline de suivi du recruteur, du plus recemment contacte au plus ancien.",
+        "operationId": "getMeContacts",
+        "responses": {
+          "200": {
+            "description": "Lignes de suivi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/me/contacts/{id}": {
+      "patch": {
+        "tags": [
+          "Espace recruteur"
+        ],
+        "summary": "Faire avancer un candidat dans le suivi",
+        "description": "Seul le recruteur a l'origine du contact peut en changer le statut.",
+        "operationId": "patchMeContactsById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Identifiant de la ressource."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateContactInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Statut mis a jour.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactStatusUpdated"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource introuvable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/me/favorites": {
+      "get": {
+        "tags": [
+          "Espace recruteur"
+        ],
+        "summary": "Mes profils en favoris",
+        "operationId": "getMeFavorites",
+        "responses": {
+          "200": {
+            "description": "Favoris du recruteur, les plus recents en tete.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/me/favorites/{profileId}": {
+      "put": {
+        "tags": [
+          "Espace recruteur"
+        ],
+        "summary": "Ajouter un profil aux favoris",
+        "description": "Idempotent : ajouter deux fois le meme profil ne cree pas de doublon.",
+        "operationId": "putMeFavoritesByProfileId",
+        "parameters": [
+          {
+            "name": "profileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profil en favoris.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ok"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource introuvable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Espace recruteur"
+        ],
+        "summary": "Retirer un profil des favoris",
+        "description": "Idempotent : retirer un profil absent des favoris repond 200.",
+        "operationId": "deleteMeFavoritesByProfileId",
+        "parameters": [
+          {
+            "name": "profileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profil retire des favoris.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ok"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/me/notifications": {
+      "get": {
+        "tags": [
+          "Espace demandeur"
+        ],
+        "summary": "Mes notifications",
+        "description": "Ouverte a tous les roles connectes, meme si seuls les candidats en recoivent aujourd'hui.",
+        "operationId": "getMeNotifications",
+        "responses": {
+          "200": {
+            "description": "Notifications, les plus recentes en tete.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/me/notifications/read": {
+      "post": {
+        "tags": [
+          "Espace demandeur"
+        ],
+        "summary": "Marquer toutes mes notifications comme lues",
+        "operationId": "postMeNotificationsRead",
+        "responses": {
+          "200": {
+            "description": "Notifications marquees.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkedRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/me/profile": {
+      "get": {
+        "tags": [
+          "Espace demandeur"
+        ],
+        "summary": "Mon profil",
+        "description": "Le candidat voit exactement ce que voient les recruteurs, statut de moderation compris.",
+        "operationId": "getMeProfile",
+        "responses": {
+          "200": {
+            "description": "Profil du candidat connecte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource introuvable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Espace demandeur"
+        ],
+        "summary": "Mettre a jour mon profil",
+        "description": "Mise a jour partielle : n'envoyez que les champs modifies. Le statut de moderation, le score et les compteurs ne sont pas modifiables ici.",
+        "operationId": "patchMeProfile",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profil mis a jour.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource introuvable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/me/stats": {
+      "get": {
+        "tags": [
+          "Espace recruteur"
+        ],
+        "summary": "Compteurs de mon tableau de bord",
+        "operationId": "getMeStats",
+        "responses": {
+          "200": {
+            "description": "Compteurs du recruteur connecte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecruiterStats"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/ping": {
+      "post": {
+        "tags": [
+          "Systeme"
+        ],
+        "summary": "Ecrit une ligne en base (verification du socle)",
+        "description": "Route de demonstration : a supprimer avec la table `ping`.",
+        "operationId": "postPing",
+        "responses": {
+          "200": {
+            "description": "Nombre total de pings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ping"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profiles": {
+      "get": {
+        "tags": [
+          "Catalogue"
+        ],
+        "summary": "Catalogue des profils publies",
+        "description": "Seuls les profils au statut `published` sont servis. Les certifies remontent en tete. La taille de page est plafonnee a 20 (CDC 3.4).",
+        "operationId": "getProfiles",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Numero de page, a partir de 1."
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 12,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            },
+            "description": "Nombre d'elements par page (plafond reglementaire : 20)."
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Recherche libre sur le nom, l'intitule, le secteur et les competences."
+          },
+          {
+            "name": "sector",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Numérique",
+                "Santé",
+                "Logistique",
+                "Éducation",
+                "Bâtiment",
+                "Commerce",
+                "Industrie"
+              ]
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Paris",
+                "Lyon",
+                "Marseille",
+                "Lille",
+                "Nantes",
+                "Bordeaux",
+                "Strasbourg",
+                "Toulouse"
+              ]
+            }
+          },
+          {
+            "name": "certified",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "description": "true : uniquement les profils certifies JEB."
+          },
+          {
+            "name": "skills",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Communication",
+                  "Organisation",
+                  "Adaptabilité",
+                  "Travail en équipe",
+                  "Autonomie",
+                  "Rigueur",
+                  "Relation client",
+                  "Gestion de projet"
+                ]
+              }
+            },
+            "description": "Repeter le parametre pour cumuler : un profil doit posseder TOUTES les competences demandees.",
+            "style": "form",
+            "explode": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page de resultats.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfilePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profiles/{id}": {
+      "get": {
+        "tags": [
+          "Catalogue"
+        ],
+        "summary": "Fiche publique d'un profil",
+        "description": "Chaque appel incremente le compteur de vues affiche au candidat. Un profil non publie repond 404, y compris a un recruteur.",
+        "operationId": "getProfilesById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Identifiant de la ressource."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profil trouve.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource introuvable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profiles/{id}/contact": {
+      "post": {
+        "tags": [
+          "Espace recruteur"
+        ],
+        "summary": "Prendre contact avec un candidat",
+        "description": "Cree la ligne de suivi, incremente le compteur de contacts du profil et notifie le candidat (CDC 2.3). Recontacter le meme candidat met a jour le message existant plutot que d'ouvrir un second suivi.",
+        "operationId": "postProfilesByIdContact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Identifiant de la ressource."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendContactInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Contact enregistre.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource introuvable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/reference": {
+      "get": {
+        "tags": [
+          "Reference"
+        ],
+        "summary": "Vocabulaires et bornes du dispositif",
+        "description": "A appeler une fois au demarrage du front pour alimenter les listes deroulantes. Evite de recopier secteurs, villes et competences dans le code client.",
+        "operationId": "getReference",
+        "responses": {
+          "200": {
+            "description": "Vocabulaires fermes et reglages courants.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reference"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/stats": {
+      "get": {
+        "tags": [
+          "Reference"
+        ],
+        "summary": "Compteurs publics du dispositif",
+        "description": "Chiffres affiches sur la page d'accueil. Accessible sans session.",
+        "operationId": "getStats",
+        "responses": {
+          "200": {
+            "description": "Compteurs a jour.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicStats"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Sector": {
+        "type": "string",
+        "enum": [
+          "Numérique",
+          "Santé",
+          "Logistique",
+          "Éducation",
+          "Bâtiment",
+          "Commerce",
+          "Industrie"
+        ]
+      },
+      "City": {
+        "type": "string",
+        "enum": [
+          "Paris",
+          "Lyon",
+          "Marseille",
+          "Lille",
+          "Nantes",
+          "Bordeaux",
+          "Strasbourg",
+          "Toulouse"
+        ]
+      },
+      "Skill": {
+        "type": "string",
+        "enum": [
+          "Communication",
+          "Organisation",
+          "Adaptabilité",
+          "Travail en équipe",
+          "Autonomie",
+          "Rigueur",
+          "Relation client",
+          "Gestion de projet"
+        ]
+      },
+      "ProfileStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "published",
+          "removed"
+        ],
+        "description": "pending : cree, en attente de moderation. published : visible au catalogue. removed : retire par l'administration."
+      },
+      "ContactStatus": {
+        "type": "string",
+        "enum": [
+          "À qualifier",
+          "Entretien planifié",
+          "Retenu",
+          "Écarté"
+        ]
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": [
+          "candidate",
+          "recruiter",
+          "admin"
+        ]
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "bad_request",
+                  "unauthorized",
+                  "forbidden",
+                  "not_found",
+                  "conflict",
+                  "unprocessable",
+                  "internal"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "description": "Present uniquement sur les erreurs de validation.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false,
+        "description": "Forme unique de toutes les reponses d'erreur de l'API."
+      },
+      "PageMeta": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer",
+            "description": "Nombre total d'elements correspondant au filtre."
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page",
+          "pageSize",
+          "total",
+          "totalPages"
+        ],
+        "additionalProperties": false
+      },
+      "Ok": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": false,
+        "description": "Accuse de reception sans contenu utile."
+      },
+      "SessionUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "image": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "emailVerified",
+          "role"
+        ],
+        "additionalProperties": false
+      },
+      "Health": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok"
+          },
+          "db": {
+            "type": "string",
+            "const": "up"
+          },
+          "ts": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "status",
+          "db",
+          "ts"
+        ],
+        "additionalProperties": false
+      },
+      "Ping": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total"
+        ],
+        "additionalProperties": false
+      },
+      "Reference": {
+        "type": "object",
+        "properties": {
+          "sectors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Sector"
+            }
+          },
+          "cities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/City"
+            }
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            }
+          },
+          "profileStatuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileStatus"
+            }
+          },
+          "contactStatuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactStatus"
+            }
+          },
+          "certificationThreshold": {
+            "type": "integer"
+          },
+          "catalogPageSize": {
+            "type": "integer"
+          },
+          "maxPageSize": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sectors",
+          "cities",
+          "skills",
+          "profileStatuses",
+          "contactStatuses",
+          "certificationThreshold",
+          "catalogPageSize",
+          "maxPageSize"
+        ],
+        "additionalProperties": false
+      },
+      "PublicStats": {
+        "type": "object",
+        "properties": {
+          "publishedProfiles": {
+            "type": "integer"
+          },
+          "certificationRate": {
+            "type": "integer"
+          },
+          "questionCount": {
+            "type": "integer"
+          },
+          "recruiterContacts": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "publishedProfiles",
+          "certificationRate",
+          "questionCount",
+          "recruiterContacts"
+        ],
+        "additionalProperties": false
+      },
+      "ProfileCard": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nom du titulaire du compte."
+          },
+          "initials": {
+            "type": "string",
+            "description": "Initiales pretes a afficher dans une pastille."
+          },
+          "title": {
+            "type": "string"
+          },
+          "sector": {
+            "$ref": "#/components/schemas/Sector"
+          },
+          "city": {
+            "$ref": "#/components/schemas/City"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            }
+          },
+          "certified": {
+            "type": "boolean"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Nul tant que la certification n'est pas obtenue."
+          },
+          "views": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "initials",
+          "title",
+          "sector",
+          "city",
+          "skills",
+          "certified",
+          "score",
+          "views"
+        ],
+        "additionalProperties": false
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nom du titulaire du compte."
+          },
+          "initials": {
+            "type": "string",
+            "description": "Initiales pretes a afficher dans une pastille."
+          },
+          "title": {
+            "type": "string"
+          },
+          "sector": {
+            "$ref": "#/components/schemas/Sector"
+          },
+          "city": {
+            "$ref": "#/components/schemas/City"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            }
+          },
+          "certified": {
+            "type": "boolean"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Nul tant que la certification n'est pas obtenue."
+          },
+          "views": {
+            "type": "integer"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "videoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProfileStatus"
+          },
+          "contactCount": {
+            "type": "integer"
+          },
+          "certifiedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "initials",
+          "title",
+          "sector",
+          "city",
+          "skills",
+          "certified",
+          "score",
+          "views",
+          "bio",
+          "videoUrl",
+          "status",
+          "contactCount",
+          "certifiedAt",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "MyProfile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nom du titulaire du compte."
+          },
+          "initials": {
+            "type": "string",
+            "description": "Initiales pretes a afficher dans une pastille."
+          },
+          "title": {
+            "type": "string"
+          },
+          "sector": {
+            "$ref": "#/components/schemas/Sector"
+          },
+          "city": {
+            "$ref": "#/components/schemas/City"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            }
+          },
+          "certified": {
+            "type": "boolean"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Nul tant que la certification n'est pas obtenue."
+          },
+          "views": {
+            "type": "integer"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "videoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProfileStatus"
+          },
+          "contactCount": {
+            "type": "integer"
+          },
+          "certifiedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "initials",
+          "title",
+          "sector",
+          "city",
+          "skills",
+          "certified",
+          "score",
+          "views",
+          "bio",
+          "videoUrl",
+          "status",
+          "contactCount",
+          "certifiedAt",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "ProfilePage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileCard"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          }
+        },
+        "required": [
+          "items",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateProfileInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "sector": {
+            "$ref": "#/components/schemas/Sector"
+          },
+          "city": {
+            "$ref": "#/components/schemas/City"
+          },
+          "bio": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "videoUrl": {
+            "description": "URL de la presentation video (YouTube, Vimeo). null pour la retirer.",
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "skills": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Contact": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ProfileCard"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContactStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "profile",
+          "message",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "Favorite": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/ProfileCard"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "profile",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "SendContactInput": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateContactInput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ContactStatus"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "RecruiterStats": {
+        "type": "object",
+        "properties": {
+          "contacted": {
+            "type": "integer"
+          },
+          "favorites": {
+            "type": "integer"
+          },
+          "interviewsPlanned": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "contacted",
+          "favorites",
+          "interviewsPlanned"
+        ],
+        "additionalProperties": false
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "contact",
+              "moderation",
+              "certification"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "read": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "text",
+          "read",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "NotificationList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Notification"
+            }
+          },
+          "unread": {
+            "type": "integer",
+            "description": "Nombre de notifications non lues."
+          }
+        },
+        "required": [
+          "items",
+          "unread"
+        ],
+        "additionalProperties": false
+      },
+      "MarkedRead": {
+        "type": "object",
+        "properties": {
+          "marked": {
+            "type": "integer",
+            "description": "Nombre de notifications passees a lues."
+          }
+        },
+        "required": [
+          "marked"
+        ],
+        "additionalProperties": false
+      },
+      "Question": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "position": {
+            "type": "integer"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "label"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "position",
+          "options"
+        ],
+        "additionalProperties": false
+      },
+      "AdminQuestion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "position": {
+            "type": "integer"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "integer",
+                  "description": "Points rapportes par cette reponse."
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "weight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "position",
+          "options",
+          "weight"
+        ],
+        "additionalProperties": false
+      },
+      "Questionnaire": {
+        "type": "object",
+        "properties": {
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            }
+          },
+          "threshold": {
+            "type": "integer",
+            "description": "Score minimal, sur 100, pour obtenir le badge JEB."
+          }
+        },
+        "required": [
+          "questions",
+          "threshold"
+        ],
+        "additionalProperties": false
+      },
+      "CertificationState": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "in_progress",
+              "submitted"
+            ],
+            "description": "Etat de la tentative courante."
+          },
+          "answers": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Reponses enregistrees, indexees par identifiant de question."
+          },
+          "answered": {
+            "type": "integer"
+          },
+          "questionCount": {
+            "type": "integer"
+          },
+          "threshold": {
+            "type": "integer"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "passed": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "submittedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "answers",
+          "answered",
+          "questionCount",
+          "threshold",
+          "score",
+          "passed",
+          "submittedAt"
+        ],
+        "additionalProperties": false
+      },
+      "SaveAnswersInput": {
+        "type": "object",
+        "properties": {
+          "answers": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Reponses a fusionner avec celles deja enregistrees."
+          }
+        },
+        "required": [
+          "answers"
+        ],
+        "additionalProperties": false
+      },
+      "CertificationResult": {
+        "type": "object",
+        "properties": {
+          "score": {
+            "type": "integer",
+            "description": "Score obtenu, sur 100."
+          },
+          "threshold": {
+            "type": "integer"
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "certified": {
+            "type": "boolean",
+            "description": "Etat de certification du profil apres calcul."
+          }
+        },
+        "required": [
+          "score",
+          "threshold",
+          "passed",
+          "certified"
+        ],
+        "additionalProperties": false
+      },
+      "FavoriteList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Favorite"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "ContactList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Contact"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "ContactStatusUpdated": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContactStatus"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "AdminStats": {
+        "type": "object",
+        "properties": {
+          "publishedProfiles": {
+            "type": "integer"
+          },
+          "pendingProfiles": {
+            "type": "integer"
+          },
+          "removedProfiles": {
+            "type": "integer"
+          },
+          "certificationRate": {
+            "type": "integer",
+            "description": "Part des profils publies qui sont certifies, en pourcentage."
+          },
+          "questionCount": {
+            "type": "integer"
+          },
+          "recruiterContacts": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "publishedProfiles",
+          "pendingProfiles",
+          "removedProfiles",
+          "certificationRate",
+          "questionCount",
+          "recruiterContacts"
+        ],
+        "additionalProperties": false
+      },
+      "ModerationRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "videoUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProfileStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "title",
+          "videoUrl",
+          "status",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "ModerateProfileInput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ProfileStatus"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "CreateQuestionInput": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "weight": {
+            "default": 2,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "options": {
+            "minItems": 2,
+            "maxItems": 6,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Points rapportes par cette reponse."
+                }
+              },
+              "required": [
+                "label",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Au moins deux reponses possibles."
+          }
+        },
+        "required": [
+          "text",
+          "weight",
+          "options"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateQuestionInput": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "weight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "options": {
+            "description": "Remplace l'integralite des reponses de la question.",
+            "minItems": 2,
+            "maxItems": 6,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Points rapportes par cette reponse."
+                }
+              },
+              "required": [
+                "label",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Settings": {
+        "type": "object",
+        "properties": {
+          "certificationThreshold": {
+            "type": "integer",
+            "description": "Score minimal, sur 100, pour delivrer le badge JEB."
+          },
+          "catalogPageSize": {
+            "type": "integer",
+            "description": "Taille de page par defaut du catalogue."
+          }
+        },
+        "required": [
+          "certificationThreshold",
+          "catalogPageSize"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateSettingsInput": {
+        "type": "object",
+        "properties": {
+          "certificationThreshold": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "catalogPageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModerationQueue": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModerationRow"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "AdminQuestionList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminQuestion"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "better-auth.session_token",
+        "description": "Cookie de session pose par better-auth. En production (HTTPS) il est prefixe `__Secure-`."
+      }
+    }
+  }
+}
