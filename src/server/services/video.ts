@@ -2,15 +2,14 @@ import { createReadStream } from "node:fs";
 import { mkdir, rm, stat, readdir, rename } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { Readable } from "node:stream";
+import { MAX_VIDEO_BYTES, VIDEO_EXTENSION_BY_MIME } from "@/lib/video";
 
-export const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
+// Plafond et formats acceptes vivent dans `src/lib/video.ts` : l'interface doit
+// pouvoir les lire pour refuser un fichier avant de l'envoyer, et elle ne peut
+// pas importer ce module-ci (node:fs). Une seule definition, deux lecteurs.
+export { MAX_VIDEO_BYTES };
 
-const EXTENSION_BY_MIME: Record<string, string> = {
-  "video/mp4": "mp4",
-  "video/webm": "webm",
-  "video/ogg": "ogv",
-  "video/quicktime": "mov",
-};
+const EXTENSION_BY_MIME = VIDEO_EXTENSION_BY_MIME;
 
 const MIME_BY_EXTENSION: Record<string, string> = {
   mp4: "video/mp4",
@@ -60,6 +59,10 @@ export async function saveProfileVideo(
 
   await deleteProfileVideo(profileId);
 
+  // `turbopackIgnore` : le dossier de stockage est resolu a l'execution
+  // (DATABASE_URL ou VIDEO_UPLOAD_DIR), donc Turbopack ne peut pas le borner
+  // statiquement et trace TOUT le projet dans la sortie standalone — sources et
+  // local.db compris. Le chemin reste confine a `storageDir()`.
   const finalPath = join(dir, `${profileId}.${extension}`);
   const partPath = `${finalPath}.part`;
 
