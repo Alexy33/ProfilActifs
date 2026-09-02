@@ -8,6 +8,7 @@ import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { TagToggle } from "@/components/ui/tag";
 import { CITIES, SECTORS, SKILLS, type City, type Sector, type Skill } from "@/lib/vocabulary";
 import type { FullProfile } from "@/server/services/profiles";
+import { VideoField } from "./video-field";
 
 type Draft = {
   name: string;
@@ -15,7 +16,6 @@ type Draft = {
   sector: Sector;
   city: City;
   bio: string;
-  videoUrl: string;
   skills: Skill[];
 };
 
@@ -37,7 +37,6 @@ export function ProfileForm({ profile }: { profile: FullProfile }) {
       sector: profile.sector,
       city: profile.city,
       bio: profile.bio,
-      videoUrl: profile.videoUrl ?? "",
       skills: profile.skills,
     }),
     [profile],
@@ -66,8 +65,7 @@ export function ProfileForm({ profile }: { profile: FullProfile }) {
           : next !== previous;
 
       if (!changed) continue;
-      // `videoUrl` vide veut dire « retirer la video » : le contrat accepte null.
-      patch[key] = key === "videoUrl" && next === "" ? null : next;
+      patch[key] = next;
     }
 
     if (Object.keys(patch).length === 0) return;
@@ -163,17 +161,9 @@ export function ProfileForm({ profile }: { profile: FullProfile }) {
         />
       </Field>
 
-      <Field
-        label="Vidéo de présentation (YouTube / Vimeo)"
-        htmlFor="p-video"
-        className="mt-3.5"
-      >
-        <Input
-          id="p-video"
-          value={draft.videoUrl}
-          onChange={(event) => set("videoUrl", event.target.value)}
-        />
-      </Field>
+      {/* La video a ses propres routes (lien externe vs fichier televerse) :
+          elle ne peut pas partager l'enregistrement automatique ci-dessus. */}
+      <VideoField videoUrl={profile.videoUrl} />
 
       <Field label="Compétences transversales" className="mt-4">
         <div className="flex flex-wrap gap-1.5">
