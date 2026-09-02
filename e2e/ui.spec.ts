@@ -202,6 +202,43 @@ test.describe("Espace demandeur", () => {
   });
 });
 
+test.describe("Vidéo de présentation", () => {
+  test("televerse un fichier depuis l'espace, le lit, puis le retire", async ({ page }) => {
+    await signIn(page, ACCOUNTS.candidate);
+    await page.goto("/mon-espace");
+
+    // Un MP4 factice suffit : le serveur ne verifie que le Content-Type, pas
+    // les octets (choix assume, cf. docs/video.md §5).
+    await page.getByLabel("Fichier vidéo de présentation").setInputFiles({
+      name: "presentation.mp4",
+      mimeType: "video/mp4",
+      buffer: Buffer.alloc(4096, 0x21),
+    });
+
+    await expect(page.getByTestId("toast")).toContainText("téléversée");
+    const player = page.getByTestId("video-player");
+    await expect(player).toBeVisible();
+
+    // Le lecteur pointe sur notre API, pas sur une plateforme externe.
+    await expect(player).toHaveAttribute("src", /^\/api\/videos\//);
+
+    // Le champ d'URL disparait : l'adresse est fabriquee par le serveur.
+    await expect(page.getByLabel("Lien YouTube ou Vimeo")).toHaveCount(0);
+
+    // La fiche publique lit le meme fichier.
+    await page.getByRole("link", { name: /Voir mon profil public/ }).click();
+    await page.waitForURL(/\/profils\//);
+    await expect(page.getByTestId("video-player")).toBeVisible();
+
+    // Retrait : la planche « aucune vidéo » revient, et le champ d'URL aussi.
+    await page.goto("/mon-espace");
+    await page.getByRole("button", { name: "Retirer la vidéo" }).click();
+    await expect(page.getByTestId("toast")).toContainText("retirée");
+    await expect(page.getByTestId("video-player")).toHaveCount(0);
+    await expect(page.getByLabel("Lien YouTube ou Vimeo")).toBeVisible();
+  });
+});
+
 test.describe("Espace recruteur", () => {
   test("favori, prise de contact et avancement du suivi", async ({ page }) => {
     await signIn(page, ACCOUNTS.recruiter);
