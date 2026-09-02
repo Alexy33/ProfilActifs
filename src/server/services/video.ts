@@ -63,7 +63,7 @@ export async function saveProfileVideo(
   // (DATABASE_URL ou VIDEO_UPLOAD_DIR), donc Turbopack ne peut pas le borner
   // statiquement et trace TOUT le projet dans la sortie standalone — sources et
   // local.db compris. Le chemin reste confine a `storageDir()`.
-  const finalPath = join(dir, `${profileId}.${extension}`);
+  const finalPath = join(/* turbopackIgnore: true */ dir, `${profileId}.${extension}`);
   const partPath = `${finalPath}.part`;
 
   const { createWriteStream } = await import("node:fs");
@@ -111,7 +111,7 @@ export async function findProfileVideo(
       (name) => name.startsWith(`${profileId}.`) && !name.endsWith(".part"),
     );
     if (!match) return null;
-    const path = join(dir, match);
+    const path = join(/* turbopackIgnore: true */ dir, match);
     const info = await stat(path);
     const ext = match.split(".").pop()?.toLowerCase() ?? "";
     return { path, size: info.size, mime: MIME_BY_EXTENSION[ext] ?? "application/octet-stream" };
@@ -127,7 +127,7 @@ export async function deleteProfileVideo(profileId: string): Promise<void> {
     await Promise.all(
       entries
         .filter((name) => name.startsWith(`${profileId}.`))
-        .map((name) => rm(join(dir, name), { force: true })),
+        .map((name) => rm(join(/* turbopackIgnore: true */ dir, name), { force: true })),
     );
   } catch {
     /* dossier absent */
