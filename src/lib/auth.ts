@@ -22,7 +22,7 @@ export const auth = betterAuth({
     // Pas d'envoi de mail dans le demonstrateur : un compte est utilisable
     // des sa creation (CDC : aucune exigence de verification par e-mail).
     requireEmailVerification: false,
-    minPasswordLength: 4,
+    minPasswordLength: 8,
   },
 
   user: {
@@ -33,7 +33,7 @@ export const auth = betterAuth({
         type: "string",
         required: false,
         defaultValue: "candidate",
-        input: true,
+        input: false,
       },
     },
   },
