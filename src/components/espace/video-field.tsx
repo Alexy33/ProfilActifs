@@ -14,6 +14,7 @@ import {
   describeVideo,
   formatBytes,
 } from "@/lib/video";
+import type { VideoStatus } from "@/lib/vocabulary";
 
 /**
  * Video de presentation : lien externe OU fichier televerse.
@@ -27,7 +28,17 @@ import {
  * (`/api/videos/{id}?t=…`). Le champ URL disparait alors : la laisser
  * modifiable inviterait a ecraser a la main une adresse interne.
  */
-export function VideoField({ videoUrl }: { videoUrl: string | null }) {
+export function VideoField({
+  videoUrl,
+  videoStatus,
+  videoReviewReason,
+  isMinor,
+}: {
+  videoUrl: string | null;
+  videoStatus: VideoStatus;
+  videoReviewReason: string | null;
+  isMinor: boolean;
+}) {
   const router = useRouter();
   const toast = useToast();
   const fileInput = React.useRef<HTMLInputElement>(null);
@@ -115,6 +126,60 @@ export function VideoField({ videoUrl }: { videoUrl: string | null }) {
       <div className="max-w-[420px]">
         <VideoFrame videoUrl={videoUrl} />
       </div>
+
+      {/* Etat de la moderation. Le candidat doit savoir pourquoi sa video
+          n'est pas visible : une video qui disparait sans explication est un
+          contentieux qui commence (mesure Cabinet du 2026-09-02, point 2). */}
+      {videoUrl ? (
+        <div className="mt-3 max-w-[420px]">
+          {videoStatus === "pending" ? (
+            <div
+              data-testid="video-status-pending"
+              className="border border-accent bg-accent-100/60 px-3 py-2.5 text-[12.5px] leading-[1.55] text-accent-800"
+            >
+              <strong>En attente de validation.</strong> Votre vidéo a bien été enregistrée.
+              Elle n&apos;est pas encore visible des recruteurs ni du public : l&apos;équipe du
+              dispositif doit d&apos;abord la valider.
+            </div>
+          ) : null}
+
+          {videoStatus === "rejected" ? (
+            <div
+              role="alert"
+              data-testid="video-status-rejected"
+              className="border border-accent-600 bg-accent-100 px-3 py-2.5 text-[12.5px] leading-[1.55] text-accent-800"
+            >
+              <strong>Vidéo refusée.</strong>
+              {videoReviewReason ? (
+                <> Motif : {videoReviewReason}</>
+              ) : null}{" "}
+              Vous pouvez en déposer une nouvelle : elle repassera en validation.
+            </div>
+          ) : null}
+
+          {videoStatus === "approved" && !isMinor ? (
+            <div
+              data-testid="video-status-approved"
+              className="border border-divider px-3 py-2.5 text-[12.5px] leading-[1.55] text-text/70"
+            >
+              <strong>Vidéo validée.</strong> Elle est visible sur votre profil public.
+            </div>
+          ) : null}
+
+          {/* Parcours 16-18 ans : la video n'est pas publiee, quelle que soit
+              la decision de moderation. */}
+          {isMinor ? (
+            <div
+              data-testid="video-status-minor"
+              className="mt-2 border border-divider px-3 py-2.5 text-[12.5px] leading-[1.55] text-text/70"
+            >
+              Vous avez moins de 18 ans : votre vidéo n&apos;est pas diffusée publiquement et
+              votre profil n&apos;apparaît pas au catalogue. Vous restez accompagné par un
+              référent du dispositif.
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {uploaded ? (
         <div className="mt-3 flex flex-wrap items-center gap-2">

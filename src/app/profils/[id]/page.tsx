@@ -25,9 +25,9 @@ export default async function ProfilPage({ params }: { params: Promise<{ id: str
 
   if (!profile || profile.status !== "published") notFound();
 
-  // La consultation compte, comme dans l'API.
+  // La consultation compte, comme dans l'API — mais le compteur n'est plus
+  // affiche publiquement (mesure Cabinet du 2026-09-02, point 3).
   await recordProfileView(profile.id);
-  const views = profile.views + 1;
 
   const session = await getSession();
   const isRecruiter = roleOf(session) === "recruiter";
@@ -103,19 +103,9 @@ export default async function ProfilPage({ params }: { params: Promise<{ id: str
           )}
 
           <Blueprint className="flex flex-col gap-3.5 p-[22px]">
-            <div className="grid grid-cols-2 gap-3.5">
-              <div>
-                <div data-testid="profile-views" className="font-heading text-[30px] leading-none">
-                  {views}
-                </div>
-                <div className="text-[11.5px] text-text/55">vues du profil</div>
-              </div>
-              <div>
-                <div className="font-heading text-[30px] leading-none">{profile.contactCount}</div>
-                <div className="text-[11.5px] text-text/55">contacts reçus</div>
-              </div>
-            </div>
-
+            {/* Les compteurs d'engagement (vues, contacts recus) ne figurent
+                plus sur la fiche publique : ils restent visibles du seul
+                titulaire, dans « Mon espace ». */}
             {isRecruiter ? (
               <div data-testid="profile-actions" className="flex flex-col gap-2">
                 <ContactDialog profileId={profile.id} name={profile.name} />

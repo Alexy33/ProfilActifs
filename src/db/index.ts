@@ -33,9 +33,23 @@ let instance: ReturnType<typeof connect> | null = null;
  * compilation chargent les routes en parallele et se disputent le meme
  * fichier SQLite (SQLITE_BUSY). Ici, rien n'est ouvert tant qu'une requete
  * n'a pas reellement lieu. L'usage reste identique : `db.select()...`.
+ *
+ * `drizzleAdapter` (better-auth) lit `db._?.schema` AU MOMENT DE L'APPEL,
+ * pour indexer les relations Drizzle. Cette seule lecture suffisait a ouvrir
+ * la base des qu'un module important `@/lib/auth` etait charge — donc pendant
+ * la collecte des pages du build, en parallele, d'ou le SQLITE_BUSY.
+ *
+ * `_` est donc servi sans connexion. Renvoyer `undefined` est exact et non un
+ * contournement : le schema (src/db/schema.ts) ne declare aucune relation
+ * Drizzle, et l'adaptateur traite ce cas (`relationRegistry ?? {}`). Le
+ * schema, lui, est passe explicitement a `drizzleAdapter` dans src/lib/auth.ts,
+ * donc `db._.fullSchema` n'est jamais consulte. Toute autre propriete, et
+ * toute lecture de `_` apres connexion, passe par la vraie instance.
  */
 export const db = new Proxy({} as ReturnType<typeof connect>, {
   get(_target, prop, receiver) {
+    // Sonde de better-auth : repondre sans ouvrir la base.
+    if (prop === "_" && instance === null) return undefined;
     instance ??= connect();
     return Reflect.get(instance, prop, receiver);
   },

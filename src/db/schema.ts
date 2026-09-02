@@ -7,6 +7,7 @@ import {
   SECTORS,
   SKILLS,
   USER_ROLES,
+  VIDEO_STATUSES,
   mutable,
 } from "@/lib/vocabulary";
 
@@ -32,6 +33,11 @@ export const user = sqliteTable("user", {
   role: text("role", { enum: mutable(USER_ROLES) })
     .notNull()
     .default("candidate"),
+
+  // Date de naissance declarative (mesure Cabinet du 2026-09-02, point 1).
+  // Nullable : les comptes crees AVANT la mesure n'en ont pas. Une date
+  // absente vaut « age inconnu » et non « majeur » — cf. `isMinor`.
+  birthDate: integer("birth_date", { mode: "timestamp" }),
 
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
@@ -138,9 +144,37 @@ export const profile = sqliteTable("profile", {
   city: text("city", { enum: mutable(CITIES) }).notNull(),
   bio: text("bio").notNull().default(""),
 
-  // Presentation video : le dispositif reference une URL (YouTube, Vimeo), il
-  // n'heberge pas les fichiers.
+  // Presentation video : le dispositif reference une URL (YouTube, Vimeo) ou
+  // sert un fichier televerse.
   videoUrl: text("video_url"),
+
+  /* Moderation A PRIORI de la video (mesure Cabinet du 2026-09-02, point 2).
+   *
+   * Une video n'est visible d'un recruteur ou du public que dans l'etat
+   * `approved`. L'etat vit sur le profil et non dans une table dediee : il y a
+   * au plus une video par profil, et la jointure supplementaire couterait a
+   * chaque carte du catalogue. */
+  videoStatus: text("video_status", { enum: mutable(VIDEO_STATUSES) })
+    .notNull()
+    .default("pending"),
+
+  // Motif de refus, porte a la connaissance du candidat dans son espace : une
+  // video qui disparait sans explication est un contentieux qui commence.
+  videoReviewReason: text("video_review_reason"),
+
+  // Trace de la decision : QUI a decide et QUAND. Exigence expresse du
+  // Cabinet. `videoReviewedBy` reference l'administrateur decideur.
+  videoReviewedBy: text("video_reviewed_by").references(() => user.id, {
+    onDelete: "set null",
+  }),
+  videoReviewedAt: integer("video_reviewed_at", { mode: "timestamp" }),
+
+  // Une video deja consultee par un recruteur avant la mesure ne peut pas etre
+  // « depubliee en silence » : on conserve le fait qu'elle a ete vue pour
+  // pouvoir le signaler au candidat comme a l'administration.
+  videoSeenBeforeReview: integer("video_seen_before_review", { mode: "boolean" })
+    .notNull()
+    .default(false),
 
   status: text("status", { enum: mutable(PROFILE_STATUSES) })
     .notNull()

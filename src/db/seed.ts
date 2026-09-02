@@ -45,6 +45,15 @@ interface SeedProfile {
   views: number;
   contactCount: number;
   status: "published" | "pending";
+  /**
+   * Age du titulaire (mesure Cabinet du 2026-09-02, point 1).
+   *
+   * Les comptes de demonstration DOIVENT porter une date de naissance : le
+   * Cabinet a explicitement demande que les jeux de demonstration ne fassent
+   * pas exception, faute de quoi la demonstration montrerait un catalogue
+   * peuple de profils qu'aucune verification d'age n'a traverses.
+   */
+  age: number;
 }
 
 const PROFILES: SeedProfile[] = [
@@ -60,6 +69,7 @@ const PROFILES: SeedProfile[] = [
     views: 214,
     contactCount: 6,
     status: "published",
+    age: 31,
   },
   {
     name: "Karim Vasseur",
@@ -73,6 +83,7 @@ const PROFILES: SeedProfile[] = [
     views: 168,
     contactCount: 4,
     status: "published",
+    age: 28,
   },
   {
     name: "Sonia Delaunay-Frey",
@@ -86,6 +97,7 @@ const PROFILES: SeedProfile[] = [
     views: 402,
     contactCount: 11,
     status: "published",
+    age: 38,
   },
   {
     name: "Mathieu Ozanne",
@@ -99,6 +111,7 @@ const PROFILES: SeedProfile[] = [
     views: 96,
     contactCount: 2,
     status: "published",
+    age: 34,
   },
   {
     name: "Fatou Nguyen",
@@ -112,6 +125,7 @@ const PROFILES: SeedProfile[] = [
     views: 311,
     contactCount: 9,
     status: "published",
+    age: 41,
   },
   {
     name: "Tristan Lebel",
@@ -125,6 +139,7 @@ const PROFILES: SeedProfile[] = [
     views: 74,
     contactCount: 1,
     status: "published",
+    age: 29,
   },
   {
     name: "Leïla Amrani",
@@ -138,6 +153,7 @@ const PROFILES: SeedProfile[] = [
     views: 132,
     contactCount: 3,
     status: "published",
+    age: 36,
   },
   {
     name: "Pierre-Yves Caron",
@@ -151,6 +167,7 @@ const PROFILES: SeedProfile[] = [
     views: 187,
     contactCount: 5,
     status: "published",
+    age: 27,
   },
   {
     name: "Marion Estève",
@@ -164,6 +181,7 @@ const PROFILES: SeedProfile[] = [
     views: 205,
     contactCount: 7,
     status: "published",
+    age: 33,
   },
   {
     name: "Yann Kervella",
@@ -177,6 +195,7 @@ const PROFILES: SeedProfile[] = [
     views: 61,
     contactCount: 0,
     status: "published",
+    age: 45,
   },
   {
     name: "Nadia Chevallier",
@@ -190,6 +209,7 @@ const PROFILES: SeedProfile[] = [
     views: 143,
     contactCount: 3,
     status: "published",
+    age: 24,
   },
   {
     name: "Olivier Ranucci",
@@ -203,6 +223,7 @@ const PROFILES: SeedProfile[] = [
     views: 88,
     contactCount: 1,
     status: "pending",
+    age: 26,
   },
   {
     name: "Claire Bonnefoy",
@@ -216,6 +237,27 @@ const PROFILES: SeedProfile[] = [
     views: 356,
     contactCount: 12,
     status: "published",
+    age: 39,
+  },
+  {
+    /* Parcours 16-18 ans (mesure Cabinet du 2026-09-02, point 1).
+     *
+     * Present dans le jeu de demonstration pour que la mesure soit VERIFIABLE :
+     * ce profil est `published` et pourtant absent du catalogue public, et sa
+     * video n'est diffusee nulle part. Sans ce cas, rien ne prouverait a la
+     * demonstration que l'exclusion fonctionne. */
+    name: "Enzo Ferrandi",
+    email: "enzo.ferrandi@exemple.fr",
+    title: "Apprenti en maintenance",
+    sector: "Industrie",
+    city: "Lyon",
+    skills: ["Rigueur", "Travail en équipe"],
+    score: 0,
+    bio: "En apprentissage, je cherche une alternance pour la rentrée prochaine.",
+    views: 0,
+    contactCount: 0,
+    status: "published",
+    age: 17,
   },
   {
     name: "Sébastien Marchal",
@@ -229,6 +271,7 @@ const PROFILES: SeedProfile[] = [
     views: 119,
     contactCount: 2,
     status: "pending",
+    age: 43,
   },
 ];
 
@@ -392,9 +435,24 @@ async function wipe() {
  * d'administration est donc promu ensuite, en base : c'est volontairement le
  * seul chemin qui y mene.
  */
-async function createAccount(name: string, email: string, role: "candidate" | "recruiter" | "admin") {
+/** Date de naissance correspondant a un age revolu donne. */
+function birthDateForAge(age: number): Date {
+  const date = new Date();
+  date.setUTCFullYear(date.getUTCFullYear() - age);
+  // Recule d'un jour : garantit que l'age est bien REVOLU, meme si le seed est
+  // rejoue le jour anniversaire.
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date;
+}
+
+async function createAccount(
+  name: string,
+  email: string,
+  role: "candidate" | "recruiter" | "admin",
+  age: number,
+) {
   const result = await auth.api.signUpEmail({
-    body: { name, email, password: PASSWORD, role },
+    body: { name, email, password: PASSWORD, role, birthDate: birthDateForAge(age) },
   });
 
   if (role === "admin") {
@@ -437,7 +495,7 @@ async function seed() {
 
   console.log("[seed] comptes et profils…");
   for (const item of PROFILES) {
-    const userId = await createAccount(item.name, item.email, "candidate");
+    const userId = await createAccount(item.name, item.email, "candidate", item.age);
 
     // Le hook better-auth a deja cree un profil vide : on le complete.
     const certifiedAt = item.score > 0 ? new Date() : null;
@@ -452,6 +510,10 @@ async function seed() {
         // l'espace demandeur sert a en televerser une (ou a coller un lien).
         // Referencer de fausses URL YouTube donnerait un lecteur « video
         // indisponible » sur chaque fiche du catalogue.
+        //
+        // `videoStatus` reste donc a son defaut `pending` : aucune video
+        // n'est pre-validee, la moderation a priori s'applique des le premier
+        // depot (mesure Cabinet du 2026-09-02, point 2).
         videoUrl: null,
         status: item.status,
         score: item.score > 0 ? item.score : null,
@@ -469,12 +531,13 @@ async function seed() {
     }
   }
 
-  await createAccount("Hélène Vaugirard", "recruteur@exemple.fr", "recruiter");
-  await createAccount("Thomas Vignal", "admin@jeb.gouv.fr", "admin");
+  await createAccount("Hélène Vaugirard", "recruteur@exemple.fr", "recruiter", 44);
+  await createAccount("Thomas Vignal", "admin@jeb.gouv.fr", "admin", 51);
 
   console.log(`[seed] termine — ${PROFILES.length} profils, ${QUESTIONS.length} questions.`);
   console.log(`[seed] comptes de demonstration (mot de passe « ${PASSWORD} ») :`);
-  console.log("  amina@exemple.fr      candidate");
+  console.log("  amina@exemple.fr      candidate (31 ans)");
+  console.log("  enzo.ferrandi@exemple.fr candidate (17 ans — hors catalogue)");
   console.log("  recruteur@exemple.fr  recruiter");
   console.log("  admin@jeb.gouv.fr     admin");
 }

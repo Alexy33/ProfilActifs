@@ -14,10 +14,28 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
 
 const PASSWORD = "demo";
 
+/**
+ * Date de naissance d'un majeur, exigee a l'inscription depuis la mesure
+ * Cabinet du 2026-09-02 (point 1) : une inscription sans date est refusee.
+ */
+function adultBirthDate(): string {
+  const date = new Date();
+  date.setUTCFullYear(date.getUTCFullYear() - 30);
+  return date.toISOString();
+}
+
 async function signIn(request: APIRequestContext, email: string) {
-  const response = await request.post("/api/auth/sign-in/email", {
+  // better-auth plafonne les routes d'authentification en production (429) :
+  // on reessaie plutot que de desactiver la protection pour les tests.
+  let response = await request.post("/api/auth/sign-in/email", {
     data: { email, password: PASSWORD },
   });
+  for (let i = 0; i < 8 && response.status() === 429; i += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 11_000));
+    response = await request.post("/api/auth/sign-in/email", {
+      data: { email, password: PASSWORD },
+    });
+  }
   expect(response.status(), `connexion de ${email}`).toBe(200);
 }
 
@@ -89,14 +107,21 @@ test.describe("Controle d'acces", () => {
   test("l'inscription publique ne peut pas fabriquer un administrateur", async ({ request }) => {
     // Le role est un champ d'inscription, donc fourni par le client : sans
     // garde-fou cote serveur, n'importe qui obtiendrait la moderation.
-    const response = await request.post("/api/auth/sign-up/email", {
-      data: {
-        name: "Tentative",
-        email: `escalade-${Date.now()}@test.fr`,
-        password: PASSWORD,
-        role: "admin",
-      },
-    });
+    const payload = {
+      name: "Tentative",
+      email: `escalade-${Date.now()}@test.fr`,
+      password: PASSWORD,
+      role: "admin",
+      birthDate: adultBirthDate(),
+    };
+
+    // better-auth limite le debit des routes d'authentification en production
+    // (429) : on reessaie plutot que de desactiver la protection.
+    let response = await request.post("/api/auth/sign-up/email", { data: payload });
+    for (let i = 0; i < 6 && response.status() === 429; i += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 11_000));
+      response = await request.post("/api/auth/sign-up/email", { data: payload });
+    }
 
     expect(response.status()).toBe(200);
     expect((await response.json()).user.role).toBe("candidate");

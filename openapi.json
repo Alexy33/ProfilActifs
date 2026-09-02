@@ -759,6 +759,198 @@
         ]
       }
     },
+    "/api/admin/videos": {
+      "get": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "File de moderation des videos",
+        "description": "Videos deposees et leur etat de validation. Les videos deja consultees avant la mise en place de la moderation a priori remontent en tete : ce sont les cas a traiter en priorite.",
+        "operationId": "getAdminVideos",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "approved",
+                "rejected"
+              ]
+            },
+            "description": "Filtre optionnel. Sans lui, toutes les videos sont renvoyees."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Videos a moderer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoQueue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Authentification requise."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "forbidden",
+                    "message": "Cette ressource est reservee au role « candidate »."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/admin/videos/{id}": {
+      "patch": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Valider ou refuser une video",
+        "description": "Moderation A PRIORI : une video n'est diffusee qu'une fois `approved`. Un refus exige un motif, qui est notifie au candidat dans son espace. La decision est tracee (auteur et horodatage).",
+        "operationId": "patchAdminVideosById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Identifiant de la ressource."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewVideoInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Decision enregistree.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoReviewRow"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Authentification requise."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "forbidden",
+                    "message": "Cette ressource est reservee au role « candidate »."
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource introuvable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "not_found",
+                    "message": "Ressource introuvable."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
     "/api/auth/get-session": {
       "get": {
         "tags": [
@@ -1868,7 +2060,7 @@
           "Espace demandeur"
         ],
         "summary": "Mettre a jour mon profil",
-        "description": "Mise a jour partielle : n'envoyez que les champs modifies. Le statut de moderation, le score et les compteurs ne sont pas modifiables ici.",
+        "description": "Mise a jour partielle : n'envoyez que les champs modifies. Le statut de moderation, le score et les compteurs ne sont pas modifiables ici. `birthDate` n'est acceptee que si le compte n'en porte pas encore (regularisation des comptes anterieurs a la verification d'age).",
         "operationId": "patchMeProfile",
         "requestBody": {
           "required": true,
@@ -1976,7 +2168,7 @@
         ],
         "summary": "Téléverser ma vidéo de présentation",
         "operationId": "putMeProfileVideo",
-        "description": "Upload direct (CDC §3.2). Le corps de la requête est le fichier lui-même ;\n`Content-Type` porte son type. Plafond : **100 Mo**, appliqué en streaming\n(la requête n'est jamais bufferisée entièrement).\n\nAprès succès, `videoUrl` pointe vers `GET /api/videos/{profileId}`.",
+        "description": "Upload direct (CDC §3.2). Le corps de la requête est le fichier lui-même ;\n`Content-Type` porte son type. Plafond : **100 Mo**, appliqué en streaming\n(la requête n'est jamais bufferisée entièrement).\n\nAprès succès, `videoUrl` pointe vers `GET /api/videos/{profileId}`.\n\n**Modération a priori** : tout dépôt place la vidéo en `pending`. Elle\nn'est servie ni au public ni aux recruteurs tant qu'un administrateur\nne l'a pas validée (`PATCH /api/admin/videos/{id}`). Remplacer une\nvidéo déjà validée la replace en attente.",
         "security": [
           {
             "sessionCookie": []
@@ -2080,7 +2272,7 @@
         ],
         "summary": "Retirer ma vidéo de présentation",
         "operationId": "deleteMeProfileVideo",
-        "description": "Supprime le fichier et remet `videoUrl` à `null`. Idempotent.",
+        "description": "Supprime le fichier, remet `videoUrl` à `null` et réinitialise l'état de modération. Idempotent.",
         "security": [
           {
             "sessionCookie": []
@@ -2310,7 +2502,7 @@
                 "false"
               ]
             },
-            "description": "true : uniquement les profils dont la video de presentation est renseignee."
+            "description": "true : uniquement les profils dont la video de presentation est renseignee ET validee par la moderation."
           },
           {
             "name": "skills",
@@ -2379,7 +2571,7 @@
           "Catalogue"
         ],
         "summary": "Fiche publique d'un profil",
-        "description": "Chaque appel incremente le compteur de vues affiche au candidat. Un profil non publie repond 404, y compris a un recruteur.",
+        "description": "Chaque appel incremente le compteur de vues affiche au candidat dans son espace ; ce compteur n'est pas renvoye ici. Un profil non publie repond 404, y compris a un recruteur. Un profil de mineur repond 404 en toutes circonstances.",
         "operationId": "getProfilesById",
         "parameters": [
           {
@@ -2581,7 +2773,7 @@
         ],
         "summary": "Lire la vidéo d'un profil",
         "operationId": "getVideosById",
-        "description": "Sert le fichier téléversé. Gère l'en-tête `Range` : réponse **206 Partial\nContent** avec `Content-Range` quand le lecteur cherche dans la timeline\n(CDC §3.2, prévisionnement sans quitter la page).\n\nUn profil non `published` n'est servi qu'à son titulaire ou à un admin.",
+        "description": "Sert le fichier téléversé. Gère l'en-tête `Range` : réponse **206 Partial\nContent** avec `Content-Range` quand le lecteur cherche dans la timeline\n(CDC §3.2, prévisionnement sans quitter la page).\n\n**Accès restreint.** Le fichier n'est servi publiquement que si les trois\nconditions sont réunies : profil `published`, vidéo `approved`, et\ntitulaire majeur. Sinon, seuls le titulaire et un administrateur y\naccèdent ; tout autre appelant reçoit **404**, y compris en connaissant\nl'adresse directe.",
         "parameters": [
           {
             "name": "id",
@@ -2675,7 +2867,7 @@
             }
           },
           "404": {
-            "description": "Profil inconnu, vidéo absente, ou profil non visible.",
+            "description": "Profil inconnu, vidéo absente, vidéo non validée, profil non publié, ou titulaire mineur.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3000,6 +3192,306 @@
         ],
         "additionalProperties": false
       },
+      "AdminStats": {
+        "type": "object",
+        "properties": {
+          "publishedProfiles": {
+            "type": "integer"
+          },
+          "pendingProfiles": {
+            "type": "integer"
+          },
+          "removedProfiles": {
+            "type": "integer"
+          },
+          "certificationRate": {
+            "type": "integer",
+            "description": "Part des profils publies qui sont certifies, en pourcentage."
+          },
+          "questionCount": {
+            "type": "integer"
+          },
+          "recruiterContacts": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "publishedProfiles",
+          "pendingProfiles",
+          "removedProfiles",
+          "certificationRate",
+          "questionCount",
+          "recruiterContacts"
+        ],
+        "additionalProperties": false
+      },
+      "ModerationRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "videoUrl": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProfileStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isMinor": {
+            "type": "boolean",
+            "description": "Profil de mineur : exclu du catalogue public quel que soit son statut de moderation."
+          },
+          "birthDateMissing": {
+            "type": "boolean",
+            "description": "Compte cree avant l'entree en vigueur de la verification d'age : date de naissance a regulariser."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "title",
+          "videoUrl",
+          "status",
+          "createdAt",
+          "isMinor",
+          "birthDateMissing"
+        ],
+        "additionalProperties": false
+      },
+      "VideoStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "approved",
+          "rejected"
+        ],
+        "description": "Etat de moderation A PRIORI de la video : `pending` tant qu'elle n'a pas ete examinee, `approved` pour la rendre visible, `rejected` avec motif."
+      },
+      "VideoReviewRow": {
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "videoUrl": {
+            "nullable": true,
+            "type": "string"
+          },
+          "videoStatus": {
+            "$ref": "#/components/schemas/VideoStatus"
+          },
+          "videoReviewReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "reviewedByName": {
+            "description": "Administrateur ayant rendu la decision.",
+            "nullable": true,
+            "type": "string"
+          },
+          "reviewedAt": {
+            "nullable": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          "seenBeforeReview": {
+            "type": "boolean",
+            "description": "La video avait deja ete consultee avant la mise en place de la moderation a priori : a traiter en priorite."
+          },
+          "isMinor": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "profileId",
+          "name",
+          "title",
+          "videoUrl",
+          "videoStatus",
+          "videoReviewReason",
+          "reviewedByName",
+          "reviewedAt",
+          "seenBeforeReview",
+          "isMinor"
+        ],
+        "additionalProperties": false
+      },
+      "ReviewVideoInput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "rejected"
+            ]
+          },
+          "reason": {
+            "description": "Motif du refus, communique au candidat. Obligatoire si `rejected`.",
+            "nullable": true,
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "ModerateProfileInput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ProfileStatus"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "CreateQuestionInput": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "weight": {
+            "default": 2,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "options": {
+            "minItems": 2,
+            "maxItems": 6,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Points rapportes par cette reponse."
+                }
+              },
+              "required": [
+                "label",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Au moins deux reponses possibles."
+          }
+        },
+        "required": [
+          "text",
+          "weight",
+          "options"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateQuestionInput": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "weight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "options": {
+            "description": "Remplace l'integralite des reponses de la question.",
+            "minItems": 2,
+            "maxItems": 6,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Points rapportes par cette reponse."
+                }
+              },
+              "required": [
+                "label",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Settings": {
+        "type": "object",
+        "properties": {
+          "certificationThreshold": {
+            "type": "integer",
+            "description": "Score minimal, sur 100, pour delivrer le badge JEB."
+          },
+          "catalogPageSize": {
+            "type": "integer",
+            "description": "Taille de page par defaut du catalogue."
+          }
+        },
+        "required": [
+          "certificationThreshold",
+          "catalogPageSize"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateSettingsInput": {
+        "type": "object",
+        "properties": {
+          "certificationThreshold": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "catalogPageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          }
+        },
+        "additionalProperties": false
+      },
       "ProfileCard": {
         "type": "object",
         "properties": {
@@ -3037,11 +3529,8 @@
             "type": "integer",
             "description": "Nul tant que la certification n'est pas obtenue."
           },
-          "views": {
-            "type": "integer"
-          },
           "videoUrl": {
-            "description": "Lien externe ou `/api/videos/{id}` pour un fichier televerse. Nul si aucune video.",
+            "description": "Lien externe ou `/api/videos/{id}` pour un fichier televerse. Nul si aucune video, si la video n'est pas encore validee par la moderation, ou si le titulaire est mineur.",
             "nullable": true,
             "type": "string"
           }
@@ -3056,7 +3545,6 @@
           "skills",
           "certified",
           "score",
-          "views",
           "videoUrl"
         ],
         "additionalProperties": false
@@ -3098,11 +3586,8 @@
             "type": "integer",
             "description": "Nul tant que la certification n'est pas obtenue."
           },
-          "views": {
-            "type": "integer"
-          },
           "videoUrl": {
-            "description": "Lien externe ou `/api/videos/{id}` pour un fichier televerse. Nul si aucune video.",
+            "description": "Lien externe ou `/api/videos/{id}` pour un fichier televerse. Nul si aucune video, si la video n'est pas encore validee par la moderation, ou si le titulaire est mineur.",
             "nullable": true,
             "type": "string"
           },
@@ -3111,9 +3596,6 @@
           },
           "status": {
             "$ref": "#/components/schemas/ProfileStatus"
-          },
-          "contactCount": {
-            "type": "integer"
           },
           "certifiedAt": {
             "nullable": true,
@@ -3135,11 +3617,9 @@
           "skills",
           "certified",
           "score",
-          "views",
           "videoUrl",
           "bio",
           "status",
-          "contactCount",
           "certifiedAt",
           "createdAt"
         ],
@@ -3182,11 +3662,8 @@
             "type": "integer",
             "description": "Nul tant que la certification n'est pas obtenue."
           },
-          "views": {
-            "type": "integer"
-          },
           "videoUrl": {
-            "description": "Lien externe ou `/api/videos/{id}` pour un fichier televerse. Nul si aucune video.",
+            "description": "Lien externe ou `/api/videos/{id}` pour un fichier televerse. Nul si aucune video, si la video n'est pas encore validee par la moderation, ou si le titulaire est mineur.",
             "nullable": true,
             "type": "string"
           },
@@ -3196,9 +3673,6 @@
           "status": {
             "$ref": "#/components/schemas/ProfileStatus"
           },
-          "contactCount": {
-            "type": "integer"
-          },
           "certifiedAt": {
             "nullable": true,
             "type": "string",
@@ -3207,6 +3681,35 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "views": {
+            "type": "integer",
+            "description": "Visible du seul titulaire."
+          },
+          "contactCount": {
+            "type": "integer",
+            "description": "Visible du seul titulaire."
+          },
+          "videoStatus": {
+            "$ref": "#/components/schemas/VideoStatus"
+          },
+          "videoReviewReason": {
+            "description": "Motif du refus, le cas echeant.",
+            "nullable": true,
+            "type": "string"
+          },
+          "ownVideoUrl": {
+            "description": "Video du titulaire, servie meme en attente de validation : il doit pouvoir revoir ce qu'il a depose.",
+            "nullable": true,
+            "type": "string"
+          },
+          "isMinor": {
+            "type": "boolean",
+            "description": "Titulaire mineur : profil hors catalogue public et video non diffusee (parcours 16-18 ans)."
+          },
+          "birthDateMissing": {
+            "type": "boolean",
+            "description": "Compte anterieur a la verification d'age : date de naissance a declarer pour reparaitre au catalogue."
           }
         },
         "required": [
@@ -3219,13 +3722,18 @@
           "skills",
           "certified",
           "score",
-          "views",
           "videoUrl",
           "bio",
           "status",
-          "contactCount",
           "certifiedAt",
-          "createdAt"
+          "createdAt",
+          "views",
+          "contactCount",
+          "videoStatus",
+          "videoReviewReason",
+          "ownVideoUrl",
+          "isMinor",
+          "birthDateMissing"
         ],
         "additionalProperties": false
       },
@@ -3282,6 +3790,11 @@
             "items": {
               "$ref": "#/components/schemas/Skill"
             }
+          },
+          "birthDate": {
+            "description": "Date de naissance (AAAA-MM-JJ), uniquement pour un compte qui n'en porte pas encore. Refusee en dessous de 16 ans.",
+            "type": "string",
+            "format": "date"
           }
         },
         "additionalProperties": false
@@ -3709,209 +4222,6 @@
         ],
         "additionalProperties": false
       },
-      "AdminStats": {
-        "type": "object",
-        "properties": {
-          "publishedProfiles": {
-            "type": "integer"
-          },
-          "pendingProfiles": {
-            "type": "integer"
-          },
-          "removedProfiles": {
-            "type": "integer"
-          },
-          "certificationRate": {
-            "type": "integer",
-            "description": "Part des profils publies qui sont certifies, en pourcentage."
-          },
-          "questionCount": {
-            "type": "integer"
-          },
-          "recruiterContacts": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "publishedProfiles",
-          "pendingProfiles",
-          "removedProfiles",
-          "certificationRate",
-          "questionCount",
-          "recruiterContacts"
-        ],
-        "additionalProperties": false
-      },
-      "ModerationRow": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "videoUrl": {
-            "nullable": true,
-            "type": "string"
-          },
-          "status": {
-            "$ref": "#/components/schemas/ProfileStatus"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "title",
-          "videoUrl",
-          "status",
-          "createdAt"
-        ],
-        "additionalProperties": false
-      },
-      "ModerateProfileInput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "$ref": "#/components/schemas/ProfileStatus"
-          }
-        },
-        "required": [
-          "status"
-        ],
-        "additionalProperties": false
-      },
-      "CreateQuestionInput": {
-        "type": "object",
-        "properties": {
-          "text": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 500
-          },
-          "weight": {
-            "default": 2,
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 5
-          },
-          "options": {
-            "minItems": 2,
-            "maxItems": 6,
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "label": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 300
-                },
-                "value": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "description": "Points rapportes par cette reponse."
-                }
-              },
-              "required": [
-                "label",
-                "value"
-              ],
-              "additionalProperties": false
-            },
-            "description": "Au moins deux reponses possibles."
-          }
-        },
-        "required": [
-          "text",
-          "weight",
-          "options"
-        ],
-        "additionalProperties": false
-      },
-      "UpdateQuestionInput": {
-        "type": "object",
-        "properties": {
-          "text": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 500
-          },
-          "weight": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 5
-          },
-          "options": {
-            "description": "Remplace l'integralite des reponses de la question.",
-            "minItems": 2,
-            "maxItems": 6,
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "label": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 300
-                },
-                "value": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "description": "Points rapportes par cette reponse."
-                }
-              },
-              "required": [
-                "label",
-                "value"
-              ],
-              "additionalProperties": false
-            }
-          }
-        },
-        "additionalProperties": false
-      },
-      "Settings": {
-        "type": "object",
-        "properties": {
-          "certificationThreshold": {
-            "type": "integer",
-            "description": "Score minimal, sur 100, pour delivrer le badge JEB."
-          },
-          "catalogPageSize": {
-            "type": "integer",
-            "description": "Taille de page par defaut du catalogue."
-          }
-        },
-        "required": [
-          "certificationThreshold",
-          "catalogPageSize"
-        ],
-        "additionalProperties": false
-      },
-      "UpdateSettingsInput": {
-        "type": "object",
-        "properties": {
-          "certificationThreshold": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 100
-          },
-          "catalogPageSize": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 20
-          }
-        },
-        "additionalProperties": false
-      },
       "ModerationQueue": {
         "type": "object",
         "properties": {
@@ -3919,6 +4229,21 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ModerationRow"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "VideoQueue": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoReviewRow"
             }
           }
         },

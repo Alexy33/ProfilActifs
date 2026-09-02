@@ -8,6 +8,7 @@ import { certificationState } from "@/server/services/certification";
 import { listNotifications } from "@/server/services/dashboard";
 import { ProfileForm } from "@/components/espace/profile-form";
 import { NotificationsCard } from "@/components/espace/notifications-card";
+import { BirthDateNotice } from "@/components/espace/birthdate-notice";
 
 export const dynamic = "force-dynamic";
 
@@ -56,16 +57,26 @@ export default async function MonEspacePage() {
           </div>
           <h1 className="mt-2.5 text-[42px] leading-none uppercase">{profile.name}</h1>
         </div>
-        {profile.status === "published" ? (
+        {profile.status === "published" && !profile.isMinor ? (
           <Button asChild variant="secondary" className="h-9">
             <Link href={`/profils/${profile.id}`}>Voir mon profil public →</Link>
           </Button>
+        ) : profile.isMinor ? (
+          <div className="max-w-[46ch] text-right font-mono text-[11px] leading-[1.5] text-text/55">
+            {profile.birthDateMissing
+              ? "Date de naissance à renseigner — profil hors catalogue"
+              : "Moins de 18 ans — profil hors catalogue public"}
+          </div>
         ) : (
           <div className="font-mono text-[11px] text-text/55">
             Profil non publié — pas encore visible au catalogue
           </div>
         )}
       </div>
+
+      {/* Compte anterieur a la verification d'age : le profil est hors
+          catalogue tant que la date de naissance n'est pas declaree. */}
+      {profile.birthDateMissing ? <BirthDateNotice /> : null}
 
       {resumable ? (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-5 border border-accent bg-accent-100 px-5 py-4">

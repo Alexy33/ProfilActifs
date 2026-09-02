@@ -7,7 +7,7 @@ import { Blueprint } from "@/components/ui/blueprint";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { TagToggle } from "@/components/ui/tag";
 import { CITIES, SECTORS, SKILLS, type City, type Sector, type Skill } from "@/lib/vocabulary";
-import type { FullProfile } from "@/server/services/profiles";
+import type { OwnProfile } from "@/server/services/profiles";
 import { VideoField } from "./video-field";
 
 type Draft = {
@@ -27,7 +27,7 @@ type Draft = {
  * pas de bouton « Enregistrer » — mais il affiche toujours ou en est la
  * sauvegarde, faute de quoi l'utilisateur ne saurait pas si son texte est parti.
  */
-export function ProfileForm({ profile }: { profile: FullProfile }) {
+export function ProfileForm({ profile }: { profile: OwnProfile }) {
   const router = useRouter();
 
   const initial = React.useMemo<Draft>(
@@ -163,7 +163,14 @@ export function ProfileForm({ profile }: { profile: FullProfile }) {
 
       {/* La video a ses propres routes (lien externe vs fichier televerse) :
           elle ne peut pas partager l'enregistrement automatique ci-dessus. */}
-      <VideoField videoUrl={profile.videoUrl} />
+      <VideoField
+        // Le titulaire voit SA video meme non validee : `ownVideoUrl`, et non
+        // `videoUrl` qui est deja filtree pour le public.
+        videoUrl={profile.ownVideoUrl}
+        videoStatus={profile.videoStatus}
+        videoReviewReason={profile.videoReviewReason}
+        isMinor={profile.isMinor}
+      />
 
       <Field label="Compétences transversales" className="mt-4">
         <div className="flex flex-wrap gap-1.5">

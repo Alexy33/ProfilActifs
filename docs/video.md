@@ -72,8 +72,10 @@ Réponse `200` : `MyProfile`.
 ### `GET /api/videos/{id}` — lire
 
 - `id` = `profile.id`.
-- **Public** si le profil est `published` ; sinon réservé au titulaire ou à un
-  admin (même règle que la fiche).
+- **Public seulement si les trois conditions sont réunies** : profil
+  `published`, vidéo `approved`, titulaire majeur. Sinon, réservé au titulaire
+  ou à un admin ; tout autre appelant reçoit `404`, **y compris en connaissant
+  l'adresse directe** (cf. §6).
 - Gère l'en-tête **`Range`** → `206 Partial Content` avec `Content-Range`, pour
   que la balise `<video>` puisse chercher dans la timeline sans re-télécharger.
 - En-têtes : `Content-Type`, `Accept-Ranges: bytes`, `Cache-Control: private`.
@@ -90,7 +92,9 @@ curl -H 'Range: bytes=0-1048575' http://localhost:3000/api/videos/<profileId>
   `src/server/openapi/video-paths.ts` → visible dans Scalar (`/api/docs`) et
   Swagger (`/api/swagger`).
 - Couverture e2e : `e2e/video.spec.ts` (upload, `Range`, plafond 100 Mo, type
-  refusé, 401/403, suppression, présence dans la spec).
+  refusé, 401/403, suppression, présence dans la spec) et
+  `e2e/moderation-video.spec.ts` (inaccessibilité d'une vidéo en attente,
+  refus motivé, exclusion des mineurs, absence de compteurs publics).
 
 ## 5. Ce qui n'est volontairement pas fait (démonstrateur)
 
@@ -98,3 +102,74 @@ Pas de contrôle des *magic bytes* (seul le `Content-Type` est vérifié), pas d
 transcodage / vignette / antivirus, pas de table de métadonnées dédiée, pas de
 stockage objet. Pour du multi-instance, remplacer les fonctions de
 `video.ts` par un client S3 : les routes ne changent pas.
+
+## 6. Modération a priori (mesure Cabinet du 2026-09-02)
+
+Une vidéo déposée **n'est visible de personne** tant qu'un administrateur ne
+l'a pas validée. La modération *a posteriori* n'était pas tenable sur un
+service public : la responsabilité du contenu court dès sa mise en ligne.
+
+### États
+
+`profile.videoStatus` ∈ `pending` | `approved` | `rejected`.
+
+- Tout dépôt — fichier **ou** lien externe — place la vidéo en `pending`.
+  Remplacer une vidéo déjà validée la replace en attente : sans cela, on
+  validerait une vidéo anodine avant de lui en substituer une autre.
+- `rejected` porte un **motif obligatoire** (`videoReviewReason`), refusé au
+  niveau du contrat Zod et non seulement dans l'écran. Une vidéo qui disparaît
+  sans explication est un contentieux qui commence.
+- La décision est **tracée** : `videoReviewedBy` (l'administrateur) et
+  `videoReviewedAt`.
+
+### Où la règle est appliquée
+
+Une seule fonction décide, `isVideoPublic` / `publicVideoUrl`
+(`src/server/services/video-moderation.ts`), et **toutes** les lectures y
+passent : catalogue, fiche, favoris et suivi recruteur (via `toCard`), flux de
+fichier (`GET /api/videos/{id}`). Une route ne peut donc pas diverger par
+oubli — et le retrait porte sur ce que le **serveur renvoie**, pas seulement
+sur ce que la page affiche : `videoUrl` vaut `null` dans la réponse JSON.
+
+Le titulaire, lui, garde l'accès à son propre dépôt via `ownVideoUrl` : il doit
+pouvoir revoir ce qu'il a envoyé, et l'administration doit pouvoir le modérer.
+
+### Vidéos déjà déposées
+
+La migration `0002` bascule **toutes** les vidéos existantes en `pending` : une
+mesure qui ne s'appliquerait qu'aux dépôts futurs ne protégerait personne.
+Celles qui avaient déjà été consultées (profil avec `views > 0`) sont en outre
+marquées `videoSeenBeforeReview` : elles sont retirées comme les autres **et**
+signalées en tête de la file de modération, pour être traitées en priorité. Une
+vidéo déjà vue ne peut pas être « dé-vue », mais la laisser en ligne en
+attendant une revue reviendrait à maintenir un contenu non validé.
+
+### Vérification
+
+```bash
+# Vidéo en attente, adresse directe, aucune session (navigation privée) :
+curl -i http://localhost:3000/api/videos/<profileId>
+# → HTTP/1.1 404 Not Found
+#   {"error":{"code":"not_found","message":"Vidéo introuvable."}}
+```
+
+Capture jointe au dossier :
+`test-results/video-en-attente-navigation-privee.png`, produite par
+`e2e/moderation-video.spec.ts` dans un contexte de navigateur vierge.
+
+## 7. Âge et diffusion (mesure Cabinet du 2026-09-02, point 1)
+
+`user.birthDate` est **obligatoire** à l'inscription ; en dessous de 16 ans
+(`MIN_SIGNUP_AGE`) le compte n'est pas créé. Le contrôle vit dans le hook
+`databaseHooks.user.create.before` (`src/lib/auth.ts`) — c'est-à-dire sur le
+seul chemin de création de compte, l'écran seul étant contournable.
+
+En dessous de 18 ans (`MINOR_AGE`), le profil est **exclu du catalogue public**
+et la vidéo n'est jamais diffusée, même validée. Une date de naissance
+**absente** vaut « mineur » : les comptes antérieurs à la mesure sont donc
+retirés du catalogue tant qu'ils ne sont pas régularisés, le doute ne profitant
+pas à la publication.
+
+L'exclusion est faite **en SQL, avant le comptage et la pagination**
+(`searchCatalog`) : filtrée après coup, elle afficherait « 12 résultats » en
+n'en montrant que 9.

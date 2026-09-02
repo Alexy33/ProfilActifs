@@ -32,8 +32,10 @@ export function ProfileCard({
             ) : null}
           </div>
           <div className="mt-0.5 text-[13.5px] text-text/75">{profile.title}</div>
+          {/* Ni vues ni contacts : un compteur d'engagement public revient a
+              classer des personnes par popularite (mesure Cabinet, point 3). */}
           <div className="mt-1.5 font-mono text-[11px] text-text/55">
-            {profile.sector} · {profile.city} · {profile.views} vues
+            {profile.sector} · {profile.city}
           </div>
         </div>
       </div>

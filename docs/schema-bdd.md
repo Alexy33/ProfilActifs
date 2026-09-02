@@ -83,8 +83,15 @@ renommer. `user.role` est le seul ajout maison.
 | `email_verified` | booléen | NOT NULL | `false` |
 | `image` | text | NULL | — |
 | `role` | text (`candidate` \| `recruiter` \| `admin`) | NOT NULL | `'candidate'` |
+| `birth_date` | timestamp | NULL | — date de naissance déclarative (cf. note) |
 | `created_at` | timestamp | NOT NULL | `unixepoch()` |
 | `updated_at` | timestamp | NOT NULL | `unixepoch()` |
+
+> **`birth_date`** — mesure Cabinet du 2026-09-02. Obligatoire à l'inscription
+> (refus strict sous 16 ans, appliqué côté serveur dans `src/lib/auth.ts`), mais
+> la colonne reste **nullable** : les comptes créés avant la mesure n'en portent
+> pas. Une valeur absente vaut « âge inconnu », traitée comme **mineur** —
+> le profil est alors hors du catalogue public. Voir `docs/video.md` §7.
 
 #### `session`
 
@@ -135,13 +142,28 @@ renommer. `user.role` est le seul ajout maison.
 | `sector` | text (7 secteurs) | NOT NULL | — |
 | `city` | text (8 villes) | NOT NULL | — |
 | `bio` | text | NOT NULL | `''` |
-| `video_url` | text | NULL | — URL YouTube/Vimeo, jamais un fichier |
+| `video_url` | text | NULL | — URL YouTube/Vimeo, ou `/api/videos/{id}` |
+| `video_status` | text (`pending` \| `approved` \| `rejected`) | NOT NULL | `'pending'` |
+| `video_review_reason` | text | NULL | — motif du refus, communiqué au candidat |
+| `video_reviewed_by` | text | NULL, **FK → `user.id`** (SET NULL) | — administrateur décideur |
+| `video_reviewed_at` | timestamp | NULL | — horodatage de la décision |
+| `video_seen_before_review` | booléen | NOT NULL | `false` — vidéo consultée avant la modération |
 | `status` | text (`pending` \| `published` \| `removed`) | NOT NULL | `'pending'` |
 | `score` | integer | NULL | — dernier score de certification obtenu |
 | `certified_at` | timestamp | NULL | — fait foi pour le badge JEB |
-| `views` | integer | NOT NULL | `0` — compteur dénormalisé |
-| `contact_count` | integer | NOT NULL | `0` — compteur dénormalisé |
+| `views` | integer | NOT NULL | `0` — compteur dénormalisé, **jamais public** |
+| `contact_count` | integer | NOT NULL | `0` — compteur dénormalisé, **jamais public** |
 | `created_at` / `updated_at` | timestamp | NOT NULL | `unixepoch()` |
+
+> **Modération de la vidéo** (mesure Cabinet du 2026-09-02) — l'état vit sur le
+> profil plutôt que dans une table dédiée : il y a au plus une vidéo par profil,
+> et une jointure supplémentaire coûterait à chaque carte du catalogue. Une
+> vidéo n'est servie que dans l'état `approved`. Voir `docs/video.md` §6.
+>
+> **`views` / `contact_count`** — conservés en base et affichés au candidat dans
+> son espace, mais **retirés de toute sortie publique** (cartes du catalogue,
+> fiche, réponses d'API, vues recruteur) : un compteur d'engagement public
+> revient à classer des personnes par popularité. Seul `MyProfile` les porte.
 
 #### `profile_skill` — compétences d'un profil
 

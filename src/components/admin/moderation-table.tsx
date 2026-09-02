@@ -57,10 +57,19 @@ export function ModerationTable({ rows }: { rows: ModerationRow[] }) {
       </thead>
       <tbody>
         {rows.map((row) => (
-          <Tr key={row.id}>
+          <Tr key={row.id} data-testid="profile-moderation-row">
             <Td>
               <div className="font-medium">{row.name}</div>
               <div className="text-[11.5px] text-text/55">{row.title}</div>
+              {/* Un profil de mineur reste hors catalogue meme publie : le
+                  signaler evite qu'un moderateur croie l'avoir mis en ligne. */}
+              {row.isMinor ? (
+                <div data-testid="minor-flag" className="mt-1 font-mono text-[10.5px] text-accent-800">
+                  {row.birthDateMissing
+                    ? "date de naissance manquante — hors catalogue"
+                    : "profil mineur — hors catalogue public"}
+                </div>
+              ) : null}
             </Td>
             <Td className="font-mono text-[11px] break-all">{row.videoUrl || "—"}</Td>
             <Td>

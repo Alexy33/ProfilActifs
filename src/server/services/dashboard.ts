@@ -1,7 +1,9 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { contact, favorite, notification, profile, question, user } from "@/db/schema";
 import type { ContactStatus, ProfileStatus } from "@/lib/vocabulary";
+import { isMinor } from "@/lib/vocabulary";
+import { latestAdultBirthDate } from "./profiles";
 import { skillsByProfile, toCard, type ProfileCard } from "./profiles";
 
 /**
@@ -23,6 +25,13 @@ export interface PublicStats {
 }
 
 export async function publicStats(): Promise<PublicStats> {
+  /* Les compteurs publics annoncent la taille du dispositif. Ils portent donc
+   * sur ce qui est REELLEMENT consultable : les profils de mineurs, exclus du
+   * catalogue, sont exclus du compte, sinon la page d'accueil annoncerait plus
+   * de profils que le catalogue n'en sert.
+   *
+   * Ce sont des agregats du dispositif entier — jamais un compteur rattache a
+   * une personne — donc etrangers au retrait demande au point 3. */
   const [published] = await db
     .select({
       total: sql<number>`count(*)`,
@@ -30,7 +39,14 @@ export async function publicStats(): Promise<PublicStats> {
       contacts: sql<number>`coalesce(sum(${profile.contactCount}), 0)`,
     })
     .from(profile)
-    .where(eq(profile.status, "published"));
+    .innerJoin(user, eq(user.id, profile.userId))
+    .where(
+      and(
+        eq(profile.status, "published"),
+        isNotNull(user.birthDate),
+        lte(user.birthDate, latestAdultBirthDate()),
+      ),
+    );
 
   const [{ questions }] = await db.select({ questions: sql<number>`count(*)` }).from(question);
 
@@ -117,7 +133,7 @@ export interface ContactRow {
 
 export async function listContacts(recruiterId: string): Promise<ContactRow[]> {
   const rows = await db
-    .select({ contact, profile, name: user.name })
+    .select({ contact, profile, name: user.name, birthDate: user.birthDate })
     .from(contact)
     .innerJoin(profile, eq(profile.id, contact.profileId))
     .innerJoin(user, eq(user.id, profile.userId))
@@ -126,9 +142,11 @@ export async function listContacts(recruiterId: string): Promise<ContactRow[]> {
 
   const skills = await skillsByProfile(rows.map((row) => row.profile.id));
 
+  // La vue recruteur applique les memes regles que le catalogue : la mesure
+  // porte sur ce que le serveur renvoie, pas seulement sur la page publique.
   return rows.map((row) => ({
     id: row.contact.id,
-    profile: toCard(row.profile, row.name, skills.get(row.profile.id) ?? []),
+    profile: toCard(row.profile, row.name, skills.get(row.profile.id) ?? [], isMinor(row.birthDate)),
     message: row.contact.message,
     status: row.contact.status,
     createdAt: row.contact.createdAt.toISOString(),
@@ -143,7 +161,7 @@ export interface FavoriteRow {
 
 export async function listFavorites(recruiterId: string): Promise<FavoriteRow[]> {
   const rows = await db
-    .select({ favorite, profile, name: user.name })
+    .select({ favorite, profile, name: user.name, birthDate: user.birthDate })
     .from(favorite)
     .innerJoin(profile, eq(profile.id, favorite.profileId))
     .innerJoin(user, eq(user.id, profile.userId))
@@ -153,7 +171,7 @@ export async function listFavorites(recruiterId: string): Promise<FavoriteRow[]>
   const skills = await skillsByProfile(rows.map((row) => row.profile.id));
 
   return rows.map((row) => ({
-    profile: toCard(row.profile, row.name, skills.get(row.profile.id) ?? []),
+    profile: toCard(row.profile, row.name, skills.get(row.profile.id) ?? [], isMinor(row.birthDate)),
     createdAt: row.favorite.createdAt.toISOString(),
   }));
 }
@@ -198,11 +216,15 @@ export interface ModerationRow {
   videoUrl: string | null;
   status: ProfileStatus;
   createdAt: string;
+  /** Profil de mineur : jamais publie au catalogue, quel que soit son statut. */
+  isMinor: boolean;
+  /** Date de naissance absente : compte anterieur a la mesure, a regulariser. */
+  birthDateMissing: boolean;
 }
 
 export async function moderationQueue(status?: ProfileStatus): Promise<ModerationRow[]> {
   const rows = await db
-    .select({ profile, name: user.name })
+    .select({ profile, name: user.name, birthDate: user.birthDate })
     .from(profile)
     .innerJoin(user, eq(user.id, profile.userId))
     .where(status ? eq(profile.status, status) : undefined)
@@ -213,8 +235,11 @@ export async function moderationQueue(status?: ProfileStatus): Promise<Moderatio
     id: row.profile.id,
     name: row.name,
     title: row.profile.title,
+    // L'administration voit l'URL reelle : c'est elle qui doit la moderer.
     videoUrl: row.profile.videoUrl,
     status: row.profile.status,
     createdAt: row.profile.createdAt.toISOString(),
+    isMinor: isMinor(row.birthDate),
+    birthDateMissing: row.birthDate === null,
   }));
 }

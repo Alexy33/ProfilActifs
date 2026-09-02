@@ -5,10 +5,35 @@ const CANDIDATE = "amina@exemple.fr";
 
 const FAKE_MP4 = Buffer.alloc(4096, 0x21);
 
+/**
+ * Connexion resistante au limiteur de debit.
+ *
+ * better-auth plafonne les routes d'authentification en production (429).
+ * C'est une protection voulue : on la subit en reessayant plutot que de la
+ * desactiver pour les tests. Sans cela, un echec 429 se manifeste plus loin
+ * en 401 — une session absente — et fait echouer le test pour une raison
+ * etrangere a ce qu'il verifie.
+ */
+async function signInWithRetry(
+  context: APIRequestContext,
+  email: string,
+  attempts = 8,
+): Promise<void> {
+  let response = await context.post("/api/auth/sign-in/email", {
+    data: { email, password: PASSWORD },
+  });
+  for (let i = 0; i < attempts && response.status() === 429; i += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 11_000));
+    response = await context.post("/api/auth/sign-in/email", {
+      data: { email, password: PASSWORD },
+    });
+  }
+  expect(response.status(), `connexion de ${email}`).toBe(200);
+}
+
 async function candidateContext(playwright: typeof import("@playwright/test"), baseURL: string): Promise<APIRequestContext> {
   const context = await playwright.request.newContext({ baseURL });
-  const login = await context.post("/api/auth/sign-in/email", { data: { email: CANDIDATE, password: PASSWORD } });
-  expect(login.status(), "connexion candidate").toBe(200);
+  await signInWithRetry(context, CANDIDATE);
   return context;
 }
 
@@ -22,9 +47,15 @@ test.describe("Vidéo de présentation", () => {
     });
     expect(upload.status(), "PUT vidéo").toBe(200);
     const profile = await upload.json();
-    expect(profile.videoUrl).toMatch(/^\/api\/videos\/[^?]+(\?.*)?$/);
 
-    const videoPath = profile.videoUrl.split("?")[0];
+    // Modération a priori (mesure Cabinet du 2026-09-02) : la vidéo naît en
+    // attente. `videoUrl` — la valeur PUBLIQUE — est donc nulle, tandis que
+    // `ownVideoUrl` reste servie à son titulaire, qui doit pouvoir la revoir.
+    expect(profile.videoStatus, "toute vidéo déposée est en attente").toBe("pending");
+    expect(profile.videoUrl, "rien de public tant que la vidéo n'est pas validée").toBeNull();
+    expect(profile.ownVideoUrl).toMatch(/^\/api\/videos\/[^?]+(\?.*)?$/);
+
+    const videoPath = profile.ownVideoUrl.split("?")[0];
 
     const full = await candidate.get(videoPath);
     expect(full.status()).toBe(200);
@@ -39,7 +70,9 @@ test.describe("Vidéo de présentation", () => {
 
     const removed = await candidate.delete("/api/me/profile/video");
     expect(removed.status()).toBe(200);
-    expect((await removed.json()).videoUrl).toBeNull();
+    const cleared = await removed.json();
+    expect(cleared.videoUrl).toBeNull();
+    expect(cleared.ownVideoUrl).toBeNull();
 
     expect((await candidate.get(videoPath)).status(), "vidéo supprimée").toBe(404);
 
@@ -84,7 +117,7 @@ test.describe("Vidéo de présentation", () => {
 
   test("un recruteur ne peut pas téléverser de vidéo", async ({ playwright, baseURL }) => {
     const recruiter = await playwright.request.newContext({ baseURL: baseURL! });
-    await recruiter.post("/api/auth/sign-in/email", { data: { email: "recruteur@exemple.fr", password: PASSWORD } });
+    await signInWithRetry(recruiter, "recruteur@exemple.fr");
 
     const response = await recruiter.put("/api/me/profile/video", {
       headers: { "content-type": "video/mp4" },

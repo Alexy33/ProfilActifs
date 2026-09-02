@@ -9,6 +9,7 @@ import {
   SkillSchema,
   pageOf,
 } from "./common";
+import { VideoStatusSchema } from "./admin";
 
 /**
  * Carte de profil telle qu'elle apparait dans le catalogue.
@@ -17,6 +18,10 @@ import {
  * dans une liste. `videoUrl` en fait partie en revanche — le catalogue est un
  * fil video (CDC 3.4), une carte doit pouvoir se lire sans ouvrir la fiche —
  * et c'est une URL, pas un fichier : le cout est negligeable.
+ *
+ * Ne porte AUCUN compteur d'engagement (mesure Cabinet du 2026-09-02,
+ * point 3) : ni `views`, ni `contactCount`. Ces donnees restent en base et ne
+ * sont servies qu'a leur titulaire, via `MyProfile`.
  */
 export const ProfileCardSchema = named(
   "ProfileCard",
@@ -30,11 +35,13 @@ export const ProfileCardSchema = named(
     skills: z.array(SkillSchema),
     certified: z.boolean(),
     score: z.number().int().nullable().meta({ description: "Nul tant que la certification n'est pas obtenue." }),
-    views: z.number().int(),
     videoUrl: z
       .string()
       .nullable()
-      .meta({ description: "Lien externe ou `/api/videos/{id}` pour un fichier televerse. Nul si aucune video." }),
+      .meta({
+        description:
+          "Lien externe ou `/api/videos/{id}` pour un fichier televerse. Nul si aucune video, si la video n'est pas encore validee par la moderation, ou si le titulaire est mineur.",
+      }),
   }),
 );
 
@@ -44,7 +51,6 @@ export const ProfileSchema = named(
   ProfileCardSchema.extend({
     bio: z.string(),
     status: ProfileStatusSchema,
-    contactCount: z.number().int(),
     certifiedAt: z.iso.datetime().nullable(),
     createdAt: z.iso.datetime(),
   }),
@@ -53,10 +59,38 @@ export const ProfileSchema = named(
 /**
  * Profil vu par son proprietaire.
  *
- * Identique au profil public : le candidat voit exactement ce que les
- * recruteurs voient, y compris son statut de moderation.
+ * SEUL endroit ou reapparaissent les compteurs d'engagement : le Cabinet a
+ * demande le retrait de leur affichage PUBLIC, pas de la fonctionnalite. Le
+ * candidat garde donc la mesure de son activite dans son espace prive.
+ *
+ * C'est aussi le seul endroit ou l'etat de moderation de la video et son
+ * motif de refus sont exposes : une video qui disparait sans explication est
+ * un contentieux qui commence.
  */
-export const MyProfileSchema = named("MyProfile", ProfileSchema.extend({}));
+export const MyProfileSchema = named(
+  "MyProfile",
+  ProfileSchema.extend({
+    views: z.number().int().meta({ description: "Visible du seul titulaire." }),
+    contactCount: z.number().int().meta({ description: "Visible du seul titulaire." }),
+    videoStatus: VideoStatusSchema,
+    videoReviewReason: z
+      .string()
+      .nullable()
+      .meta({ description: "Motif du refus, le cas echeant." }),
+    ownVideoUrl: z.string().nullable().meta({
+      description:
+        "Video du titulaire, servie meme en attente de validation : il doit pouvoir revoir ce qu'il a depose.",
+    }),
+    isMinor: z.boolean().meta({
+      description:
+        "Titulaire mineur : profil hors catalogue public et video non diffusee (parcours 16-18 ans).",
+    }),
+    birthDateMissing: z.boolean().meta({
+      description:
+        "Compte anterieur a la verification d'age : date de naissance a declarer pour reparaitre au catalogue.",
+    }),
+  }),
+);
 
 export const ProfilePageSchema = pageOf("ProfilePage", ProfileCardSchema);
 
@@ -74,7 +108,8 @@ export const CatalogQuery = PaginationQuery.extend({
     description: "true : uniquement les profils certifies JEB.",
   }),
   hasVideo: QueryBoolean.optional().meta({
-    description: "true : uniquement les profils dont la video de presentation est renseignee.",
+    description:
+      "true : uniquement les profils dont la video de presentation est renseignee ET validee par la moderation.",
   }),
   skills: z
     .array(SkillSchema)
@@ -108,5 +143,21 @@ export const UpdateMyProfileBody = named(
       .optional()
       .meta({ description: "URL de la presentation video (YouTube, Vimeo). null pour la retirer." }),
     skills: z.array(SkillSchema).max(8).optional(),
+
+    /**
+     * Regularisation d'un compte cree avant la verification d'age (mesure
+     * Cabinet du 2026-09-02, point 1).
+     *
+     * N'est acceptee que si le compte n'a PAS encore de date de naissance :
+     * la declaration se fait une fois. Elle ne permet donc pas de contourner
+     * le blocage en se vieillissant apres coup, ni de rajeunir un compte.
+     */
+    birthDate: z.iso
+      .date()
+      .optional()
+      .meta({
+        description:
+          "Date de naissance (AAAA-MM-JJ), uniquement pour un compte qui n'en porte pas encore. Refusee en dessous de 16 ans.",
+      }),
   }),
 );

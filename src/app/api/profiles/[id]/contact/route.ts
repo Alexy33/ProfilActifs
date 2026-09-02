@@ -12,6 +12,7 @@ import {
 import { ContactSchema, SendContactBody } from "@/server/contracts/recruiter";
 import { skillsByProfile, toCard } from "@/server/services/profiles";
 import { notify } from "@/server/services/notifications";
+import { isMinor } from "@/lib/vocabulary";
 
 export const dynamic = "force-dynamic";
 
@@ -34,13 +35,16 @@ export const { POST } = defineRoute({
   },
   handler: async ({ session, params, body }) => {
     const [row] = await db
-      .select({ profile, name: user.name })
+      .select({ profile, name: user.name, birthDate: user.birthDate })
       .from(profile)
       .innerJoin(user, eq(user.id, profile.userId))
       .where(eq(profile.id, params.id))
       .limit(1);
 
-    if (!row || row.profile.status !== "published") {
+    // Un profil de mineur est hors catalogue : il doit repondre comme un
+    // profil inexistant, sans quoi cette route resterait un moyen de le
+    // joindre en devinant son identifiant.
+    if (!row || row.profile.status !== "published" || isMinor(row.birthDate)) {
       throw ApiError.notFound("Ce profil n'existe pas ou n'est pas publie.");
     }
     const target = row.profile;
@@ -75,7 +79,7 @@ export const { POST } = defineRoute({
 
     return {
       id: saved.id,
-      profile: toCard(target, row.name, skills.get(target.id) ?? []),
+      profile: toCard(target, row.name, skills.get(target.id) ?? [], false),
       message: saved.message,
       status: saved.status,
       createdAt: saved.createdAt.toISOString(),

@@ -5,6 +5,7 @@ import { profile } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { ApiError } from "@/server/http";
 import { findProfileByUserId } from "@/server/services/profiles";
+import { resetVideoReview } from "@/server/services/video-moderation";
 import {
   deleteProfileVideo,
   extensionForMime,
@@ -58,9 +59,15 @@ export async function PUT(request: Request): Promise<Response> {
     return fail(new ApiError("internal", `Enregistrement impossible : ${(error as Error).message}`));
   }
 
+  // Tout nouveau depot repart en attente de validation : sans cela, une video
+  // validee pourrait etre remplacee par une autre sans repasser la moderation.
   await db
     .update(profile)
-    .set({ videoUrl: `/api/videos/${ctx.profileId}?t=${Date.now()}`, updatedAt: new Date() })
+    .set({
+      videoUrl: `/api/videos/${ctx.profileId}?t=${Date.now()}`,
+      ...resetVideoReview(),
+      updatedAt: new Date(),
+    })
     .where(eq(profile.id, ctx.profileId));
 
   return Response.json(await findProfileByUserId(ctx.userId));
@@ -77,7 +84,7 @@ export async function DELETE(): Promise<Response> {
   await deleteProfileVideo(ctx.profileId);
   await db
     .update(profile)
-    .set({ videoUrl: null, updatedAt: new Date() })
+    .set({ videoUrl: null, ...resetVideoReview(), updatedAt: new Date() })
     .where(eq(profile.id, ctx.profileId));
 
   return Response.json(await findProfileByUserId(ctx.userId));

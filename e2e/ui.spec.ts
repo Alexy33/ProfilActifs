@@ -20,11 +20,35 @@ const ACCOUNTS = {
 } as const;
 
 async function signIn(page: Page, email: string) {
-  await page.goto("/connexion");
-  await page.getByLabel("Adresse e-mail").fill(email);
-  await page.getByLabel("Mot de passe").fill(PASSWORD);
-  await page.getByRole("button", { name: "Ouvrir la session" }).click();
-  // La redirection depend du role porte par la session, pas du formulaire.
+  // better-auth plafonne les routes d'authentification en production : le
+  // formulaire affiche alors « Too many requests ». On reessaie, plutot que
+  // de desactiver une protection qui a sa place en production.
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    await page.goto("/connexion");
+
+    // Une session peut deja etre ouverte (changement de role au cours d'un
+    // test) : la page de connexion renvoie alors ailleurs et le formulaire
+    // n'existe pas. On repart d'une session fermee.
+    if (!(await page.getByLabel("Adresse e-mail").isVisible().catch(() => false))) {
+      await page.getByRole("button", { name: "Déconnexion" }).click();
+      await expect(page.getByTestId("session-name")).toHaveCount(0);
+      await page.goto("/connexion");
+    }
+
+    await page.getByLabel("Adresse e-mail").fill(email);
+    await page.getByLabel("Mot de passe").fill(PASSWORD);
+    await page.getByRole("button", { name: "Ouvrir la session" }).click();
+
+    // La redirection depend du role porte par la session, pas du formulaire.
+    const session = page.getByTestId("session-name");
+    const limited = page.getByRole("alert").filter({ hasText: /Too many requests/i });
+
+    await expect(session.or(limited).first()).toBeVisible();
+    if (await session.isVisible()) return;
+
+    await page.waitForTimeout(11_000);
+  }
+
   await expect(page.getByTestId("session-name")).toBeVisible();
 }
 
@@ -112,16 +136,32 @@ test.describe("Catalogue", () => {
     }
   });
 
-  test("ouvrir une fiche incremente le compteur de vues", async ({ page }) => {
+  /**
+   * Mesure Cabinet du 2026-09-02, point 3 : les compteurs d'engagement ne
+   * paraissent plus sur la fiche publique. La fonctionnalite demeure — la
+   * consultation est toujours comptee — mais le compteur n'est visible que de
+   * son titulaire, dans son espace prive.
+   */
+  test("la fiche publique n'affiche aucun compteur d'engagement", async ({ page }) => {
     await page.goto("/catalogue");
     await page.getByRole("article").first().getByRole("link", { name: "Voir le profil" }).click();
     await page.waitForURL(/\/profils\//);
 
-    const views = page.getByTestId("profile-views");
-    const before = Number(await views.innerText());
+    await expect(page.getByTestId("profile-views")).toHaveCount(0);
+    await expect(page.getByText("vues du profil")).toHaveCount(0);
+    await expect(page.getByText("contacts reçus")).toHaveCount(0);
+  });
 
-    await page.reload();
-    await expect(views).toHaveText(String(before + 1));
+  test("le compteur de vues reste visible du seul titulaire", async ({ page }) => {
+    // La consultation compte toujours : c'est l'AFFICHAGE public qui est
+    // retire, pas la mesure elle-meme.
+    await page.goto("/catalogue");
+    await page.getByRole("article").first().getByRole("link", { name: "Voir le profil" }).click();
+    await page.waitForURL(/\/profils\//);
+
+    await signIn(page, ACCOUNTS.candidate);
+    await page.goto("/mon-espace");
+    await expect(page.getByText("vues du profil")).toBeVisible();
   });
 });
 
@@ -225,10 +265,14 @@ test.describe("Vidéo de présentation", () => {
     // Le champ d'URL disparait : l'adresse est fabriquee par le serveur.
     await expect(page.getByLabel("Lien YouTube ou Vimeo")).toHaveCount(0);
 
-    // La fiche publique lit le meme fichier.
+    // Modération a priori (mesure Cabinet du 2026-09-02) : le titulaire revoit
+    // sa vidéo, mais elle est annoncée « en attente de validation »…
+    await expect(page.getByTestId("video-status-pending")).toBeVisible();
+
+    // …et la fiche publique ne la diffuse pas tant qu'elle n'est pas validée.
     await page.getByRole("link", { name: /Voir mon profil public/ }).click();
     await page.waitForURL(/\/profils\//);
-    await expect(page.getByTestId("video-player")).toBeVisible();
+    await expect(page.getByTestId("video-player")).toHaveCount(0);
 
     // Retrait : la planche « aucune vidéo » revient, et le champ d'URL aussi.
     await page.goto("/mon-espace");
@@ -257,12 +301,27 @@ test.describe("Vidéo de présentation", () => {
     });
     await expect(page.getByTestId("toast")).toContainText("téléversée");
 
+    // Déposée mais NON validée : le filtre « Avec vidéo » ne doit toujours rien
+    // remonter. C'est la mesure de modération a priori vue depuis le catalogue.
+    await page.goto("/catalogue?hasVideo=true");
+    await expect(page.getByRole("article").filter({ hasText: name })).toHaveCount(0);
+
+    // L'administration valide la vidéo…
+    await signIn(page, ACCOUNTS.admin);
+    await page.goto("/administration");
+    const row = page.getByTestId("video-review-row").filter({ hasText: name });
+    await expect(row).toHaveCount(1);
+    await row.getByRole("button", { name: "Valider" }).click();
+    await expect(page.getByTestId("toast")).toContainText("validée");
+
+    // …et elle apparait alors au catalogue.
     await page.goto("/catalogue?hasVideo=true");
     const card = page.getByRole("article").filter({ hasText: name });
     await expect(card).toHaveCount(1);
     await expect(card.getByTestId("card-video")).toHaveAttribute("src", /^\/api\/videos\//);
 
     // On rend le jeu de donnees a l'etat ou on l'a trouve.
+    await signIn(page, ACCOUNTS.candidate);
     await page.goto("/mon-espace");
     await page.getByRole("button", { name: "Retirer la vidéo" }).click();
     await expect(page.getByTestId("toast")).toContainText("retirée");
@@ -303,10 +362,30 @@ test.describe("Administration", () => {
     await signIn(page, ACCOUNTS.admin);
     await page.goto("/administration");
 
-    const pending = page.getByRole("row").filter({ hasText: "En attente" }).first();
-    test.skip(!(await pending.isVisible().catch(() => false)), "aucun profil en attente");
+    /* Scope a la table de moderation des PROFILS : l'ecran porte aussi une
+     * table de moderation des videos, dont les lignes affichent le meme
+     * libelle « En attente ».
+     *
+     * On vise un profil NOMME du jeu de demonstration plutot que « le premier
+     * en attente » : la file contient aussi les comptes crees par les autres
+     * tests, et surtout des profils de mineurs — qui, publies, restent
+     * volontairement hors du catalogue (mesure Cabinet, point 1) et feraient
+     * echouer l'assertion pour une raison qui n'est pas celle testee. */
+    const name = "Sébastien Marchal";
+    const pending = page
+      .getByTestId("profile-moderation-row")
+      .filter({ hasText: name })
+      .first();
+    test.skip(
+      !(await pending.isVisible().catch(() => false)),
+      "jeu de demonstration absent : `make seed` requis.",
+    );
 
-    const name = (await pending.innerText()).split("\n")[0].trim();
+    // Deja publie par un passage precedent : rien a verifier.
+    test.skip(
+      !(await pending.getByRole("button", { name: "Publier" }).isVisible().catch(() => false)),
+      "profil deja publie",
+    );
     await pending.getByRole("button", { name: "Publier" }).click();
     await expect(page.getByTestId("toast")).toContainText("publié");
 

@@ -6,6 +6,8 @@ import { defineRoute } from "@/server/openapi/routes";
 import { AUTH_RESPONSES, errorResponse } from "@/server/contracts/common";
 import { MyProfileSchema, UpdateMyProfileBody } from "@/server/contracts/profile";
 import { findProfileByUserId, replaceSkills } from "@/server/services/profiles";
+import { resetVideoReview } from "@/server/services/video-moderation";
+import { MIN_SIGNUP_AGE, ageOn } from "@/lib/vocabulary";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +53,7 @@ export const { PATCH } = defineRoute({
   tags: ["Espace demandeur"],
   summary: "Mettre a jour mon profil",
   description:
-    "Mise a jour partielle : n'envoyez que les champs modifies. Le statut de moderation, le score et les compteurs ne sont pas modifiables ici.",
+    "Mise a jour partielle : n'envoyez que les champs modifies. Le statut de moderation, le score et les compteurs ne sont pas modifiables ici. `birthDate` n'est acceptee que si le compte n'en porte pas encore (regularisation des comptes anterieurs a la verification d'age).",
   access: "candidate",
   body: UpdateMyProfileBody,
   responses: {
@@ -72,11 +74,57 @@ export const { PATCH } = defineRoute({
         .where(eq(user.id, session.user.id));
     }
 
-    const { name: _name, skills, ...columns } = body;
+    /* Regularisation d'un compte cree avant la verification d'age.
+     *
+     * Ecrite UNIQUEMENT si la colonne est encore vide : la date de naissance
+     * se declare une fois. Sans ce garde-fou, la mesure serait contournable
+     * dans les deux sens — se vieillir pour sortir du parcours mineur, ou se
+     * rajeunir apres coup. */
+    if (body.birthDate !== undefined) {
+      const [account] = await db
+        .select({ birthDate: user.birthDate })
+        .from(user)
+        .where(eq(user.id, session.user.id))
+        .limit(1);
+
+      if (account?.birthDate) {
+        throw ApiError.unprocessable(
+          "La date de naissance est déjà enregistrée et ne peut pas être modifiée ici.",
+        );
+      }
+
+      const declared = new Date(`${body.birthDate}T00:00:00.000Z`);
+      if (Number.isNaN(declared.getTime()) || declared.getTime() > Date.now()) {
+        throw ApiError.unprocessable("Date de naissance invalide.");
+      }
+      if (ageOn(declared) < MIN_SIGNUP_AGE) {
+        throw ApiError.unprocessable(
+          `Le dispositif est réservé aux personnes de ${MIN_SIGNUP_AGE} ans et plus.`,
+        );
+      }
+
+      await db
+        .update(user)
+        .set({ birthDate: declared, updatedAt: new Date() })
+        .where(eq(user.id, session.user.id));
+    }
+
+    const { name: _name, skills, birthDate: _birthDate, ...columns } = body;
     if (Object.keys(columns).length > 0) {
+      // Changer le lien video, c'est deposer une nouvelle video : elle
+      // repasse en attente de validation (mesure Cabinet, point 2). Le champ
+      // n'est reinitialise que s'il est REELLEMENT present dans la requete —
+      // une mise a jour de la biographie ne doit pas depublier la video.
+      const videoChanged =
+        columns.videoUrl !== undefined && columns.videoUrl !== owned.ownVideoUrl;
+
       await db
         .update(profile)
-        .set({ ...columns, updatedAt: new Date() })
+        .set({
+          ...columns,
+          ...(videoChanged ? resetVideoReview() : {}),
+          updatedAt: new Date(),
+        })
         .where(eq(profile.id, owned.id));
     }
 

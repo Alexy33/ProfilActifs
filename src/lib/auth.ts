@@ -1,8 +1,10 @@
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { MIN_SIGNUP_AGE, ageOn } from "@/lib/vocabulary";
 
 /**
  * Instance better-auth cote serveur. Seule source de verite pour les
@@ -35,6 +37,19 @@ export const auth = betterAuth({
         defaultValue: "candidate",
         input: true,
       },
+
+      /**
+       * Date de naissance declarative (mesure Cabinet du 2026-09-02, point 1).
+       *
+       * Declaree en champ d'inscription pour que better-auth la persiste
+       * lui-meme ; la verification d'age, elle, est faite dans le hook
+       * `before` ci-dessous — un champ additionnel ne sait pas refuser.
+       */
+      birthDate: {
+        type: "date",
+        required: false,
+        input: true,
+      },
     },
   },
 
@@ -59,7 +74,40 @@ export const auth = betterAuth({
         before: async (data) => {
           const asked = (data as { role?: string }).role;
           const role = asked === "recruiter" ? "recruiter" : "candidate";
-          return { data: { ...data, role } };
+
+          /* Verification de l'age a l'inscription (mesure Cabinet du
+           * 2026-09-02, point 1).
+           *
+           * Le blocage est pose ICI et non dans le formulaire : le client
+           * peut etre contourne, `POST /api/auth/sign-up/email` est une route
+           * publique. C'est le seul chemin de creation de compte, donc le
+           * seul endroit ou la regle tient vraiment.
+           *
+           * En dessous de 16 ans, l'inscription est refusee et AUCUNE donnee
+           * n'est ecrite : le compte n'est jamais cree. */
+          const raw = (data as { birthDate?: unknown }).birthDate;
+          const birthDate =
+            raw instanceof Date ? raw : typeof raw === "string" ? new Date(raw) : null;
+
+          if (!birthDate || Number.isNaN(birthDate.getTime())) {
+            throw new APIError("BAD_REQUEST", {
+              message: "La date de naissance est obligatoire pour créer un compte.",
+            });
+          }
+
+          if (birthDate.getTime() > Date.now()) {
+            throw new APIError("BAD_REQUEST", {
+              message: "La date de naissance ne peut pas être dans le futur.",
+            });
+          }
+
+          if (ageOn(birthDate) < MIN_SIGNUP_AGE) {
+            throw new APIError("BAD_REQUEST", {
+              message: `L'inscription est réservée aux personnes de ${MIN_SIGNUP_AGE} ans et plus.`,
+            });
+          }
+
+          return { data: { ...data, role, birthDate } };
         },
         /**
          * Un compte candidat possede toujours un profil.

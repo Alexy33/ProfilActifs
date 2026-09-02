@@ -20,6 +20,11 @@ export const videoPaths: Record<string, Record<string, unknown>> = {
         "(la requête n'est jamais bufferisée entièrement).",
         "",
         "Après succès, `videoUrl` pointe vers `GET /api/videos/{profileId}`.",
+        "",
+        "**Modération a priori** : tout dépôt place la vidéo en `pending`. Elle",
+        "n'est servie ni au public ni aux recruteurs tant qu'un administrateur",
+        "ne l'a pas validée (`PATCH /api/admin/videos/{id}`). Remplacer une",
+        "vidéo déjà validée la replace en attente.",
       ].join("\n"),
       security: [{ sessionCookie: [] }],
       requestBody: {
@@ -44,7 +49,8 @@ export const videoPaths: Record<string, Record<string, unknown>> = {
       tags: ["Espace demandeur"],
       summary: "Retirer ma vidéo de présentation",
       operationId: "deleteMeProfileVideo",
-      description: "Supprime le fichier et remet `videoUrl` à `null`. Idempotent.",
+      description:
+        "Supprime le fichier, remet `videoUrl` à `null` et réinitialise l'état de modération. Idempotent.",
       security: [{ sessionCookie: [] }],
       responses: {
         "200": myProfile,
@@ -65,7 +71,11 @@ export const videoPaths: Record<string, Record<string, unknown>> = {
         "Content** avec `Content-Range` quand le lecteur cherche dans la timeline",
         "(CDC §3.2, prévisionnement sans quitter la page).",
         "",
-        "Un profil non `published` n'est servi qu'à son titulaire ou à un admin.",
+        "**Accès restreint.** Le fichier n'est servi publiquement que si les trois",
+        "conditions sont réunies : profil `published`, vidéo `approved`, et",
+        "titulaire majeur. Sinon, seuls le titulaire et un administrateur y",
+        "accèdent ; tout autre appelant reçoit **404**, y compris en connaissant",
+        "l'adresse directe.",
       ].join("\n"),
       parameters: [
         {
@@ -106,7 +116,9 @@ export const videoPaths: Record<string, Record<string, unknown>> = {
           },
           content: { "video/mp4": { schema: { type: "string", format: "binary" } } },
         },
-        "404": apiError("Profil inconnu, vidéo absente, ou profil non visible."),
+        "404": apiError(
+          "Profil inconnu, vidéo absente, vidéo non validée, profil non publié, ou titulaire mineur.",
+        ),
       },
     },
   },

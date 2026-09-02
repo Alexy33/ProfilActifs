@@ -15,6 +15,13 @@
       "when": 1788252777689,
       "tag": "0001_far_shiva",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788372638436,
+      "tag": "0002_natural_nebula",
+      "breakpoints": true
     }
   ]
 }
