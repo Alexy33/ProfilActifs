@@ -68,6 +68,36 @@ export async function api<T = unknown>(path: string, options: RequestOptions = {
   return payload as T;
 }
 
+/**
+ * Envoi d'un fichier brut, sans enveloppe JSON.
+ *
+ * `PUT /api/me/profile/video` prend le fichier EN CORPS DE REQUETE, et lit son
+ * format dans `Content-Type` (cf. docs/video.md) : ni FormData, ni multipart —
+ * le serveur lit le flux par blocs et coupe des le plafond depasse, sans jamais
+ * charger les 100 Mo en memoire.
+ */
+export async function upload<T = unknown>(path: string, file: File): Promise<T> {
+  const response = await fetch(path, {
+    method: "PUT",
+    credentials: "same-origin",
+    headers: { "Content-Type": file.type },
+    body: file,
+  });
+
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const error = (payload as { error?: { code?: string; message?: string } })?.error;
+    throw new ApiClientError(
+      response.status,
+      error?.code ?? "internal",
+      error?.message ?? "Le televersement a echoue.",
+    );
+  }
+
+  return payload as T;
+}
+
 /** Message affichable pour n'importe quelle exception remontee d'un appel. */
 export function errorMessage(error: unknown): string {
   if (error instanceof ApiClientError) return error.message;
