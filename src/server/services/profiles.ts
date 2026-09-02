@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull, like, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, like, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { profile, profileSkill, user } from "@/db/schema";
 import type { City, ProfileStatus, Sector, Skill } from "@/lib/vocabulary";
@@ -24,11 +24,11 @@ export interface ProfileCard {
   certified: boolean;
   score: number | null;
   views: number;
+  videoUrl: string | null;
 }
 
 export interface FullProfile extends ProfileCard {
   bio: string;
-  videoUrl: string | null;
   status: ProfileStatus;
   contactCount: number;
   certifiedAt: string | null;
@@ -64,6 +64,7 @@ export function toCard(row: ProfileRow, name: string, skills: Skill[]): ProfileC
     certified: row.certifiedAt !== null,
     score: row.score,
     views: row.views,
+    videoUrl: row.videoUrl,
   };
 }
 
@@ -71,7 +72,6 @@ function toFull(row: ProfileRow, name: string, skills: Skill[]): FullProfile {
   return {
     ...toCard(row, name, skills),
     bio: row.bio,
-    videoUrl: row.videoUrl,
     status: row.status,
     contactCount: row.contactCount,
     certifiedAt: row.certifiedAt?.toISOString() ?? null,
@@ -107,6 +107,7 @@ export interface CatalogFilters {
   sector?: Sector;
   city?: City;
   certified?: boolean;
+  hasVideo?: boolean;
   skills?: Skill[];
   page: number;
   pageSize: number;
@@ -123,6 +124,11 @@ export async function searchCatalog(filters: CatalogFilters): Promise<CatalogRes
   if (filters.sector) conditions.push(eq(profile.sector, filters.sector));
   if (filters.city) conditions.push(eq(profile.city, filters.city));
   if (filters.certified) conditions.push(isNotNull(profile.certifiedAt));
+  // Une colonne renseignee puis videe reste une chaine vide : `is not null` ne
+  // suffit pas a distinguer « a une video » de « en avait une ».
+  if (filters.hasVideo) {
+    conditions.push(and(isNotNull(profile.videoUrl), ne(profile.videoUrl, ""))!);
+  }
 
   if (filters.q) {
     const needle = `%${filters.q.toLowerCase()}%`;

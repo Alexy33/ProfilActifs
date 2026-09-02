@@ -2300,6 +2300,19 @@
             "description": "true : uniquement les profils certifies JEB."
           },
           {
+            "name": "hasVideo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "description": "true : uniquement les profils dont la video de presentation est renseignee."
+          },
+          {
             "name": "skills",
             "in": "query",
             "required": false,
@@ -3026,6 +3039,11 @@
           },
           "views": {
             "type": "integer"
+          },
+          "videoUrl": {
+            "description": "Lien externe ou `/api/videos/{id}` pour un fichier televerse. Nul si aucune video.",
+            "nullable": true,
+            "type": "string"
           }
         },
         "required": [
@@ -3038,7 +3056,8 @@
           "skills",
           "certified",
           "score",
-          "views"
+          "views",
+          "videoUrl"
         ],
         "additionalProperties": false
       },
@@ -3082,11 +3101,12 @@
           "views": {
             "type": "integer"
           },
-          "bio": {
+          "videoUrl": {
+            "description": "Lien externe ou `/api/videos/{id}` pour un fichier televerse. Nul si aucune video.",
+            "nullable": true,
             "type": "string"
           },
-          "videoUrl": {
-            "nullable": true,
+          "bio": {
             "type": "string"
           },
           "status": {
@@ -3116,8 +3136,8 @@
           "certified",
           "score",
           "views",
-          "bio",
           "videoUrl",
+          "bio",
           "status",
           "contactCount",
           "certifiedAt",
@@ -3165,11 +3185,12 @@
           "views": {
             "type": "integer"
           },
-          "bio": {
+          "videoUrl": {
+            "description": "Lien externe ou `/api/videos/{id}` pour un fichier televerse. Nul si aucune video.",
+            "nullable": true,
             "type": "string"
           },
-          "videoUrl": {
-            "nullable": true,
+          "bio": {
             "type": "string"
           },
           "status": {
@@ -3199,8 +3220,8 @@
           "certified",
           "score",
           "views",
-          "bio",
           "videoUrl",
+          "bio",
           "status",
           "contactCount",
           "certifiedAt",

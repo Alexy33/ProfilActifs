@@ -32,6 +32,7 @@ export function parseCatalogParams(
     sector: first(params.sector),
     city: first(params.city),
     certified: first(params.certified),
+    hasVideo: first(params.hasVideo),
     skills: all(params.skills),
     page: first(params.page),
     pageSize: first(params.pageSize) ?? String(defaultPageSize),
@@ -56,6 +57,7 @@ export function catalogSearchParams(filters: Partial<CatalogFilters>): string {
   if (filters.sector) search.set("sector", filters.sector);
   if (filters.city) search.set("city", filters.city);
   if (filters.certified) search.set("certified", "true");
+  if (filters.hasVideo) search.set("hasVideo", "true");
   for (const skill of filters.skills ?? []) search.append("skills", skill);
   // La page 1 est l'etat par defaut : l'ecrire alourdirait l'URL pour rien.
   if (filters.page && filters.page > 1) search.set("page", String(filters.page));

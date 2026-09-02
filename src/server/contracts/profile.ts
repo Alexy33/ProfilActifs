@@ -13,9 +13,10 @@ import {
 /**
  * Carte de profil telle qu'elle apparait dans le catalogue.
  *
- * Volontairement plus pauvre que `Profile` : la liste n'a besoin ni de la
- * biographie ni de la video, et les servir a chaque page couterait de la bande
- * passante pour rien.
+ * Volontairement plus pauvre que `Profile` : la biographie n'a pas sa place
+ * dans une liste. `videoUrl` en fait partie en revanche — le catalogue est un
+ * fil video (CDC 3.4), une carte doit pouvoir se lire sans ouvrir la fiche —
+ * et c'est une URL, pas un fichier : le cout est negligeable.
  */
 export const ProfileCardSchema = named(
   "ProfileCard",
@@ -30,6 +31,10 @@ export const ProfileCardSchema = named(
     certified: z.boolean(),
     score: z.number().int().nullable().meta({ description: "Nul tant que la certification n'est pas obtenue." }),
     views: z.number().int(),
+    videoUrl: z
+      .string()
+      .nullable()
+      .meta({ description: "Lien externe ou `/api/videos/{id}` pour un fichier televerse. Nul si aucune video." }),
   }),
 );
 
@@ -38,7 +43,6 @@ export const ProfileSchema = named(
   "Profile",
   ProfileCardSchema.extend({
     bio: z.string(),
-    videoUrl: z.string().nullable(),
     status: ProfileStatusSchema,
     contactCount: z.number().int(),
     certifiedAt: z.iso.datetime().nullable(),
@@ -68,6 +72,9 @@ export const CatalogQuery = PaginationQuery.extend({
   city: CitySchema.optional(),
   certified: QueryBoolean.optional().meta({
     description: "true : uniquement les profils certifies JEB.",
+  }),
+  hasVideo: QueryBoolean.optional().meta({
+    description: "true : uniquement les profils dont la video de presentation est renseignee.",
   }),
   skills: z
     .array(SkillSchema)
