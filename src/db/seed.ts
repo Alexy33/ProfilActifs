@@ -41,7 +41,6 @@ interface SeedProfile {
   city: City;
   skills: Skill[];
   score: number;
-  videoUrl: string;
   bio: string;
   views: number;
   contactCount: number;
@@ -57,7 +56,6 @@ const PROFILES: SeedProfile[] = [
     city: "Lyon",
     skills: ["Relation client", "Communication", "Adaptabilité"],
     score: 82,
-    videoUrl: "https://youtube.com/watch?v=jeb-amina",
     bio: "Sept ans en boutique et en centre d'appels. Je cherche un poste où la relation client est un métier à part entière, pas une case du planning.",
     views: 214,
     contactCount: 6,
@@ -71,7 +69,6 @@ const PROFILES: SeedProfile[] = [
     city: "Lille",
     skills: ["Rigueur", "Autonomie", "Travail en équipe"],
     score: 74,
-    videoUrl: "https://vimeo.com/jeb-karim",
     bio: "Entrepôt, inventaire, cariste 1-3-5. Je sais tenir une cadence sans casser la marchandise ni l'ambiance.",
     views: 168,
     contactCount: 4,
@@ -85,7 +82,6 @@ const PROFILES: SeedProfile[] = [
     city: "Nantes",
     skills: ["Gestion de projet", "Autonomie", "Communication"],
     score: 91,
-    videoUrl: "https://youtube.com/watch?v=jeb-sonia",
     bio: "Reconversion réussie après dix ans en librairie. Je code des interfaces accessibles et je documente ce que je livre.",
     views: 402,
     contactCount: 11,
@@ -99,7 +95,6 @@ const PROFILES: SeedProfile[] = [
     city: "Marseille",
     skills: ["Adaptabilité", "Travail en équipe", "Rigueur"],
     score: 0,
-    videoUrl: "https://youtube.com/watch?v=jeb-mathieu",
     bio: "EHPAD puis service de gériatrie. Je cherche un établissement qui laisse le temps de faire les choses correctement.",
     views: 96,
     contactCount: 2,
@@ -113,7 +108,6 @@ const PROFILES: SeedProfile[] = [
     city: "Paris",
     skills: ["Organisation", "Communication", "Rigueur"],
     score: 88,
-    videoUrl: "https://vimeo.com/jeb-fatou",
     bio: "Secrétariat de rectorat pendant six ans. Agenda, comptes rendus, gestion de crise du lundi matin.",
     views: 311,
     contactCount: 9,
@@ -127,7 +121,6 @@ const PROFILES: SeedProfile[] = [
     city: "Bordeaux",
     skills: ["Autonomie", "Rigueur"],
     score: 0,
-    videoUrl: "https://youtube.com/watch?v=jeb-tristan",
     bio: "Chantiers neufs et rénovation. Habilitations B1V-BR à jour. Je préfère les équipes petites et les chantiers propres.",
     views: 74,
     contactCount: 1,
@@ -141,7 +134,6 @@ const PROFILES: SeedProfile[] = [
     city: "Strasbourg",
     skills: ["Rigueur", "Travail en équipe", "Organisation"],
     score: 79,
-    videoUrl: "https://vimeo.com/jeb-leila",
     bio: "Agroalimentaire, 3x8. Je forme les nouveaux arrivants depuis quatre ans et j'aimerais que ça devienne mon poste.",
     views: 132,
     contactCount: 3,
@@ -155,7 +147,6 @@ const PROFILES: SeedProfile[] = [
     city: "Toulouse",
     skills: ["Relation client", "Adaptabilité", "Autonomie"],
     score: 71,
-    videoUrl: "https://youtube.com/watch?v=jeb-pierre",
     bio: "Support niveau 2, parc de 900 postes. Je traduis les problèmes techniques en phrases que les gens comprennent.",
     views: 187,
     contactCount: 5,
@@ -169,7 +160,6 @@ const PROFILES: SeedProfile[] = [
     city: "Lyon",
     skills: ["Communication", "Organisation", "Adaptabilité"],
     score: 85,
-    videoUrl: "https://vimeo.com/jeb-marion",
     bio: "Crèche associative puis multi-accueil municipal. Je cherche une structure avec un vrai projet pédagogique.",
     views: 205,
     contactCount: 7,
@@ -183,7 +173,6 @@ const PROFILES: SeedProfile[] = [
     city: "Nantes",
     skills: ["Autonomie", "Rigueur"],
     score: 0,
-    videoUrl: "https://youtube.com/watch?v=jeb-yann",
     bio: "Quinze ans de quai. Je connais les flux, les erreurs de picking et comment les éviter.",
     views: 61,
     contactCount: 0,
@@ -197,7 +186,6 @@ const PROFILES: SeedProfile[] = [
     city: "Paris",
     skills: ["Relation client", "Communication"],
     score: 68,
-    videoUrl: "https://vimeo.com/jeb-nadia",
     bio: "Prêt-à-porter et cosmétique. Je vends sans forcer, ça revient plus souvent.",
     views: 143,
     contactCount: 3,
@@ -211,7 +199,6 @@ const PROFILES: SeedProfile[] = [
     city: "Marseille",
     skills: ["Gestion de projet", "Organisation", "Communication"],
     score: 0,
-    videoUrl: "https://youtube.com/watch?v=jeb-olivier",
     bio: "Deux ans en agence, un an en freelance. Je cadre, je planifie, je relance.",
     views: 88,
     contactCount: 1,
@@ -225,7 +212,6 @@ const PROFILES: SeedProfile[] = [
     city: "Lille",
     skills: ["Rigueur", "Adaptabilité", "Travail en équipe"],
     score: 93,
-    videoUrl: "https://vimeo.com/jeb-claire",
     bio: "Urgences puis bloc. Je cherche un poste de jour, en clinique ou en libéral.",
     views: 356,
     contactCount: 12,
@@ -239,7 +225,6 @@ const PROFILES: SeedProfile[] = [
     city: "Toulouse",
     skills: ["Gestion de projet", "Autonomie", "Rigueur"],
     score: 0,
-    videoUrl: "https://youtube.com/watch?v=jeb-sebastien",
     bio: "Gros œuvre, marchés publics. Je tiens un planning et je le fais tenir aux autres.",
     views: 119,
     contactCount: 2,
@@ -463,7 +448,11 @@ async function seed() {
         sector: item.sector,
         city: item.city,
         bio: item.bio,
-        videoUrl: item.videoUrl,
+        // Aucune video de demonstration : les profils naissent sans, et
+        // l'espace demandeur sert a en televerser une (ou a coller un lien).
+        // Referencer de fausses URL YouTube donnerait un lecteur « video
+        // indisponible » sur chaque fiche du catalogue.
+        videoUrl: null,
         status: item.status,
         score: item.score > 0 ? item.score : null,
         certifiedAt,
