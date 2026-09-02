@@ -122,7 +122,9 @@ Toute la surface est documentee et **essayable** sur
 **OpenAPI 3.0.3** brute est sur `/api/openapi` (copie hors ligne : `openapi.json`).
 Le catalogue des reponses d'erreur, avec les corps reels et des appels `curl`,
 est dans [`docs/api-erreurs.md`](docs/api-erreurs.md). Le schema de la base est
-dans [`docs/schema-bdd.md`](docs/schema-bdd.md).
+dans [`docs/schema-bdd.md`](docs/schema-bdd.md). L'upload et la lecture des
+videos de presentation (routes binaires) sont dans
+[`docs/video.md`](docs/video.md).
 
 ### Une route se declare une seule fois
 
