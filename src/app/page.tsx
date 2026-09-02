@@ -93,6 +93,12 @@ export default function HomePage() {
             >
               Recruteurs
             </Link>
+            <Link
+              href="/catalogue"
+              className="rounded-full px-5 py-2 text-sm font-semibold text-[#4a5568] transition-all hover:text-[#416180]"
+            >
+              Catalogue
+            </Link>
           </nav>
 
           <div className="flex items-center gap-4">
@@ -155,7 +161,7 @@ export default function HomePage() {
                 variant="ghost"
                 className="h-14 rounded-2xl bg-[#ebf0f7] px-8 text-base font-semibold text-[#2d3748] shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff] hover:bg-[#ebf0f7] hover:shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] active:scale-[0.97]"
               >
-                <Link href="#fonctionnement">Découvrir la plateforme</Link>
+                <Link href="/catalogue">Consulter les profils</Link>
               </Button>
             </div>
           </div>
@@ -328,8 +334,8 @@ export default function HomePage() {
                     asChild
                     className="group h-12 rounded-2xl bg-[#5980a6] px-6 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#416180]"
                   >
-                    <Link href="/login">
-                      Espace recruteur
+                    <Link href="/catalogue">
+                      Parcourir le catalogue
                       <ArrowRight className="ml-2 size-4 transition-transform duration-300 group-hover:translate-x-1.5" />
                     </Link>
                   </Button>
