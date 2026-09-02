@@ -237,6 +237,36 @@ test.describe("Vidéo de présentation", () => {
     await expect(page.getByTestId("video-player")).toHaveCount(0);
     await expect(page.getByLabel("Lien YouTube ou Vimeo")).toBeVisible();
   });
+
+  test("apparait dans le catalogue et repond au filtre « Avec vidéo »", async ({ page }) => {
+    await signIn(page, ACCOUNTS.candidate);
+    await page.goto("/mon-espace");
+
+    const name = await page.getByTestId("session-name").innerText();
+
+    // Sans video, le filtre ne doit rien remonter : c'est ce qui prouve qu'il
+    // filtre vraiment, et pas qu'il laisse simplement tout passer.
+    await page.goto("/catalogue?hasVideo=true");
+    await expect(page.getByRole("article").filter({ hasText: name })).toHaveCount(0);
+
+    await page.goto("/mon-espace");
+    await page.getByLabel("Fichier vidéo de présentation").setInputFiles({
+      name: "presentation.mp4",
+      mimeType: "video/mp4",
+      buffer: Buffer.alloc(4096, 0x21),
+    });
+    await expect(page.getByTestId("toast")).toContainText("téléversée");
+
+    await page.goto("/catalogue?hasVideo=true");
+    const card = page.getByRole("article").filter({ hasText: name });
+    await expect(card).toHaveCount(1);
+    await expect(card.getByTestId("card-video")).toHaveAttribute("src", /^\/api\/videos\//);
+
+    // On rend le jeu de donnees a l'etat ou on l'a trouve.
+    await page.goto("/mon-espace");
+    await page.getByRole("button", { name: "Retirer la vidéo" }).click();
+    await expect(page.getByTestId("toast")).toContainText("retirée");
+  });
 });
 
 test.describe("Espace recruteur", () => {
