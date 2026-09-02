@@ -13,7 +13,16 @@ Référence : CDC §2.1 (« publication de vidéos… lien externe **ou upload**
 | **Upload direct** | `/api/videos/{profileId}?t=<ts>` | `GET /api/videos/{profileId}` (ce doc) |
 
 Aucune migration : le fichier vit sur disque, la ligne ne change pas de forme.
-Le front traite les deux cas comme « une URL ».
+Le front traite les deux cas comme « une URL » : `describeVideo`
+(`src/lib/video.ts`) classe la valeur, et `VideoFrame`
+(`src/components/profil/video-frame.tsx`) rend selon le cas une balise
+`<video>`, un `<iframe>` d'integration, ou la planche « aucune vidéo ».
+Une URL non reconnue devient un lien sortant — jamais un lecteur qui
+afficherait « vidéo indisponible ».
+
+Le televersement se fait depuis l'espace demandeur
+(`src/components/espace/video-field.tsx`) : selecteur de fichier, refus local
+au-dela de 100 Mo ou hors format, puis `PUT` du fichier en corps de requete.
 
 ## 2. Stockage
 

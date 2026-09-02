@@ -1969,6 +1969,167 @@
         ]
       }
     },
+    "/api/me/profile/video": {
+      "put": {
+        "tags": [
+          "Espace demandeur"
+        ],
+        "summary": "Téléverser ma vidéo de présentation",
+        "operationId": "putMeProfileVideo",
+        "description": "Upload direct (CDC §3.2). Le corps de la requête est le fichier lui-même ;\n`Content-Type` porte son type. Plafond : **100 Mo**, appliqué en streaming\n(la requête n'est jamais bufferisée entièrement).\n\nAprès succès, `videoUrl` pointe vers `GET /api/videos/{profileId}`.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "video/mp4": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "video/webm": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "video/ogg": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "video/quicktime": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profil du candidat, `videoUrl` mis à jour.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Corps de requête vide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide mais rôle ≠ candidate.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun profil rattaché au compte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Fichier > 100 Mo, ou type non pris en charge (Content-Type).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Espace demandeur"
+        ],
+        "summary": "Retirer ma vidéo de présentation",
+        "operationId": "deleteMeProfileVideo",
+        "description": "Supprime le fichier et remet `videoUrl` à `null`. Idempotent.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profil du candidat, `videoUrl` mis à jour.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide mais rôle ≠ candidate.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun profil rattaché au compte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/me/stats": {
       "get": {
         "tags": [
@@ -2393,6 +2554,119 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PublicStats"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/videos/{id}": {
+      "get": {
+        "tags": [
+          "Catalogue"
+        ],
+        "summary": "Lire la vidéo d'un profil",
+        "operationId": "getVideosById",
+        "description": "Sert le fichier téléversé. Gère l'en-tête `Range` : réponse **206 Partial\nContent** avec `Content-Range` quand le lecteur cherche dans la timeline\n(CDC §3.2, prévisionnement sans quitter la page).\n\nUn profil non `published` n'est servi qu'à son titulaire ou à un admin.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identifiant du profil (`profile.id`).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "description": "Ex. `bytes=0-1048575`. Déclenche une réponse 206.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fichier complet.",
+            "headers": {
+              "Accept-Ranges": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "`bytes`"
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "video/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "video/webm": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "video/ogg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "video/quicktime": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Fragment demandé via `Range`.",
+            "headers": {
+              "Content-Range": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Ex. `bytes 0-1048575/5242880`"
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "video/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Profil inconnu, vidéo absente, ou profil non visible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }

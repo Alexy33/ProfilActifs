@@ -108,6 +108,12 @@ premier consommateur de l'API, et non un chemin parallele.
 memes entrees. Une recherche se partage par copier-coller et le bouton
 « precedent » du navigateur remonte le fil.
 
+**La video de presentation a deux sources, une seule colonne.** `videoUrl`
+porte soit un lien YouTube/Vimeo, soit `/api/videos/{id}` quand le candidat a
+televerse un fichier. `describeVideo` (`src/lib/video.ts`) tranche, et l'ecran
+rend un `<video>`, un `<iframe>` ou la planche vide. Details dans
+[`docs/video.md`](docs/video.md).
+
 **Le systeme graphique « Industry »** de la maquette est porte en Tailwind v4 :
 les jetons dans `@theme` (`src/app/globals.css`), le cadre filaire et ses
 marques de reperage en `@layer components`, et le reste en composants React
