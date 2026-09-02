@@ -49,3 +49,6 @@ npm-debug.log*
 # personne ne les commite par accident.
 AGENTS.md
 CLAUDE.md
+
+# video de demonstration (regenerable : npm run demo)
+/demo-profilsactifs.mp4

@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "openapi:export": "tsx scripts/export-openapi.ts"
+    "openapi:export": "tsx scripts/export-openapi.ts",
+    "demo": "playwright test --config scripts/demo/playwright.demo.config.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
