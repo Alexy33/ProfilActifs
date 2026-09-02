@@ -21,6 +21,8 @@ const NOT_IN_MANIFEST = [
   "openapi/route.ts",
   "docs/route.ts",
   "swagger/route.ts",
+  "me/profile/video/route.ts",
+  "videos/[id]/route.ts",
 ];
 
 function findRouteFiles(dir: string): string[] {
