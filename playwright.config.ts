@@ -7,17 +7,19 @@ const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
 export default defineConfig({
   testDir: "./e2e",
 
-  // Les tests d'un meme fichier s'executent en serie.
+  // Toute la suite s'execute en serie, un seul worker.
   //
-  // Ils partagent une base SQLite unique : lancer en parallele le test qui
-  // modifie le questionnaire (administration) et celui qui calcule un score
-  // (certification) fait varier le bareme en cours de route, et le second
-  // echoue au hasard. Les fichiers, eux, restent paralleles entre eux.
+  // Les tests partagent une base SQLite unique ET les memes comptes de
+  // demonstration : le test qui modifie le questionnaire (administration) et
+  // celui qui calcule un score (certification) font varier le bareme l'un pour
+  // l'autre. Tant que api.spec.ts et ui.spec.ts jouent les memes parcours sur
+  // les memes comptes, les fichiers ne peuvent pas non plus tourner en
+  // parallele entre eux.
   fullyParallel: false,
   // Interdit un .only oublie dans un commit qui passerait la CI en silence.
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: process.env.CI ? "github" : "list",
 
   use: {

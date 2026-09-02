@@ -1,11 +1,9 @@
-import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "@/db";
-import { profile, user } from "@/db/schema";
 import { defineRoute } from "@/server/openapi/routes";
 import { AUTH_RESPONSES, ProfileStatusSchema, VALIDATION_RESPONSE } from "@/server/contracts/common";
 import { ModerationRowSchema } from "@/server/contracts/admin";
 import { named } from "@/server/openapi/schemas";
+import { moderationQueue } from "@/server/services/dashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -32,24 +30,5 @@ export const { GET } = defineRoute({
     ...VALIDATION_RESPONSE,
     ...AUTH_RESPONSES,
   },
-  handler: async ({ query }) => {
-    const rows = await db
-      .select({ profile, name: user.name })
-      .from(profile)
-      .innerJoin(user, eq(user.id, profile.userId))
-      .where(query.status ? eq(profile.status, query.status) : undefined)
-      // Les profils en attente d'abord : c'est ce que l'ecran doit traiter.
-      .orderBy(desc(profile.status), desc(profile.createdAt));
-
-    return {
-      items: rows.map((row) => ({
-        id: row.profile.id,
-        name: row.name,
-        title: row.profile.title,
-        videoUrl: row.profile.videoUrl,
-        status: row.profile.status,
-        createdAt: row.profile.createdAt.toISOString(),
-      })),
-    };
-  },
+  handler: async ({ query }) => ({ items: await moderationQueue(query.status) }),
 });

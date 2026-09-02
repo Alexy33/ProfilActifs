@@ -29,13 +29,50 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  /**
+   * Marques de reperage aux quatre coins.
+   *
+   * Le systeme les exige sur l'action principale d'un ecran — le seul objet
+   * plein de la planche — et les omet sur les boutons secondaires d'une carte
+   * qui porte deja son propre cadre.
+   */
+  marks?: boolean;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, marks = false, children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
+    const corners = marks ? (
+      <>
+        <i className="corner tl" />
+        <i className="corner tr" />
+        <i className="corner bl" />
+        <i className="corner br" />
+      </>
+    ) : null;
+
     return (
-      <Comp className={cn(buttonVariants({ variant, size }), className)} ref={ref} {...props} />
+      <Comp
+        className={cn(buttonVariants({ variant, size }), marks && "blueprint", className)}
+        ref={ref}
+        {...props}
+      >
+        {asChild && React.isValidElement(children)
+          ? // `Slot` ne rend qu'un seul enfant : les marques sont injectees
+            // dans l'element cible (le <Link>), pas a cote de lui.
+            React.cloneElement(
+              children as React.ReactElement<{ children?: React.ReactNode }>,
+              undefined,
+              corners,
+              (children as React.ReactElement<{ children?: React.ReactNode }>).props.children,
+            )
+          : (
+              <>
+                {corners}
+                {children}
+              </>
+            )}
+      </Comp>
     );
   },
 );

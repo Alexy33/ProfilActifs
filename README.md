@@ -2,10 +2,9 @@
 
 Demonstrateur pour le Ministere du Job et Bonheur (JEB/DNI/2026-003).
 
-Ce depot contient **le backend complet et sa documentation interactive**. Les
-ecrans restent a construire : l'API couvre deja le perimetre de la maquette
-fonctionnelle (catalogue, certification, espace recruteur, administration) et
-se decouvre sur [`/api/docs`](http://localhost:3000/api/docs).
+Ce depot contient **l'application complete** : les huit ecrans de la maquette
+fonctionnelle, l'API qui les alimente, et sa documentation interactive sur
+[`/api/docs`](http://localhost:3000/api/docs).
 
 ## Stack
 
@@ -77,17 +76,43 @@ docker compose --profile dev exec web-dev npx drizzle-kit studio   # base du con
 Drizzle Studio ecoute sur `127.0.0.1:4983` et s'ouvre via
 https://local.drizzle.studio.
 
-## Ce que la page d'accueil prouve
+## Les ecrans
 
-Elle n'est pas decorative : chaque ligne est verifiee a l'execution.
+| Route | Ecran | Acces |
+| --- | --- | --- |
+| `/` | Accueil : compteurs du dispositif, comptes de demonstration | public |
+| `/connexion` | Connexion et inscription (`?mode=inscription`) | public |
+| `/catalogue` | Catalogue filtrable et pagine | public |
+| `/profils/[id]` | Fiche publique d'un candidat | public |
+| `/mon-espace` | Profil, certification, notifications | demandeur |
+| `/certification` | Questionnaire, une question a la fois | demandeur |
+| `/mes-candidats` | Suivi des contacts et favoris | recruteur |
+| `/administration` | Moderation, bareme, seuil | admin |
 
-- **Next.js** — la page est un composant serveur (`src/app/page.tsx`).
-- **SQLite + Drizzle** — les compteurs viennent de vrais `COUNT(*)`.
-- **better-auth** — le bouton ouvre une session ; elle survit a un F5, ce qui
-  prouve que le cookie httpOnly est bien pose (et pas un simple etat React).
-- **Ecriture en base** — « Ping la base » insere une ligne et le compteur
-  augmente apres re-rendu serveur.
-- **Scalar** — la doc est servie sur `/api/docs`, lue depuis `/api/openapi`.
+Un visiteur anonyme est renvoye vers `/connexion` ; un role qui n'a rien a
+faire sur un ecran est renvoye a l'accueil. La regle est la meme que celle de
+l'API (`requireRole` dans `src/lib/session.ts` reprend `requireAccess` de
+`src/server/openapi/routes.ts`).
+
+### Comment c'est cable
+
+**Lecture par composant serveur, ecriture par l'API.** Une page appelle
+directement les services de `src/server/services/*` — pas d'aller-retour HTTP
+vers son propre serveur pour s'afficher. Toute modification, en revanche, passe
+par une route `/api/*` documentee, puis `router.refresh()` : l'interface est le
+premier consommateur de l'API, et non un chemin parallele.
+
+**Les filtres du catalogue vivent dans l'URL.** `?q=&sector=&city=&certified=
+&skills=&page=` est valide par `CatalogQuery` — le contrat de
+`GET /api/profiles` — de sorte que la page et l'API acceptent exactement les
+memes entrees. Une recherche se partage par copier-coller et le bouton
+« precedent » du navigateur remonte le fil.
+
+**Le systeme graphique « Industry »** de la maquette est porte en Tailwind v4 :
+les jetons dans `@theme` (`src/app/globals.css`), le cadre filaire et ses
+marques de reperage en `@layer components`, et le reste en composants React
+sous `src/components/ui/` (`Blueprint`, `Tag`, `Field`, `Segmented`,
+`DataTable`, `Dialog`, `StatGrid`).
 
 ## L'API
 
@@ -198,14 +223,25 @@ moderation.
 
 ```bash
 npm test          # Vitest : bareme de certification + garde-fous de la specification
-npm run test:e2e  # Playwright : parcours complets de l'API (demarre l'app tout seul)
+npm run test:e2e  # Playwright : parcours d'API et d'interface (demarre l'app tout seul)
 
 # Contre le conteneur deja lance :
 E2E_BASE_URL=http://localhost:3000 npx playwright test
 ```
 
-Les tests d'API supposent la base peuplee (`npm run db:seed`) : ils se
-connectent avec les comptes de demonstration.
+- `e2e/api.spec.ts` — ce que l'API promet, refus compris (401, 403, 404, 400).
+- `e2e/ui.spec.ts` — les memes parcours a travers l'interface : filtres,
+  questionnaire, prise de contact, moderation.
+- `e2e/stack.spec.ts` — les briques (sonde de sante, ecriture en base, session
+  qui survit a un rechargement, documentation Scalar).
+
+Les tests supposent la base peuplee (`npm run db:seed`) : ils se connectent
+avec les comptes de demonstration.
+
+Toute la suite tourne **en serie, sur un seul worker** : les fichiers partagent
+une base SQLite unique et les memes comptes. Deux fichiers qui modifient le
+seuil de certification ou une tentative en parallele se font echouer l'un
+l'autre.
 
 ## Base de donnees
 
@@ -233,12 +269,17 @@ npm run db:seed   # jeu de demonstration (destructif, rejouable)
 
 ## Prochaines etapes
 
-Le backend couvre le perimetre de la maquette fonctionnelle. Restent ouverts :
+L'application couvre le perimetre de la maquette fonctionnelle. Restent
+ouverts :
 
-- [ ] Interface : les ecrans sont a construire sur cette API
-- [ ] Heberger les videos plutot que referencer une URL YouTube/Vimeo
+- [ ] Heberger et lire les videos, plutot que referencer une URL YouTube/Vimeo
+      (l'emplacement est dessine, le jeu d'essai ne contient pas de vraie video)
 - [ ] Notifications par e-mail (aujourd'hui uniquement en base)
-- [ ] Supprimer la route `/api/ping` et sa table avec la page de verification
+- [ ] Supprimer la route `/api/ping` et sa table, vestiges de la verification
+      du socle
+- [ ] `npm run lint` : `next lint` a ete **supprime** dans Next.js 16. Le script
+      de `package.json` ne fait plus rien ; brancher Biome ou ESLint
+      directement. En attendant, `npm run typecheck` est le garde-fou.
 
 ## Points a savoir
 
