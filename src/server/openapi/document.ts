@@ -1,6 +1,7 @@
 import { buildComponentSchemas } from "./schemas";
 import { operationOf, registeredRoutes } from "./routes";
 import { authPaths } from "./auth-paths";
+import { videoPaths } from "./video-paths";
 import { downgradeToOpenApi30 } from "./downgrade";
 import "./manifest";
 
@@ -39,6 +40,10 @@ export function buildOpenApiDocument() {
   // Les routes better-auth sont servies par un catch-all : on les decrit a la
   // main pour que le front voie l'ensemble de la surface au meme endroit.
   for (const [path, operations] of Object.entries(authPaths)) {
+    paths[path] = { ...(paths[path] ?? {}), ...operations };
+  }
+
+  for (const [path, operations] of Object.entries(videoPaths)) {
     paths[path] = { ...(paths[path] ?? {}), ...operations };
   }
 
