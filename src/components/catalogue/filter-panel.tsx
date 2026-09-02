@@ -106,6 +106,19 @@ export function FilterPanel({ filters }: { filters: CatalogFilters }) {
         />
       </Field>
 
+      <Field label="Vidéo de présentation">
+        <Segmented
+          name="video"
+          className="w-full"
+          value={filters.hasVideo ? "only" : "all"}
+          onChange={(value) => apply({ hasVideo: value === "only" ? true : undefined })}
+          options={[
+            { value: "all", label: "Tous" },
+            { value: "only", label: "Avec vidéo" },
+          ]}
+        />
+      </Field>
+
       <Field label="Compétences">
         <div className="flex flex-wrap gap-1.5">
           {SKILLS.map((skill) => (

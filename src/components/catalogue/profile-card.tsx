@@ -3,6 +3,7 @@ import { Blueprint } from "@/components/ui/blueprint";
 import { Button } from "@/components/ui/button";
 import { Tag } from "@/components/ui/tag";
 import type { ProfileCard as ProfileCardData } from "@/server/services/profiles";
+import { CardVideo } from "./card-video";
 import { FavoriteButton } from "./favorite-button";
 
 /** Carte du catalogue : identite, badge de certification, competences, actions. */
@@ -36,6 +37,8 @@ export function ProfileCard({
           </div>
         </div>
       </div>
+
+      <CardVideo videoUrl={profile.videoUrl} name={profile.name} />
 
       <div className="flex flex-wrap gap-[5px]">
         {profile.skills.map((skill) => (
