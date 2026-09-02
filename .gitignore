@@ -24,6 +24,7 @@ next-env.d.ts
 *.db-shm
 *.db-wal
 /data
+/uploads
 
 # secrets
 .env
