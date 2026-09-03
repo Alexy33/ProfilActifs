@@ -58,7 +58,7 @@ export function ProfileCard({
           </div>
           <p className="mt-1 text-sm leading-snug text-[#4a5568]">{profile.title}</p>
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-[#718096]">
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-[#566274]">
             <span className="flex items-center gap-1.5">
               <MapPin aria-hidden="true" className="size-3.5 text-[#1B3A6B]" />
               {profile.city}

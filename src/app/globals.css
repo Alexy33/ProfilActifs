@@ -177,3 +177,65 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+/* ---------------------------------------------------------------------------
+ * Accessibilite RGAA AA (R.7)
+ *
+ * Ce bloc est volontairement HORS @layer. Les utilitaires Tailwind vivent dans
+ * la couche `utilities`, et plusieurs composants y posent `outline-none` en
+ * comptant sur un `ring` de remplacement. Une regle non couchee l'emporte sur
+ * toute regle couchee : l'indicateur de focus ne peut donc pas etre supprime
+ * par megarde au detour d'une classe utilitaire.
+ *
+ * Valeurs mesurees (scripts/a11y-audit.mjs) : #1B3A6B contre les fonds du
+ * dispositif donne 9.84:1 sur #ebf0f7, 10.66:1 sur #f5f9fe et 11.27:1 sur
+ * #ffffff, la ou l'ancien anneau `--ring` a 50 % plafonnait a 1.54:1 — sous le
+ * seuil de 3:1 exige pour un indicateur.
+ * ------------------------------------------------------------------------ */
+
+:focus-visible {
+  outline: 3px solid #1b3a6b;
+  outline-offset: 2px;
+  /* Le decalage pose l'anneau sur le fond de page : il reste visible meme
+     quand l'element lui-meme est sombre (pastille de navigation active). */
+  border-radius: inherit;
+}
+
+/* Un iframe recoit le focus au clavier sans jamais matcher `:focus` : le focus
+   entre dans le document embarque, et seul son ancetre matche `:focus-within`.
+   C'est donc le cadre qui porte l'anneau pour le compte de la video — sans quoi
+   la tabulation traverse le lecteur sans rien montrer. */
+:has(> iframe):focus-within {
+  outline: 3px solid #1b3a6b;
+  outline-offset: 2px;
+}
+
+/* Lien d'evitement : hors ecran tant qu'il n'a pas le focus, puis visible. */
+.lien-evitement {
+  position: absolute;
+  left: 1rem;
+  top: -100%;
+  z-index: 100;
+  border-radius: 0.75rem;
+  background: #1b3a6b;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ffffff;
+  transition: top 150ms ease;
+}
+
+.lien-evitement:focus {
+  top: 1rem;
+}
+
+/* Respect de « prefers-reduced-motion » : aucune animation imposee. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

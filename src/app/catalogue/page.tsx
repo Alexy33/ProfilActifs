@@ -94,7 +94,7 @@ export default async function CataloguePage({
                 Découvrez les
                 <span className="text-[#1B3A6B]"> talents.</span>
               </h1>
-              <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#718096]">
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#566274]">
                 Parcourez les compétences des demandeurs d&apos;emploi et repérez
                 les profils dont les aptitudes ont été certifiées par le
                 dispositif JEB.
@@ -134,7 +134,7 @@ export default async function CataloguePage({
                   <h2 className="mt-8 text-xl font-bold uppercase tracking-tight text-[#2d3748]">
                     Aucun profil ne correspond
                   </h2>
-                  <p className="mt-3 max-w-md text-sm leading-relaxed text-[#718096]">
+                  <p className="mt-3 max-w-md text-sm leading-relaxed text-[#566274]">
                     Élargissez la recherche en retirant une compétence, un secteur
                     ou le filtre de certification.
                   </p>

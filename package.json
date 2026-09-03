@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "openapi:export": "tsx scripts/export-openapi.ts"
+    "openapi:export": "tsx scripts/export-openapi.ts",
+    "a11y": "node scripts/a11y-audit.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

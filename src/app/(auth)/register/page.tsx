@@ -13,7 +13,7 @@ export default function RegisterPage() {
         <h1 className="text-4xl font-semibold tracking-tight text-[#2d3748]">
           Créer un compte
         </h1>
-        <p className="text-base text-[#718096]">
+        <p className="text-base text-[#566274]">
           Renseignez vos informations pour commencer.
         </p>
       </div>
