@@ -13,6 +13,7 @@ const HealthSchema = named(
   "Health",
   z.object({
     status: z.literal("ok"),
+    version: z.string().meta({ description: "Version deployee (depuis package.json)." }),
     db: z.literal("up"),
     ts: z.iso.datetime(),
   }),
@@ -45,6 +46,21 @@ export const { GET } = defineRoute({
         { status: 503 },
       );
     }
-    return { status: "ok" as const, db: "up" as const, ts: new Date().toISOString() };
+    const version = process.env.npm_package_version || "unknown";
+    return {
+      status: "ok" as const,
+      version,
+      db: "up" as const,
+      ts: new Date().toISOString(),
+    };
   },
 });
+
+      );
+    }
+    const version = process.env.npm_package_version || "unknown";
+    return {
+      status: "ok" as const,
+      version,
+      db: "up" as const,
+      ts: new Date().toISOString(),

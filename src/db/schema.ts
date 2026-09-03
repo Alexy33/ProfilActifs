@@ -107,20 +107,6 @@ export const verification = sqliteTable("verification", {
 });
 
 /* ---------------------------------------------------------------------------
- * Table de demonstration
- *
- * Sert uniquement a prouver que l'ecriture en base fonctionne depuis l'app.
- * A SUPPRIMER des que le vrai domaine sera en place.
- * ------------------------------------------------------------------------ */
-
-export const ping = sqliteTable("ping", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`(unixepoch())`),
-});
-
-/* ---------------------------------------------------------------------------
  * Domaine metier
  *
  * Les vocabulaires fermes (secteurs, villes, competences, statuts) viennent de
