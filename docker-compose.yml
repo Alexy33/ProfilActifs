@@ -1,28 +1,14 @@
-# ---------------------------------------------------------------------------
-# ProfilsActifs - un seul fichier, deux profils
-#
-#   Developpement :  docker compose --profile dev  up
-#   Production    :  docker compose --profile prod up --build
-#
-# Sans --profile, aucun service ne demarre : c'est voulu, ca evite de lancer
-# le mauvais mode par reflexe.
-# ---------------------------------------------------------------------------
 name: profilsactifs
 
-# Bloc reutilise par les deux services (ancre YAML).
 x-app-env: &app-env
   DATABASE_URL: file:/data/profilsactifs.db
-  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET manquant - copiez .env.example vers .env}
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-dev-only-secret-change-me-in-production}
   BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
   NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
   NEXT_TELEMETRY_DISABLED: "1"
 
 services:
-  # -------------------------------------------------------------------------
-  # DEV : hot reload, code source monte depuis l'hote
-  # -------------------------------------------------------------------------
   web-dev:
-    profiles: ["dev"]
     build:
       context: .
       target: dev
@@ -30,33 +16,17 @@ services:
     environment:
       <<: *app-env
       NODE_ENV: development
-      # Docker Desktop (macOS/Windows) et WSL2 ne propagent pas toujours les
-      # evenements inotify a travers le bind mount : sans polling, le hot
-      # reload ne se declenche jamais. Inutile sous Linux natif.
+      # inotify ne traverse pas le bind mount sous Docker Desktop / WSL2.
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
     volumes:
-      # 1. Le code source de l'hote ecrase /app -> edition = rechargement
       - .:/app
-      # 2. Volumes anonymes qui "re-masquent" les repertoires de l'image.
-      #    Sans eux, le bind mount du point 1 cacherait le node_modules
-      #    compile pour Alpine et remplacerait par celui de l'hote (compile
-      #    pour macOS/Windows) -> better-sqlite3 refuserait de se charger.
       - /app/node_modules
       - /app/.next
-      # 3. La base vit hors du bind mount, dans un volume nomme.
-      #    Volume PROPRE au dev : l'image dev tourne en uid 1000 (node) et
-      #    l'image prod en uid 1001 (nextjs). Docker fige le proprietaire d'un
-      #    volume a sa creation, donc un volume partage entre les deux profils
-      #    devient lecture seule pour l'un des deux (SQLITE_READONLY).
       - db-data-dev:/data
     ports:
       - "${PORT:-3000}:3000"
     restart: unless-stopped
-
-  # -------------------------------------------------------------------------
-  # PROD : image standalone, non-root, sans code source monte
-  # -------------------------------------------------------------------------
   web:
     profiles: ["prod"]
     build:
@@ -68,9 +38,6 @@ services:
       <<: *app-env
       NODE_ENV: production
     volumes:
-      # Seul point d'ecriture persistant. Le reste du systeme de fichiers
-      # peut rester en lecture seule (voir read_only ci-dessous).
-      # Volume distinct de celui du dev : voir la note du service web-dev.
       - db-data-prod:/data
     ports:
       - "${PORT:-3000}:3000"
@@ -93,13 +60,6 @@ services:
       start_period: 20s
 
 volumes:
-  # Volumes nommes : ils survivent a `docker compose down`. Seul `down -v` les
-  # detruit. Chacun contient profilsactifs.db + ses fichiers -wal et -shm.
-  #
-  # Un volume par profil, et non un seul partage : les deux images tournent
-  # sous des utilisateurs differents (node/1000 en dev, nextjs/1001 en prod)
-  # et Docker fige le proprietaire du volume au premier montage. Les deux
-  # bases sont donc independantes, ce qui est aussi plus sain : on ne veut pas
-  # que des essais en dev polluent les donnees de production.
+
   db-data-dev:
   db-data-prod:
