@@ -37,7 +37,7 @@ COPY package.json package-lock.json ./
 # Pas de --mount=type=cache ici : cette directive exige BuildKit/buildx, qui
 # n'est pas disponible sur toutes les machines de l'equipe. Le cache de couche
 # Docker suffit tant que package.json et le lockfile ne bougent pas.
-RUN npm ci
+RUN npm i
 
 # ---------------------------------------------------------------------------
 # 3. DEV : cible utilisee par le profil "dev" du docker-compose
@@ -85,7 +85,11 @@ ENV DATABASE_URL="file:/tmp/build.db" \
 # Produit .next/standalone : un serveur Node autonome avec uniquement les
 # dependances reellement tracees. Necessite `output: "standalone"` dans
 # next.config.ts.
-RUN npm run build
+# Le seed est prepare dans l'image pour qu'un volume de production neuf soit
+# directement utilisable avec les comptes de demonstration.
+RUN npm run db:migrate && npm run db:seed \
+ && node -e "const D=require('better-sqlite3'); const d=new D('/tmp/build.db'); d.pragma('wal_checkpoint(TRUNCATE)'); d.pragma('journal_mode=DELETE'); d.close()" \
+ && npm run build
 
 # ---------------------------------------------------------------------------
 # 5. RUNNER : image finale, minimale et non-root
@@ -109,6 +113,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 # Les assets built (JS/CSS hashes) ne sont pas inclus dans standalone
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Base de demonstration utilisee uniquement a l'initialisation d'un volume
+# /data vide (l'entrypoint preserve ensuite les donnees existantes).
+COPY --from=builder --chown=nextjs:nodejs /tmp/build.db ./seed.db
 # Migrations Drizzle, rejouees au demarrage par instrumentation.ts
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 

@@ -28,7 +28,7 @@ export function RegisterForm() {
       const result = await authClient.signUp.email({ name, email, password });
 
       if (result.error) {
-        setError(result.error.message ?? "Unable to create account.");
+        setError(result.error.message ?? "Impossible de créer le compte.");
         setLoading(false);
         return;
       }
@@ -36,7 +36,7 @@ export function RegisterForm() {
       router.push("/candidate");
       router.refresh();
     } catch {
-      setError("An unexpected error occurred. Please try again.");
+      setError("Une erreur inattendue est survenue. Réessayez.");
       setLoading(false);
     }
   }
@@ -55,58 +55,58 @@ export function RegisterForm() {
         ) : null}
 
         <div className="grid gap-2">
-          <Label htmlFor="name" className="text-sm">Full name</Label>
+          <Label htmlFor="name" className="text-sm text-[#2d3748]">Nom complet</Label>
 
           <Input
             id="name"
             type="text"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="John Doe"
+            placeholder="Jean Dupont"
             autoCapitalize="words"
             autoComplete="name"
             autoCorrect="off"
             disabled={loading}
             required
-            className="h-11 rounded-lg px-3.5 text-base md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#5980a6]/30 md:text-base"
           />
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="email" className="text-sm">Email</Label>
+          <Label htmlFor="email" className="text-sm text-[#2d3748]">Adresse e-mail</Label>
 
           <Input
             id="email"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="john@example.com"
+            placeholder="jean@exemple.fr"
             autoCapitalize="none"
             autoComplete="email"
             autoCorrect="off"
             disabled={loading}
             required
-            className="h-11 rounded-lg px-3.5 text-base md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#5980a6]/30 md:text-base"
           />
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="password" className="text-sm">Password</Label>
+          <Label htmlFor="password" className="text-sm text-[#2d3748]">Mot de passe</Label>
 
           <Input
             id="password"
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="Minimum 8 characters"
+            placeholder="8 caractères minimum"
             autoComplete="new-password"
             minLength={8}
             disabled={loading}
             required
-            className="h-11 rounded-lg px-3.5 text-base md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#5980a6]/30 md:text-base"
           />
-          <p className="text-sm text-muted-foreground">
-            Must be at least 8 characters long.
+          <p className="text-sm text-[#718096]">
+            Doit contenir au moins 8 caractères.
           </p>
         </div>
 
@@ -114,21 +114,21 @@ export function RegisterForm() {
           type="submit"
           size="lg"
           disabled={loading}
-          className="mt-1 h-11 w-full rounded-lg text-base"
+          className="mt-1 h-11 w-full rounded-xl bg-[#5980a6] text-base text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#416180] hover:shadow-[inset_3px_3px_6px_#416180,inset_-3px_-3px_6px_#749dc4]"
         >
           {loading ? (
             <Loader2 aria-hidden="true" className="animate-spin" />
           ) : null}
-          {loading ? "Creating account..." : "Create account"}
+          {loading ? "Création du compte..." : "Créer le compte"}
         </Button>
       </form>
-      <p className="text-center text-base text-muted-foreground">
-        Already have an account?{" "}
+      <p className="text-center text-base text-[#718096]">
+        Vous avez déjà un compte ?{" "}
         <Link
           href="/login"
-          className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
+          className="font-medium text-[#416180] underline underline-offset-4 transition-colors hover:text-[#5980a6]"
         >
-          Sign in
+          Se connecter
         </Link>
       </p>
     </div>
