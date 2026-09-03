@@ -8,7 +8,11 @@ import { ProfileActions } from "@/components/catalogue/profile-actions";
 import { SiteShell } from "@/components/layout/site-shell";
 import { getCurrentSession } from "@/lib/auth-session";
 import type { UserRole } from "@/lib/vocabulary";
-import { findProfileById, recordProfileView } from "@/server/services/profiles";
+import {
+  findProfileById,
+  recordProfileView,
+  type SessionLike,
+} from "@/server/services/profiles";
 import { getSettings } from "@/server/services/settings";
 
 export const dynamic = "force-dynamic";
@@ -22,8 +26,13 @@ export const dynamic = "force-dynamic";
  * exactement comme la route `/api/profiles/{id}`.
  */
 
-async function loadPublishedProfile(id: string) {
-  const found = await findProfileById(id);
+/**
+ * @param session session de l'appelant. Elle ne conditionne pas l'acces a la
+ *   fiche — publique par construction — mais la diffusion de la video d'un
+ *   profil de mineur, reservee au titulaire et a l'administration (R.1).
+ */
+async function loadPublishedProfile(id: string, session?: SessionLike) {
+  const found = await findProfileById(id, session);
   if (!found || found.status !== "published") return null;
   return found;
 }
@@ -50,7 +59,11 @@ export default async function ProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const profile = await loadPublishedProfile(id);
+
+  // Session lue en premier : elle determine si la video d'un profil de mineur
+  // est diffusee (R.1), donc le contenu meme de la fiche chargee ensuite.
+  const session = await getCurrentSession();
+  const profile = await loadPublishedProfile(id, session ?? undefined);
 
   if (!profile) notFound();
 
@@ -59,7 +72,7 @@ export default async function ProfilePage({
   await recordProfileView(profile.id);
   const views = profile.views + 1;
 
-  const [settings, session] = await Promise.all([getSettings(), getCurrentSession()]);
+  const settings = await getSettings();
 
   return (
     <SiteShell>
