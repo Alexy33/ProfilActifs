@@ -83,13 +83,13 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
   }
 
   const selectClassName =
-    "h-12 w-full appearance-none rounded-2xl border-0 bg-[#ebf0f7] px-4 text-sm font-semibold text-[#2d3748] outline-none transition-all shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] hover:text-[#416180] focus-visible:ring-2 focus-visible:ring-[#5980a6]/30";
+    "h-12 w-full appearance-none rounded-2xl border-0 bg-[#ebf0f7] px-4 text-sm font-semibold text-[#2d3748] outline-none transition-all shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] hover:text-[#273D4F] focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30";
 
   return (
     <aside className="rounded-3xl bg-[#ebf0f7] p-7 shadow-[10px_10px_20px_#c5d1e0,-10px_-10px_20px_#ffffff]">
       <div className="flex items-center justify-between gap-4 border-b border-[#2d3748]/10 pb-5">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-[#5980a6]/10 text-[#5980a6]">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-[#1B3A6B]/10 text-[#1B3A6B]">
             <SlidersHorizontal aria-hidden="true" className="size-5 stroke-[1.7]" />
           </div>
           <h2 className="text-base font-bold uppercase tracking-tight text-[#2d3748]">
@@ -98,7 +98,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
         </div>
 
         {pending ? (
-          <Loader2 aria-hidden="true" className="size-4 animate-spin text-[#5980a6]" />
+          <Loader2 aria-hidden="true" className="size-4 animate-spin text-[#1B3A6B]" />
         ) : null}
       </div>
 
@@ -127,7 +127,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Nom, métier, compétence"
-            className="h-12 w-full rounded-2xl border-0 bg-[#ebf0f7] pl-11 pr-4 text-sm text-[#2d3748] outline-none transition-all shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:ring-2 focus-visible:ring-[#5980a6]/30"
+            className="h-12 w-full rounded-2xl border-0 bg-[#ebf0f7] pl-11 pr-4 text-sm text-[#2d3748] outline-none transition-all shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30"
           />
         </div>
       </form>
@@ -190,7 +190,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
             onClick={() => setSingle("certified", "")}
             className={`h-10 rounded-xl text-sm font-semibold transition-all ${
               certifiedOnly
-                ? "text-[#718096] hover:text-[#416180]"
+                ? "text-[#718096] hover:text-[#273D4F]"
                 : "bg-[#ebf0f7] text-[#2d3748] shadow-[3px_3px_6px_#c5d1e0,-3px_-3px_6px_#ffffff]"
             }`}
           >
@@ -202,8 +202,8 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
             onClick={() => setSingle("certified", "true")}
             className={`h-10 rounded-xl text-sm font-semibold transition-all ${
               certifiedOnly
-                ? "bg-[#5980a6] text-white"
-                : "text-[#718096] hover:text-[#416180]"
+                ? "bg-[#1B3A6B] text-white"
+                : "text-[#718096] hover:text-[#273D4F]"
             }`}
           >
             Certifiés
@@ -228,8 +228,8 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
                 onClick={() => toggleSkill(skill)}
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
                   active
-                    ? "bg-[#5980a6] text-white shadow-[3px_3px_6px_#c5d1e0,-3px_-3px_6px_#ffffff]"
-                    : "bg-[#ebf0f7] text-[#4a5568] shadow-[2px_2px_5px_#c5d1e0,-2px_-2px_5px_#ffffff] hover:text-[#416180]"
+                    ? "bg-[#1B3A6B] text-white shadow-[3px_3px_6px_#c5d1e0,-3px_-3px_6px_#ffffff]"
+                    : "bg-[#ebf0f7] text-[#4a5568] shadow-[2px_2px_5px_#c5d1e0,-2px_-2px_5px_#ffffff] hover:text-[#273D4F]"
                 }`}
               >
                 {skill}
@@ -247,7 +247,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
             setQuery("");
             startTransition(() => router.push(pathname, { scroll: false }));
           }}
-          className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[#5980a6] transition-colors hover:text-[#416180]"
+          className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[#1B3A6B] transition-colors hover:text-[#273D4F]"
         >
           <RotateCcw aria-hidden="true" className="size-4" />
           Réinitialiser les filtres

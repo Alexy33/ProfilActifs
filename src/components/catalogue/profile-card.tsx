@@ -34,9 +34,9 @@ export function ProfileCard({
   }
 
   return (
-    <article className="group flex w-full items-center gap-4 overflow-hidden rounded-xl border border-[#b5d9fd] bg-[#f8fbff] px-5 py-4 transition-colors hover:border-[#749dc4] hover:bg-[#f2f8ff]">
+    <article className="group flex w-full items-center gap-4 overflow-hidden rounded-xl border border-[#A8C5E0] bg-[#F5F9FE] px-5 py-4 transition-colors hover:border-[#4A6B8A] hover:bg-[#f2f8ff]">
       <div className="flex min-w-0 flex-1 items-start gap-4">
-        <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#d6ebff] font-mono text-base font-bold text-[#2c455d]">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#D1DEF0] font-mono text-base font-bold text-[#1B2D3E]">
           {profile.initials}
         </div>
 
@@ -60,14 +60,14 @@ export function ProfileCard({
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-[#718096]">
             <span className="flex items-center gap-1.5">
-              <MapPin aria-hidden="true" className="size-3.5 text-[#5980a6]" />
+              <MapPin aria-hidden="true" className="size-3.5 text-[#1B3A6B]" />
               {profile.city}
             </span>
             <span className="rounded-full bg-[#eee7ff] px-2 py-1 text-[#65449b]">
               {profile.sector}
             </span>
             <span className="flex items-center gap-1.5">
-              <Eye aria-hidden="true" className="size-3.5 text-[#5980a6]" />
+              <Eye aria-hidden="true" className="size-3.5 text-[#1B3A6B]" />
               {profile.views}
             </span>
           </div>
@@ -97,7 +97,7 @@ export function ProfileCard({
       <Link
         href={`/profils/${profile.id}`}
         aria-label={`Consulter le profil de ${profile.name}`}
-        className="group/link inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#5980a6] text-white transition-colors hover:bg-[#416180] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5980a6] sm:w-auto sm:gap-2 sm:px-4"
+        className="group/link inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#1B3A6B] text-white transition-colors hover:bg-[#273D4F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3A6B] sm:w-auto sm:gap-2 sm:px-4"
       >
         <span className="hidden text-sm font-semibold sm:inline">Voir le profil</span>
         <ArrowRight aria-hidden="true" className="size-4 transition-transform group-hover/link:translate-x-0.5" />
@@ -109,7 +109,7 @@ export function ProfileCard({
           disabled={updatingFavorite}
           aria-label={favorite ? `Retirer ${profile.name} des favoris` : `Ajouter ${profile.name} aux favoris`}
           aria-pressed={favorite}
-          className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg px-3 text-xs font-semibold transition-colors disabled:opacity-60 ${favorite ? "bg-[#ffe8ef] text-[#8a3f5b]" : "border border-[#5980a6]/25 bg-white text-[#5980a6] hover:bg-[#eef6ff]"}`}
+          className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg px-3 text-xs font-semibold transition-colors disabled:opacity-60 ${favorite ? "bg-[#ffe8ef] text-[#8a3f5b]" : "border border-[#1B3A6B]/25 bg-white text-[#1B3A6B] hover:bg-[#E8F0F8]"}`}
         >
           {updatingFavorite ? <Loader2 aria-hidden="true" className="size-4 animate-spin" /> : <Heart aria-hidden="true" className={`size-4 ${favorite ? "fill-current" : ""}`} />}
           <span className="hidden sm:inline">{favorite ? "Favori" : "Ajouter"}</span>

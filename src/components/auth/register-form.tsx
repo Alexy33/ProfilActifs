@@ -68,7 +68,7 @@ export function RegisterForm() {
             autoCorrect="off"
             disabled={loading}
             required
-            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#5980a6]/30 md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
           />
         </div>
 
@@ -86,7 +86,7 @@ export function RegisterForm() {
             autoCorrect="off"
             disabled={loading}
             required
-            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#5980a6]/30 md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
           />
         </div>
 
@@ -103,7 +103,7 @@ export function RegisterForm() {
             minLength={8}
             disabled={loading}
             required
-            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#5980a6]/30 md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
           />
           <p className="text-sm text-[#718096]">
             Doit contenir au moins 8 caractères.
@@ -114,7 +114,7 @@ export function RegisterForm() {
           type="submit"
           size="lg"
           disabled={loading}
-          className="mt-1 h-11 w-full rounded-xl bg-[#5980a6] text-base text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#416180] hover:shadow-[inset_3px_3px_6px_#416180,inset_-3px_-3px_6px_#749dc4]"
+          className="mt-1 h-11 w-full rounded-xl bg-[#1B3A6B] text-base text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#273D4F] hover:shadow-[inset_3px_3px_6px_#273D4F,inset_-3px_-3px_6px_#4A6B8A]"
         >
           {loading ? (
             <Loader2 aria-hidden="true" className="animate-spin" />
@@ -126,7 +126,7 @@ export function RegisterForm() {
         Vous avez déjà un compte ?{" "}
         <Link
           href="/login"
-          className="font-medium text-[#416180] underline underline-offset-4 transition-colors hover:text-[#5980a6]"
+          className="font-medium text-[#273D4F] underline underline-offset-4 transition-colors hover:text-[#1B3A6B]"
         >
           Se connecter
         </Link>

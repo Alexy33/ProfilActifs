@@ -99,14 +99,14 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
     <div className="flex h-full flex-col bg-[#ebf0f7] px-5 py-7">
       <div className="flex items-center justify-between">
         <Link href="/" className="text-xl font-extrabold tracking-tight text-[#2d3748]">
-          Profils<span className="text-[#5980a6]">Actifs.</span>
+          Profils<span className="text-[#1B3A6B]">Actifs.</span>
         </Link>
         {variant === "tiroir" ? (
           <button
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Fermer le menu"
-            className="rounded-xl p-2 text-[#4a5568] transition-colors hover:text-[#416180]"
+            className="rounded-xl p-2 text-[#4a5568] transition-colors hover:text-[#273D4F]"
           >
             <X aria-hidden="true" className="size-5" />
           </button>
@@ -130,8 +130,8 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
               aria-current={active ? "page" : undefined}
               className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all ${
                 active
-                  ? "bg-[#5980a6] text-white"
-                  : "text-[#4a5568] hover:bg-white/70 hover:text-[#416180]"
+                  ? "bg-[#1B3A6B] text-white"
+                  : "text-[#4a5568] hover:bg-white/70 hover:text-[#273D4F]"
               }`}
             >
               <Icon aria-hidden="true" className="size-5 stroke-[1.7]" />
@@ -145,7 +145,7 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
         {session ? (
           <div className="rounded-2xl bg-white/70 p-4">
             <div className="flex items-center gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#5980a6] text-white">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#1B3A6B] text-white">
                 <BadgeCheck aria-hidden="true" className="size-5 stroke-[1.7]" />
               </div>
               <div className="min-w-0">
@@ -160,7 +160,7 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
               type="button"
               onClick={handleSignOut}
               disabled={signingOut}
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#ebf0f7] px-4 py-2.5 text-xs font-semibold text-[#2d3748] transition-colors hover:text-[#416180] disabled:opacity-60"
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#ebf0f7] px-4 py-2.5 text-xs font-semibold text-[#2d3748] transition-colors hover:text-[#273D4F] disabled:opacity-60"
             >
               <LogOut aria-hidden="true" className="size-4" />
               {signingOut ? "Déconnexion…" : "Déconnexion"}
@@ -176,7 +176,7 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
             </Link>
             <Link
               href="/register"
-              className="rounded-2xl bg-[#5980a6] px-4 py-3 text-center text-sm font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] transition-all hover:bg-[#416180] active:scale-[0.97]"
+              className="rounded-2xl bg-[#1B3A6B] px-4 py-3 text-center text-sm font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] transition-all hover:bg-[#273D4F] active:scale-[0.97]"
             >
               Créer un profil
             </Link>
@@ -200,12 +200,12 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
           onClick={() => setOpen(true)}
           aria-label="Ouvrir le menu"
           aria-expanded={open}
-          className="rounded-xl p-2 text-[#2d3748] transition-colors hover:text-[#416180]"
+          className="rounded-xl p-2 text-[#2d3748] transition-colors hover:text-[#273D4F]"
         >
           <Menu aria-hidden="true" className="size-6" />
         </button>
         <Link href="/" className="text-lg font-extrabold tracking-tight text-[#2d3748]">
-          Profils<span className="text-[#5980a6]">Actifs.</span>
+          Profils<span className="text-[#1B3A6B]">Actifs.</span>
         </Link>
       </div>
 
