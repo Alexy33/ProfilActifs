@@ -1,10 +1,13 @@
 #!/bin/sh
-# ---------------------------------------------------------------------------
-# Entrypoint : verifications avant de passer la main au serveur Next.js.
-# `set -e` : toute commande en echec arrete le conteneur immediatement plutot
-# que de laisser demarrer une app a moitie cassee.
-# ---------------------------------------------------------------------------
 set -e
+
+case "${BETTER_AUTH_SECRET}" in
+  ""|dev-only-secret-change-me-in-production|CHANGEZ_MOI*)
+    echo "[entrypoint] ERREUR : BETTER_AUTH_SECRET absent ou laisse a la valeur de dev." >&2
+    echo "[entrypoint] Generez-en un : openssl rand -base64 32, puis mettez-le dans .env" >&2
+    exit 1
+    ;;
+esac
 
 DB_PATH="${DATABASE_URL#file:}"
 DB_DIR="$(dirname "$DB_PATH")"
@@ -12,8 +15,6 @@ DB_DIR="$(dirname "$DB_PATH")"
 echo "[entrypoint] ProfilsActifs - NODE_ENV=${NODE_ENV}"
 echo "[entrypoint] base SQLite : ${DB_PATH}"
 
-# Le volume est-il bien monte et accessible en ecriture par l'utilisateur
-# nextjs (uid 1001) ? C'est l'erreur numero un en Docker + SQLite.
 if [ ! -d "$DB_DIR" ]; then
   echo "[entrypoint] ERREUR : ${DB_DIR} n'existe pas (volume non monte ?)" >&2
   exit 1
@@ -26,28 +27,15 @@ if [ ! -w "$DB_DIR" ]; then
   exit 1
 fi
 
-# Un volume neuf ne contient pas encore les comptes de demonstration prepares
-# dans l'image. Ne jamais ecraser une base existante : elle peut contenir des
-# comptes et des profils crees depuis l'interface.
 if [ ! -e "$DB_PATH" ] || [ "$(node -e "const D=require('better-sqlite3'); const d=new D('$DB_PATH'); console.log(d.prepare('select count(*) as count from user').get().count)" 2>/dev/null)" = "0" ]; then
   echo "[entrypoint] initialisation de la base de demonstration..."
   cp ./seed.db "$DB_PATH"
 fi
 
-# Les migrations Drizzle sont jouees par instrumentation.ts au demarrage du
-# serveur (elles font partie du bundle trace par Next.js standalone).
-# On les lance ici uniquement si un script dedie existe (cas non-standalone).
 if [ "${RUN_MIGRATIONS_ON_BOOT}" = "true" ] && [ -f "./scripts/migrate.mjs" ]; then
   echo "[entrypoint] execution des migrations Drizzle..."
   node ./scripts/migrate.mjs
 fi
 
-# `exec` remplace le shell par le processus Node : PID 1 devient le serveur,
-# donc SIGTERM lui parvient directement et l'arret est propre (pas de 10s
-# d'attente avant SIGKILL).
 echo "[entrypoint] demarrage : $*"
 exec "$@"
-then
-  echo "[entrypoint] initialisation de la base de demonstration..."
-  cp ./seed.db "$DB_PATH"
-fi
