@@ -31,7 +31,7 @@ import { DEFAULT_CERTIFICATION_THRESHOLD, DEFAULT_PAGE_SIZE } from "@/lib/vocabu
  *   npm run db:seed
  */
 
-const PASSWORD = "demo";
+const PASSWORD = "demo1234";
 
 interface SeedProfile {
   name: string;

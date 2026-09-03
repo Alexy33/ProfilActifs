@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { LandingSessionActions } from "@/components/layout/landing-session-actions";
+import { DemoAccountCard } from "@/components/auth/demo-account-card";
+import { getCurrentSession } from "@/lib/auth-session";
 
 const features = [
   {
@@ -59,7 +62,15 @@ const profileModules = [
   },
 ];
 
-export default function HomePage() {
+const demoAccounts = [
+  { role: "Demandeur", email: "amina@exemple.fr", color: "bg-[#d6ebff] text-[#2c455d]" },
+  { role: "Recruteur", email: "recruteur@exemple.fr", color: "bg-[#dff7e9] text-[#17603a]" },
+  { role: "Administration", email: "admin@jeb.gouv.fr", color: "bg-[#eee7ff] text-[#65449b]" },
+];
+
+export default async function HomePage() {
+  const session = await getCurrentSession();
+
   return (
     <main className="min-h-screen bg-[#ebf0f7] text-[#2d3748] selection:bg-[#5980a6] selection:text-white antialiased">
       {/* Navigation */}
@@ -95,21 +106,7 @@ export default function HomePage() {
             </Link>
           </nav>
 
-          <div className="flex items-center gap-4">
-            <Button
-              asChild
-              variant="ghost"
-              className="rounded-2xl bg-[#ebf0f7] px-5 font-semibold text-[#2d3748] shadow-[5px_5px_10px_#c5d1e0,-5px_-5px_10px_#ffffff] hover:bg-[#ebf0f7] hover:shadow-[inset_3px_3px_6px_#c5d1e0,inset_-3px_-3px_6px_#ffffff] active:scale-[0.97]"
-            >
-              <Link href="/login">Connexion</Link>
-            </Button>
-            <Button
-              asChild
-              className="rounded-2xl bg-[#5980a6] px-6 font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] transition-all hover:bg-[#416180] active:scale-[0.97]"
-            >
-              <Link href="/register">Créer un profil</Link>
-            </Button>
-          </div>
+          <LandingSessionActions connected={Boolean(session?.user)} />
         </div>
       </header>
 
@@ -155,7 +152,7 @@ export default function HomePage() {
                 variant="ghost"
                 className="h-14 rounded-2xl bg-[#ebf0f7] px-8 text-base font-semibold text-[#2d3748] shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff] hover:bg-[#ebf0f7] hover:shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] active:scale-[0.97]"
               >
-                <Link href="#fonctionnement">Découvrir la plateforme</Link>
+                <Link href="/catalogue">Consulter les profils</Link>
               </Button>
             </div>
           </div>
@@ -328,8 +325,8 @@ export default function HomePage() {
                     asChild
                     className="group h-12 rounded-2xl bg-[#5980a6] px-6 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#416180]"
                   >
-                    <Link href="/login">
-                      Espace recruteur
+                    <Link href="/catalogue">
+                      Parcourir le catalogue
                       <ArrowRight className="ml-2 size-4 transition-transform duration-300 group-hover:translate-x-1.5" />
                     </Link>
                   </Button>
@@ -405,6 +402,39 @@ export default function HomePage() {
                 <ArrowRight className="size-4 text-[#5980a6]/50" />
                 <span className="text-[#5980a6]">Contacter</span>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Comptes de demonstration */}
+      <section className="py-12 md:py-16">
+        <div className="mx-auto max-w-7xl px-6 md:px-10">
+          <div className="rounded-[2rem] bg-[#ebf0f7] p-7 shadow-[10px_10px_20px_#c5d1e0,-10px_-10px_20px_#ffffff] md:p-10">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 className="text-3xl font-bold uppercase tracking-tight text-[#2d3748]">
+                  Comptes de <span className="text-[#5980a6]">démonstration.</span>
+                </h2>
+                <p className="mt-2 text-sm text-[#718096]">
+                  Utilisez ces accès pour découvrir chaque espace de la plateforme.
+                </p>
+              </div>
+              <p className="rounded-full bg-white px-4 py-2 font-mono text-xs font-semibold text-[#4a5568]">
+                Mot de passe : demo1234
+              </p>
+            </div>
+
+            <div className="mt-7 grid gap-4 md:grid-cols-3">
+              {demoAccounts.map((account) => (
+                <DemoAccountCard
+                  key={account.role}
+                  role={account.role}
+                  email={account.email}
+                  color={account.color}
+                  destination={account.role === "Demandeur" ? "/candidate" : account.role === "Recruteur" ? "/recruiter" : "/admin"}
+                />
+              ))}
             </div>
           </div>
         </div>

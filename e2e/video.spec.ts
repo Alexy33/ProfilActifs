@@ -1,6 +1,6 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
 
-const PASSWORD = "demo";
+const PASSWORD = "demo1234";
 const CANDIDATE = "amina@exemple.fr";
 
 const FAKE_MP4 = Buffer.alloc(4096, 0x21);

@@ -26,6 +26,14 @@ if [ ! -w "$DB_DIR" ]; then
   exit 1
 fi
 
+# Un volume neuf ne contient pas encore les comptes de demonstration prepares
+# dans l'image. Ne jamais ecraser une base existante : elle peut contenir des
+# comptes et des profils crees depuis l'interface.
+if [ ! -e "$DB_PATH" ] || [ "$(node -e "const D=require('better-sqlite3'); const d=new D('$DB_PATH'); console.log(d.prepare('select count(*) as count from user').get().count)" 2>/dev/null)" = "0" ]; then
+  echo "[entrypoint] initialisation de la base de demonstration..."
+  cp ./seed.db "$DB_PATH"
+fi
+
 # Les migrations Drizzle sont jouees par instrumentation.ts au demarrage du
 # serveur (elles font partie du bundle trace par Next.js standalone).
 # On les lance ici uniquement si un script dedie existe (cas non-standalone).
@@ -39,3 +47,7 @@ fi
 # d'attente avant SIGKILL).
 echo "[entrypoint] demarrage : $*"
 exec "$@"
+then
+  echo "[entrypoint] initialisation de la base de demonstration..."
+  cp ./seed.db "$DB_PATH"
+fi

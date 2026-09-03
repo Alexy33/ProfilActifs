@@ -1,7 +1,6 @@
+import { RecruiterDashboard } from "@/components/recruiter/recruiter-dashboard";
+import { SiteShell } from "@/components/layout/site-shell";
+
 export default function RecruiterPage() {
-  return (
-    <main>
-      <h1>Recruiter dashboard</h1>
-    </main>
-  );
+  return <SiteShell><RecruiterDashboard /></SiteShell>;
 }
