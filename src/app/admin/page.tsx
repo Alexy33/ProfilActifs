@@ -1,7 +1,6 @@
+import { AdminDashboard } from "@/components/admin/admin-dashboard";
+import { SiteShell } from "@/components/layout/site-shell";
+
 export default function AdminPage() {
-  return (
-    <main>
-      <h1>Admin dashboard</h1>
-    </main>
-  );
+  return <SiteShell><AdminDashboard /></SiteShell>;
 }
