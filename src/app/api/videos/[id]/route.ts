@@ -1,8 +1,9 @@
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { db } from "@/db";
-import { profile } from "@/db/schema";
+import { profile, user } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { isMinor } from "@/lib/age";
 import { findProfileVideo, openVideoStream } from "@/server/services/video";
 
 export const dynamic = "force-dynamic";
@@ -22,13 +23,27 @@ export async function GET(
   const { id } = await params;
 
   const [row] = await db
-    .select({ status: profile.status, userId: profile.userId })
+    .select({ status: profile.status, userId: profile.userId, birthDate: user.birthDate })
     .from(profile)
+    .innerJoin(user, eq(user.id, profile.userId))
     .where(eq(profile.id, id))
     .limit(1);
   if (!row) return notFound();
 
-  if (row.status !== "published") {
+  /**
+   * Deux motifs distincts de restriction, un seul controle d'acces.
+   *
+   * - profil non publie : la moderation ne l'a pas encore valide ;
+   * - titulaire mineur (16-18 ans) : sa video n'est pas diffusee publiquement
+   *   par defaut (R.1). Le profil peut exister et etre publie, la video reste
+   *   reservee a son titulaire et a l'administration.
+   *
+   * Dans les deux cas la reponse est 404 et non 403 : un 403 confirmerait
+   * l'existence d'une video de mineur a qui la demande.
+   */
+  const restricted = row.status !== "published" || isMinor(row.birthDate);
+
+  if (restricted) {
     const session = await auth.api.getSession({ headers: await headers() });
     const allowed =
       !!session && (session.user.id === row.userId || session.user.role === "admin");

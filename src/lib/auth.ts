@@ -1,8 +1,10 @@
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { MINIMUM_AGE, isAllowedToRegister } from "@/lib/age";
 
 /**
  * Instance better-auth cote serveur. Seule source de verite pour les
@@ -35,6 +37,19 @@ export const auth = betterAuth({
         defaultValue: "candidate",
         input: false,
       },
+
+      /**
+       * Date de naissance declarative (R.1). `input: true` : c'est le seul
+       * champ additionnel que le client a le droit de fournir, parce que
+       * l'inscription DOIT le demander. Sa validite est verifiee dans le hook
+       * `before` ci-dessous — un champ additionnel n'est pas valide par
+       * better-auth au-dela de son type.
+       */
+      birthDate: {
+        type: "string",
+        required: false,
+        input: true,
+      },
     },
   },
 
@@ -59,7 +74,31 @@ export const auth = betterAuth({
         before: async (data) => {
           const asked = (data as { role?: string }).role;
           const role = asked === "recruiter" ? "recruiter" : "candidate";
-          return { data: { ...data, role } };
+
+          /**
+           * Blocage strict des moins de 16 ans (R.1, courrier Pontaillac).
+           *
+           * Ici et pas seulement dans le formulaire : le formulaire est du
+           * JavaScript que n'importe qui contourne avec un `curl` sur
+           * `POST /api/auth/sign-up/email`. Un controle qui ne vit que dans le
+           * navigateur n'est pas un controle.
+           *
+           * Une date absente ou illisible est refusee au meme titre qu'une date
+           * trop recente : sans date, l'age n'est pas verifie, et le blocage
+           * demande est strict.
+           */
+          const birthDate = (data as { birthDate?: unknown }).birthDate;
+          const declared = typeof birthDate === "string" ? birthDate.trim() : "";
+
+          if (!isAllowedToRegister(declared)) {
+            throw new APIError("BAD_REQUEST", {
+              message:
+                `L'inscription est reservee aux personnes de ${MINIMUM_AGE} ans et plus. ` +
+                "Indiquez une date de naissance valide.",
+            });
+          }
+
+          return { data: { ...data, role, birthDate: declared } };
         },
         /**
          * Un compte candidat possede toujours un profil.

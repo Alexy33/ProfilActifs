@@ -1,3 +1,4 @@
+import { auth } from "@/lib/auth";
 import { ApiError } from "@/server/http";
 import { defineRoute } from "@/server/openapi/routes";
 import { IdParam, NOT_FOUND_RESPONSE } from "@/server/contracts/common";
@@ -18,8 +19,11 @@ export const { GET } = defineRoute({
     "200": { description: "Profil trouve.", schema: ProfileSchema },
     ...NOT_FOUND_RESPONSE,
   },
-  handler: async ({ params }) => {
-    const found = await findProfileById(params.id);
+  handler: async ({ params, request }) => {
+    // La video d'un profil de mineur n'est pas servie publiquement (R.1) : la
+    // fiche reste la meme pour tous, seul `videoUrl` change selon qui demande.
+    const session = await auth.api.getSession({ headers: request.headers });
+    const found = await findProfileById(params.id, session ?? undefined);
     if (!found || found.status !== "published") {
       throw ApiError.notFound("Ce profil n'existe pas ou n'est pas publie.");
     }
