@@ -1,3 +1,6 @@
+import { spawn } from "node:child_process";
+import { mkdir } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
@@ -419,6 +422,162 @@ async function createAccount(name: string, email: string, role: "candidate" | "r
   return result.user.id;
 }
 
+/**
+ * Fabrique une video de presentation par profil, servie par notre propre API.
+ *
+ * Les liens YouTube/Vimeo du jeu d'essai sont fictifs : embarques tels quels,
+ * l'hebergeur affiche « cette video n'existe pas » en plein milieu de la fiche
+ * publique. On genere donc un clip local avec ffmpeg et on pointe `videoUrl`
+ * vers `/api/videos/{id}`, ce que le lecteur natif sait lire hors ligne.
+ *
+ * Le clip est explicitement marque comme une demonstration : il ne doit jamais
+ * passer pour l'enregistrement reel d'un candidat.
+ *
+ * Sans ffmpeg (poste sans l'outil), on laisse `videoUrl` a null : la fiche
+ * affiche alors proprement « Aucune presentation video » au lieu d'une erreur.
+ */
+async function generateProfileVideo(profileId: string, name: string, title: string) {
+  const dbPath = (process.env.DATABASE_URL ?? "file:./local.db").replace(/^file:/, "");
+  const dir = process.env.VIDEO_UPLOAD_DIR?.trim() ?? join(dirname(dbPath), "uploads");
+  await mkdir(dir, { recursive: true });
+
+  // drawtext traite « : » et « ' » comme des separateurs : on neutralise, et on
+  // retire les accents que la police par defaut de ffmpeg ne rend pas toujours.
+  const clean = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/['":\\]/g, " ");
+
+  const target = join(dir, `${profileId}.mp4`);
+  const filter = [
+    `drawtext=text='${clean(name)}':fontcolor=white:fontsize=56:x=(w-text_w)/2:y=(h-text_h)/2-70`,
+    `drawtext=text='${clean(title)}':fontcolor=0xb5d9fd:fontsize=32:x=(w-text_w)/2:y=(h-text_h)/2+10`,
+    `drawtext=text='Presentation video - demonstration':fontcolor=0x8fa9c4:fontsize=22:x=(w-text_w)/2:y=(h-text_h)/2+80`,
+  ].join(",");
+
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(
+      "ffmpeg",
+      [
+        "-y", "-loglevel", "error",
+        "-f", "lavfi", "-i", "color=c=0x2c455d:s=1280x720:d=8",
+        "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
+        "-vf", filter,
+        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac",
+        "-shortest", "-movflags", "+faststart",
+        target,
+      ],
+      { stdio: "ignore" },
+    );
+    child.on("error", reject);
+    child.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg ${code}`))));
+  });
+
+  return `/api/videos/${profileId}`;
+}
+
+/**
+ * Suivi de recrutement de demonstration pour le compte recruteur.
+ *
+ * Sans ces lignes, l'espace recruteur s'ouvre entierement vide (0 contact,
+ * 0 favori) alors que le reste du produit est rempli : c'est le seul ecran ou
+ * une demonstration tombe a plat. On couvre les quatre statuts du suivi pour
+ * que la colonne de gauche montre un pipeline realiste, et on notifie les
+ * candidats concernes pour que leur espace montre aussi ces interactions.
+ */
+const RECRUITER_PIPELINE: {
+  email: string;
+  message: string;
+  status: "À qualifier" | "Entretien planifié" | "Retenu" | "Écarté";
+}[] = [
+  {
+    email: "sonia.delaunay@exemple.fr",
+    message:
+      "Bonjour Sonia, votre reconversion et votre attention à l'accessibilité correspondent exactement au poste front-end que nous ouvrons à Nantes. Seriez-vous disponible pour un échange cette semaine ?",
+    status: "Entretien planifié",
+  },
+  {
+    email: "claire.bonnefoy@exemple.fr",
+    message:
+      "Bonjour Claire, nous recherchons une infirmière pour un service de médecine polyvalente à Lille. Votre profil retient toute notre attention.",
+    status: "Retenu",
+  },
+  {
+    email: "amina@exemple.fr",
+    message:
+      "Bonjour Amina, votre expérience en relation client nous intéresse pour un poste de conseillère grands comptes à Lyon. Pouvons-nous en discuter ?",
+    status: "À qualifier",
+  },
+  {
+    email: "karim.vasseur@exemple.fr",
+    message:
+      "Bonjour Karim, nous avons un poste de préparateur de commandes à pourvoir à Lille, avec les CACES que vous détenez.",
+    status: "À qualifier",
+  },
+  {
+    email: "pierre-yves.caron@exemple.fr",
+    message:
+      "Bonjour Pierre-Yves, merci pour votre candidature au poste de technicien support. Nous avons retenu un profil plus proche de Toulouse pour cette mission.",
+    status: "Écarté",
+  },
+];
+
+const RECRUITER_FAVORITES = [
+  "sonia.delaunay@exemple.fr",
+  "claire.bonnefoy@exemple.fr",
+  "fatou.nguyen@exemple.fr",
+  "marion.esteve@exemple.fr",
+];
+
+async function profileIdForEmail(email: string) {
+  const [row] = await db
+    .select({ id: profile.id, userId: profile.userId })
+    .from(profile)
+    .innerJoin(user, eq(profile.userId, user.id))
+    .where(eq(user.email, email))
+    .limit(1);
+  return row;
+}
+
+async function seedRecruiterActivity(recruiterId: string) {
+  const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000);
+
+  for (const [index, item] of RECRUITER_PIPELINE.entries()) {
+    const target = await profileIdForEmail(item.email);
+    if (!target) continue;
+
+    await db.insert(contact).values({
+      id: crypto.randomUUID(),
+      recruiterId,
+      profileId: target.id,
+      message: item.message,
+      status: item.status,
+      createdAt: daysAgo(index + 2),
+      updatedAt: daysAgo(index),
+    });
+
+    await db.insert(notification).values({
+      id: crypto.randomUUID(),
+      userId: target.userId,
+      type: "contact",
+      text: `Hélène Vaugirard (recruteur) vous a contacté·e : « ${item.message.slice(0, 70)}… »`,
+      // La plus recente reste non lue pour que la pastille soit visible.
+      readAt: index === 0 ? null : daysAgo(index),
+      createdAt: daysAgo(index + 2),
+    });
+  }
+
+  for (const [index, email] of RECRUITER_FAVORITES.entries()) {
+    const target = await profileIdForEmail(email);
+    if (!target) continue;
+    await db
+      .insert(favorite)
+      .values({ recruiterId, profileId: target.id, createdAt: daysAgo(index + 1) })
+      .onConflictDoNothing();
+  }
+}
+
 async function seed() {
   console.log("[seed] nettoyage…");
   await wipe();
@@ -451,11 +610,29 @@ async function seed() {
   ]);
 
   console.log("[seed] comptes et profils…");
+  let videoFailures = 0;
+
   for (const item of PROFILES) {
     const userId = await createAccount(item.name, item.email, "candidate");
 
     // Le hook better-auth a deja cree un profil vide : on le complete.
     const certifiedAt = item.score > 0 ? new Date() : null;
+
+    // L'identifiant du profil est necessaire pour nommer le fichier video.
+    const [created] = await db
+      .select({ id: profile.id })
+      .from(profile)
+      .where(eq(profile.userId, userId))
+      .limit(1);
+
+    let videoUrl: string | null = null;
+    if (created && item.videoUrl) {
+      videoUrl = await generateProfileVideo(created.id, item.name, item.title).catch(() => {
+        videoFailures += 1;
+        return null;
+      });
+    }
+
     await db
       .update(profile)
       .set({
@@ -463,7 +640,7 @@ async function seed() {
         sector: item.sector,
         city: item.city,
         bio: item.bio,
-        videoUrl: item.videoUrl,
+        videoUrl,
         status: item.status,
         score: item.score > 0 ? item.score : null,
         certifiedAt,
@@ -480,8 +657,18 @@ async function seed() {
     }
   }
 
-  await createAccount("Hélène Vaugirard", "recruteur@exemple.fr", "recruiter");
+  const recruiterId = await createAccount("Hélène Vaugirard", "recruteur@exemple.fr", "recruiter");
   await createAccount("Thomas Vignal", "admin@jeb.gouv.fr", "admin");
+
+  console.log("[seed] suivi recruteur…");
+  await seedRecruiterActivity(recruiterId);
+
+  if (videoFailures > 0) {
+    console.warn(
+      `[seed] attention : ${videoFailures} video(s) non generee(s) — ffmpeg est-il installe ?` +
+        " Les fiches concernees afficheront « Aucune presentation video ».",
+    );
+  }
 
   console.log(`[seed] termine — ${PROFILES.length} profils, ${QUESTIONS.length} questions.`);
   console.log(`[seed] comptes de demonstration (mot de passe « ${PASSWORD} ») :`);
