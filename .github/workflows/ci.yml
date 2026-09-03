@@ -46,6 +46,11 @@ jobs:
         run: npm run typecheck
       - name: Apply database migrations
         run: npm run db:migrate
+      # Le seed genere une video de demonstration par profil via ffmpeg
+      # (drawtext). Sans l'outil, l'echec est avale silencieusement et se
+      # manifeste seulement plus tard, a l'etape "Verify demo data in bundle".
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Seed demonstration data
         run: npm run db:seed
       - name: Build
