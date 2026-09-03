@@ -48,8 +48,6 @@ jobs:
         run: npm run db:migrate
       - name: Seed demonstration data
         run: npm run db:seed
-      - name: Checkpoint database
-        run: node -e "const D=require('better-sqlite3');const d=new D('ci.db');d.pragma('wal_checkpoint(TRUNCATE)');d.close()"
       - name: Build
         timeout-minutes: 5
         run: npm run build
@@ -60,12 +58,44 @@ jobs:
             exit 1
           fi
           echo "Build output found"
+      # SQLite est en mode WAL : tant que le journal n'est pas replie dans le
+      # fichier principal, `cp ci.db` copie une base vide. Le build rouvre la
+      # base (hook d'instrumentation) et recree un WAL, donc le repli doit se
+      # faire ICI, juste avant la copie — pas avant le build.
+      - name: Checkpoint database
+        run: node -e "const D=require('better-sqlite3');const d=new D('ci.db');d.pragma('wal_checkpoint(TRUNCATE)');d.close()"
       - name: Assemble standalone bundle
         run: |
           cp -r .next/static .next/standalone/.next/static
           cp -r public .next/standalone/public
           cp -r drizzle .next/standalone/drizzle
           cp ci.db .next/standalone/ci.db
+          # Les videos de demonstration sont servies depuis le disque : sans ce
+          # dossier, les fiches publiques s'ouvrent sans lecteur.
+          cp -r uploads .next/standalone/uploads
+      # Garde-fou : un artefact qui s'ouvre sur une base vide donne une
+      # demonstration ou aucune connexion ne marche. On le detecte ici, pas
+      # devant la camera.
+      - name: Verify demo data in bundle
+        run: |
+          node -e "
+          const D = require('better-sqlite3');
+          const d = new D('.next/standalone/ci.db', { readonly: true });
+          const users = d.prepare('select count(*) c from user').get().c;
+          const profiles = d.prepare(\"select count(*) c from profile where status='published'\").get().c;
+          const contacts = d.prepare('select count(*) c from contact').get().c;
+          console.log({ users, profiles, contacts });
+          if (users < 3 || profiles < 5 || contacts < 1) {
+            console.error('::error::Base de demonstration vide ou incomplete dans l artefact');
+            process.exit(1);
+          }
+          "
+          videos=$(ls .next/standalone/uploads/*.mp4 2>/dev/null | wc -l)
+          echo "videos: $videos"
+          if [ "$videos" -lt 5 ]; then
+            echo "::error::Videos de demonstration manquantes dans l artefact"
+            exit 1
+          fi
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
