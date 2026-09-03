@@ -13,6 +13,8 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
  */
 
 const PASSWORD = "demo1234";
+/** Date de naissance majeure : l'inscription la refuse desormais si elle manque (R.1). */
+const ADULT_BIRTH_DATE = "1990-05-17";
 
 async function signIn(request: APIRequestContext, email: string) {
   const response = await request.post("/api/auth/sign-in/email", {
@@ -94,6 +96,7 @@ test.describe("Controle d'acces", () => {
         name: "Tentative",
         email: `escalade-${Date.now()}@test.fr`,
         password: PASSWORD,
+        birthDate: ADULT_BIRTH_DATE,
         role: "admin",
       },
     });
@@ -244,6 +247,71 @@ test.describe("Administration", () => {
 
     await admin.patch("/api/admin/settings", { data: { certificationThreshold: 70 } });
     await admin.dispose();
+  });
+});
+
+test.describe("Consentement video (R.3)", () => {
+  /**
+   * Parcours complet sur un compte cree pour l'occasion : sans consentement le
+   * fichier est refuse, avec consentement il est servi, et le retrait le fait
+   * disparaitre du stockage. C'est cette derniere assertion qui compte : un
+   * simple masquage laisserait `/api/videos/{id}` repondre 200.
+   */
+  test("accord horodate et versionne, retrait qui supprime le fichier", async ({ playwright, baseURL }) => {
+    const email = `consent-${Date.now()}@exemple.fr`;
+    const context = await playwright.request.newContext({ baseURL });
+
+    const signUp = await context.post("/api/auth/sign-up/email", {
+      data: { name: "Consentement Test", email, password: PASSWORD, birthDate: ADULT_BIRTH_DATE },
+    });
+    expect(signUp.status()).toBe(200);
+
+    const profileId = (await (await context.get("/api/me/profile")).json()).id as string;
+
+    // Un MP4 minimal suffit : le service stocke un flux, il ne decode rien.
+    const payload = Buffer.concat([
+      Buffer.from([0, 0, 0, 0x18]),
+      Buffer.from("ftypmp42"),
+      Buffer.alloc(64, 0x21),
+    ]);
+
+    // 1. Sans accord, rien n'entre en stockage.
+    const refused = await context.put("/api/me/profile/video", {
+      headers: { "Content-Type": "video/mp4" },
+      data: payload,
+    });
+    expect(refused.status()).toBe(403);
+
+    // 2. L'accord est enregistre avec sa date et la version du texte.
+    const granted = await (await context.post("/api/me/profile/video/consent")).json();
+    expect(granted.granted).toBe(true);
+    expect(granted.version).toBeTruthy();
+    expect(Number.isNaN(Date.parse(granted.grantedAt))).toBe(false);
+    expect(granted.revokedAt).toBeNull();
+
+    // 3. La video est acceptee, puis reellement servie depuis le stockage.
+    expect((await context.put("/api/me/profile/video", {
+      headers: { "Content-Type": "video/mp4" },
+      data: payload,
+    })).status()).toBe(200);
+    expect((await context.get(`/api/videos/${profileId}`)).status()).toBe(200);
+
+    // 4. Le retrait supprime le fichier : l'URL ne repond plus.
+    const revoked = await (await context.delete("/api/me/profile/video/consent")).json();
+    expect(revoked.granted).toBe(false);
+    expect(Number.isNaN(Date.parse(revoked.revokedAt))).toBe(false);
+    // La trace de ce qui avait ete accepte survit au retrait.
+    expect(revoked.grantedAt).toBe(granted.grantedAt);
+    expect(revoked.version).toBe(granted.version);
+
+    expect((await context.get(`/api/videos/${profileId}`)).status()).toBe(404);
+
+    // Le profil, lui, existe toujours : le retrait n'est pas un masquage.
+    const after = await (await context.get("/api/me/profile")).json();
+    expect(after.id).toBe(profileId);
+    expect(after.videoUrl).toBeNull();
+
+    await context.dispose();
   });
 });
 

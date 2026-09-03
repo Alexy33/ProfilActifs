@@ -152,9 +152,26 @@ formulaire, donc un appel direct à l'API ne le contourne pas. Voir
 | `status` | text (`pending` \| `published` \| `removed`) | NOT NULL | `'pending'` |
 | `score` | integer | NULL | — dernier score de certification obtenu |
 | `certified_at` | timestamp | NULL | — fait foi pour le badge JEB |
-| `views` | integer | NOT NULL | `0` — compteur dénormalisé |
+| `views` | integer | NOT NULL | `0` — compteur dénormalisé, **privé** (voir ci-dessous) |
 | `contact_count` | integer | NOT NULL | `0` — compteur dénormalisé |
+| `video_consent_granted` | integer (booleen) | NOT NULL | `false` — accord en cours |
+| `video_consent_at` | timestamp | NULL | — date de l'accord, conservee apres un retrait |
+| `video_consent_version` | text | NULL | — version du texte acceptee |
+| `video_consent_revoked_at` | timestamp | NULL | — date du retrait |
 | `created_at` / `updated_at` | timestamp | NOT NULL | `unixepoch()` |
+
+Les quatre colonnes `video_consent_*` forment le registre de consentement a la
+diffusion video (R.3) : un booleen seul ne permettrait pas d'etablir *ce qui* a
+ete accepte ni *quand*. Le retrait remet `granted` a false, date `revoked_at` et
+declenche la suppression physique du fichier ; `at` et `version` survivent, comme
+trace. Voir `docs/consentement-video.md`.
+
+`views` est tenu en base et incrémenté à chaque consultation, mais ne sort pas
+du serveur : il figure dans le seul schéma `MyProfile` et ne s'affiche que dans
+l'espace du titulaire. Ni `Profile`, ni `ProfileCard`, ni un export, ni une vue
+recruteur ne le portent, et le catalogue ne s'en sert pas pour trier — on ne
+classe pas des personnes par audience. Toute mesure d'audience ajoutée plus tard
+(compteur de « j'aime » compris) suit la même règle.
 
 #### `profile_skill` — compétences d'un profil
 

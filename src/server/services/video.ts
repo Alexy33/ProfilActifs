@@ -2,6 +2,10 @@ import { createReadStream } from "node:fs";
 import { mkdir, rm, stat, readdir, rename } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { Readable } from "node:stream";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { profile } from "@/db/schema";
+import { VIDEO_CONSENT_VERSION } from "@/lib/vocabulary";
 
 export const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
 
@@ -45,6 +49,16 @@ export class VideoTooLargeError extends Error {
   }
 }
 
+export class MissingVideoConsentError extends Error {
+  constructor() {
+    super(
+      "Aucun consentement en cours pour la diffusion de la video. " +
+        "Acceptez le texte en vigueur avant d'envoyer un fichier.",
+    );
+    this.name = "MissingVideoConsentError";
+  }
+}
+
 export interface StoredVideo {
   path: string;
   bytes: number;
@@ -56,6 +70,11 @@ export async function saveProfileVideo(
   extension: string,
   body: ReadableStream<Uint8Array>,
 ): Promise<StoredVideo> {
+  // Rien n'entre en stockage sans accord en cours : un fichier depose avant le
+  // consentement serait deja un hebergement non couvert, meme bref.
+  const consent = await readVideoConsent(profileId);
+  if (!consent?.granted) throw new MissingVideoConsentError();
+
   const dir = await ensureDir();
 
   await deleteProfileVideo(profileId);
@@ -129,6 +148,103 @@ export async function deleteProfileVideo(profileId: string): Promise<void> {
   } catch {
     /* dossier absent */
   }
+}
+
+/* --------------------------------------------------------------------------
+ * Consentement a la diffusion (R.3)
+ *
+ * Le consentement vit ici et non dans un service separe : il porte sur le
+ * fichier, et son retrait doit supprimer ce fichier. Les tenir a distance l'un
+ * de l'autre laisserait exister le cas ou l'accord est retire en base pendant
+ * que la video reste sur le disque, qui est precisement ce qu'il faut rendre
+ * impossible.
+ * ----------------------------------------------------------------------- */
+
+export interface VideoConsent {
+  granted: boolean;
+  /** Date de l'accord en cours, ou du dernier accord donne s'il a ete retire. */
+  grantedAt: Date | null;
+  /** Version du texte effectivement acceptee, telle qu'enregistree. */
+  version: string | null;
+  revokedAt: Date | null;
+}
+
+export async function readVideoConsent(profileId: string): Promise<VideoConsent | null> {
+  const [row] = await db
+    .select({
+      granted: profile.videoConsentGranted,
+      grantedAt: profile.videoConsentAt,
+      version: profile.videoConsentVersion,
+      revokedAt: profile.videoConsentRevokedAt,
+    })
+    .from(profile)
+    .where(eq(profile.id, profileId))
+    .limit(1);
+
+  return row ?? null;
+}
+
+/**
+ * Enregistre un accord sur le texte en vigueur.
+ *
+ * La version est prise de `VIDEO_CONSENT_VERSION` et non fournie par
+ * l'appelant : c'est le serveur qui sait quel texte il a affiche, et un client
+ * ne doit pas pouvoir declarer un accord sur une redaction qui n'est plus la
+ * sienne. `revokedAt` est remis a null : un nouvel accord ouvre une periode
+ * nouvelle, l'ancien retrait n'a plus a la borner.
+ */
+export async function grantVideoConsent(profileId: string): Promise<VideoConsent> {
+  const now = new Date();
+  await db
+    .update(profile)
+    .set({
+      videoConsentGranted: true,
+      videoConsentAt: now,
+      videoConsentVersion: VIDEO_CONSENT_VERSION,
+      videoConsentRevokedAt: null,
+      updatedAt: now,
+    })
+    .where(eq(profile.id, profileId));
+
+  // Relu depuis la base et non renvoye de memoire : SQLite stocke des secondes
+  // entieres, et un appelant qui comparerait la valeur rendue a celle relue plus
+  // tard trouverait deux horodatages differents pour le meme accord.
+  const stored = await readVideoConsent(profileId);
+  return stored ?? { granted: true, grantedAt: now, version: VIDEO_CONSENT_VERSION, revokedAt: null };
+}
+
+/**
+ * Retire le consentement et supprime physiquement la video.
+ *
+ * La suppression passe par `deleteProfileVideo`, le service deja utilise a la
+ * suppression d'un profil par l'administration : un seul chemin d'effacement,
+ * donc un seul endroit ou se tromper. Le retrait n'est pas un masquage — le
+ * profil reste, seul le fichier disparait, avec l'URL qui y menait.
+ *
+ * L'ordre compte : le fichier part d'abord. Si l'ecriture en base echouait
+ * apres coup, on aurait un consentement encore marque valide pour une video qui
+ * n'existe plus, ce qui se corrige ; l'inverse laisserait le fichier sur le
+ * disque sans accord pour le couvrir, ce qui est la faute a eviter.
+ *
+ * `videoConsentAt` et `videoConsentVersion` sont conserves : ils disent ce qui
+ * avait ete accepte et quand, et c'est ce qui rend le registre auditable.
+ */
+export async function revokeVideoConsent(profileId: string): Promise<VideoConsent> {
+  await deleteProfileVideo(profileId);
+
+  const now = new Date();
+  await db
+    .update(profile)
+    .set({
+      videoConsentGranted: false,
+      videoConsentRevokedAt: now,
+      videoUrl: null,
+      updatedAt: now,
+    })
+    .where(eq(profile.id, profileId));
+
+  const after = await readVideoConsent(profileId);
+  return after ?? { granted: false, grantedAt: null, version: null, revokedAt: now };
 }
 
 export function openVideoStream(

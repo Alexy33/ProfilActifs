@@ -43,7 +43,7 @@ export function ProfileActions({ profileId, role }: { profileId: string; role: U
   if (role === "recruiter") {
     return <div className="mt-6 border-t border-[#1B3A6B]/15 pt-5">
       <h3 className="text-sm font-bold uppercase text-[#2d3748]">Actions recruteur</h3>
-      <textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={2000} placeholder="Présentez votre opportunité et proposez un échange…" className="mt-3 min-h-28 w-full resize-y rounded-xl border border-[#1B3A6B]/20 bg-white p-3 text-sm text-[#2d3748] outline-none placeholder:text-[#718096] focus:border-[#1B3A6B]" />
+      <textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={2000} placeholder="Présentez votre opportunité et proposez un échange…" className="mt-3 min-h-28 w-full resize-y rounded-xl border border-[#1B3A6B]/20 bg-white p-3 text-sm text-[#2d3748] outline-none placeholder:text-[#566274] focus:border-[#1B3A6B]" />
       <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
         <button type="button" onClick={() => void contact()} disabled={busy || !message.trim()} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1B3A6B] px-4 text-sm font-semibold text-white hover:bg-[#273D4F] disabled:opacity-50">{busy ? <Loader2 className="size-4 animate-spin" /> : <MessageSquare className="size-4" />} Prendre contact</button>
         <button type="button" onClick={() => void toggleFavorite()} disabled={busy} className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold ${favorite ? "bg-[#ffe8ef] text-[#8a3f5b]" : "border border-[#1B3A6B]/25 bg-white text-[#273D4F]"}`}><Heart className={`size-4 ${favorite ? "fill-current" : ""}`} /> {favorite ? "Dans mes favoris" : "Ajouter aux favoris"}</button>
@@ -53,12 +53,12 @@ export function ProfileActions({ profileId, role }: { profileId: string; role: U
   }
 
   if (role === "candidate") {
-    return <div className="mt-6 border-t border-[#1B3A6B]/15 pt-5"><p className="text-sm leading-relaxed text-[#718096]">La prise de contact et les favoris sont réservés aux recruteurs. Depuis votre espace, vous pouvez modifier et suivre votre propre profil.</p><Link href="/candidate" className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#1B3A6B] px-4 text-sm font-semibold text-white">Mon espace candidat</Link></div>;
+    return <div className="mt-6 border-t border-[#1B3A6B]/15 pt-5"><p className="text-sm leading-relaxed text-[#566274]">La prise de contact et les favoris sont réservés aux recruteurs. Depuis votre espace, vous pouvez modifier et suivre votre propre profil.</p><Link href="/candidate" className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#1B3A6B] px-4 text-sm font-semibold text-white">Mon espace candidat</Link></div>;
   }
 
   if (role === "admin") {
     return <div className="mt-6 border-t border-[#1B3A6B]/15 pt-5"><Link href="/admin" className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#1B3A6B] px-4 text-sm font-semibold text-white"><ShieldCheck className="size-4" /> Administrer les profils</Link></div>;
   }
 
-  return <div className="mt-6 border-t border-[#1B3A6B]/15 pt-5"><p className="text-sm leading-relaxed text-[#718096]">Le catalogue et les profils sont publics. Connectez-vous avec un compte recruteur pour contacter ou enregistrer ce candidat.</p><Link href="/login" className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#1B3A6B] px-4 text-sm font-semibold text-white">Connexion recruteur</Link></div>;
+  return <div className="mt-6 border-t border-[#1B3A6B]/15 pt-5"><p className="text-sm leading-relaxed text-[#566274]">Le catalogue et les profils sont publics. Connectez-vous avec un compte recruteur pour contacter ou enregistrer ce candidat.</p><Link href="/login" className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#1B3A6B] px-4 text-sm font-semibold text-white">Connexion recruteur</Link></div>;
 }

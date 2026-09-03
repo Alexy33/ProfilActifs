@@ -130,7 +130,7 @@ export default async function HomePage() {
               recruteurs.
             </p>
 
-            <p className="mt-4 font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
+            <p className="mt-4 font-mono text-xs font-semibold uppercase tracking-wider text-[#566274]">
               Un outil de mise en relation professionnelle, pas un réseau social.
             </p>
 
@@ -170,7 +170,7 @@ export default async function HomePage() {
                     <h2 className="text-lg font-bold text-[#2d3748]">
                       Votre profil, en un coup d’œil
                     </h2>
-                    <p className="mt-1 text-sm text-[#718096]">
+                    <p className="mt-1 text-sm text-[#566274]">
                       Tout ce qui aide un recruteur à vous comprendre
                     </p>
                   </div>
@@ -194,7 +194,7 @@ export default async function HomePage() {
                         <h3 className="text-base font-bold text-[#2d3748]">
                           {profileModule.title}
                         </h3>
-                        <p className="mt-1 text-sm leading-snug text-[#718096]">
+                        <p className="mt-1 text-sm leading-snug text-[#566274]">
                           {profileModule.description}
                         </p>
                       </div>
@@ -206,7 +206,7 @@ export default async function HomePage() {
                 })}
               </div>
 
-              <p className="mt-6 border-t border-[#2d3748]/10 pt-5 text-base leading-relaxed text-[#718096]">
+              <p className="mt-6 border-t border-[#2d3748]/10 pt-5 text-base leading-relaxed text-[#566274]">
                 Un profil unique pour présenter vos compétences aux recruteurs
                 et faire reconnaître vos aptitudes par des certificateurs.
               </p>
@@ -226,7 +226,7 @@ export default async function HomePage() {
               <span className="text-[#1B3A6B]"> 3 étapes.</span>
             </h2>
 
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-[#718096]">
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-[#566274]">
               Créez votre profil, valorisez vos compétences et rendez-vous visible
               auprès des recruteurs.
             </p>
@@ -244,7 +244,7 @@ export default async function HomePage() {
                     <div className="absolute left-0 top-0 h-1 w-0 bg-[#1B3A6B] transition-all duration-500 group-hover:w-full" />
 
                     {/* Number */}
-                    <span className="absolute right-6 top-6 font-mono text-4xl font-bold text-[#718096]/35 transition-all duration-500 group-hover:text-[#718096]/60">
+                    <span className="absolute right-6 top-6 font-mono text-4xl font-bold text-[#566274]/35 transition-all duration-500 group-hover:text-[#566274]/60">
                       {feature.number}
                     </span>
 
@@ -259,7 +259,7 @@ export default async function HomePage() {
                         {feature.title}
                       </h3>
 
-                      <p className="mt-3 text-sm leading-relaxed text-[#718096]">
+                      <p className="mt-3 text-sm leading-relaxed text-[#566274]">
                         {feature.description}
                       </p>
                     </div>
@@ -314,7 +314,7 @@ export default async function HomePage() {
                   <span className="text-[#1B3A6B]"> plus rapidement.</span>
                 </h2>
 
-                <p className="mt-6 max-w-xl text-base leading-relaxed text-[#718096]">
+                <p className="mt-6 max-w-xl text-base leading-relaxed text-[#566274]">
                   Recherchez des candidats selon leurs compétences, leur secteur et
                   leur localisation, puis consultez directement les profils qui
                   correspondent à vos besoins.
@@ -337,7 +337,7 @@ export default async function HomePage() {
               <div className="grid border-t border-[#1B3A6B]/10 sm:grid-cols-2 lg:border-l lg:border-t-0">
                 {/* Search card */}
                 <div className="group relative overflow-hidden border-b border-[#1B3A6B]/10 p-8 transition-all duration-500 hover:bg-[#1B3A6B]/5 sm:border-b-0 sm:border-r">
-                  <div className="absolute right-6 top-6 font-mono text-5xl font-bold text-[#718096]/35 transition-all duration-500 group-hover:text-[#718096]/60">
+                  <div className="absolute right-6 top-6 font-mono text-5xl font-bold text-[#566274]/35 transition-all duration-500 group-hover:text-[#566274]/60">
                     01
                   </div>
 
@@ -349,7 +349,7 @@ export default async function HomePage() {
                     Recherche ciblée
                   </h3>
 
-                  <p className="mt-3 text-sm leading-relaxed text-[#718096]">
+                  <p className="mt-3 text-sm leading-relaxed text-[#566274]">
                     Filtrez les profils par secteur, localisation et compétences pour
                     aller directement aux candidats les plus pertinents.
                   </p>
@@ -361,7 +361,7 @@ export default async function HomePage() {
 
                 {/* Certified profiles card */}
                 <div className="group relative overflow-hidden p-8 transition-all duration-500 hover:bg-[#1B3A6B]/5">
-                  <div className="absolute right-6 top-6 font-mono text-5xl font-bold text-[#718096]/35 transition-all duration-500 group-hover:text-[#718096]/60">
+                  <div className="absolute right-6 top-6 font-mono text-5xl font-bold text-[#566274]/35 transition-all duration-500 group-hover:text-[#566274]/60">
                     02
                   </div>
 
@@ -373,7 +373,7 @@ export default async function HomePage() {
                     Profils certifiés
                   </h3>
 
-                  <p className="mt-3 text-sm leading-relaxed text-[#718096]">
+                  <p className="mt-3 text-sm leading-relaxed text-[#566274]">
                     Identifiez rapidement les candidats ayant validé leur
                     certification et consultez leurs aptitudes professionnelles.
                   </p>
@@ -387,7 +387,7 @@ export default async function HomePage() {
 
             {/* Bottom flow */}
             <div className="border-t border-[#1B3A6B]/10 px-8 py-5 md:px-12">
-              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold uppercase tracking-wider text-[#718096]">
+              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold uppercase tracking-wider text-[#566274]">
                 <span className="transition-colors hover:text-[#1B3A6B]">
                   Rechercher
                 </span>
@@ -416,7 +416,7 @@ export default async function HomePage() {
                 <h2 className="text-3xl font-bold uppercase tracking-tight text-[#2d3748]">
                   Comptes de <span className="text-[#1B3A6B]">démonstration.</span>
                 </h2>
-                <p className="mt-2 text-sm text-[#718096]">
+                <p className="mt-2 text-sm text-[#566274]">
                   Utilisez ces accès pour découvrir chaque espace de la plateforme.
                 </p>
               </div>
@@ -452,13 +452,13 @@ export default async function HomePage() {
                   <span className="text-[#1B3A6B]"> ne peut pas montrer.</span>
                 </h2>
 
-                <p className="mt-5 max-w-2xl text-base leading-relaxed text-[#718096]">
+                <p className="mt-5 max-w-2xl text-base leading-relaxed text-[#566274]">
                   Créez votre profil, mettez en avant vos compétences et commencez
                   votre parcours de certification.
                 </p>
 
                 {/* Mini flow */}
-                <div className="mt-8 flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider text-[#718096]">
+                <div className="mt-8 flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider text-[#566274]">
                   <span className="transition-colors duration-300 hover:text-[#1B3A6B]">
                     Créer
                   </span>

@@ -150,7 +150,7 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-[#2d3748]">{session.name}</p>
-                <p className="truncate font-mono text-[10px] font-semibold uppercase tracking-wider text-[#718096]">
+                <p className="truncate font-mono text-[10px] font-semibold uppercase tracking-wider text-[#566274]">
                   {ROLE_LABELS[session.role]}
                 </p>
               </div>

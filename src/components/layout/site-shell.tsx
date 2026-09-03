@@ -15,6 +15,11 @@ export async function SiteShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-[#ebf0f7] text-[#2d3748] selection:bg-[#1B3A6B] selection:text-white antialiased">
+      {/* Lien d'evitement (RGAA 12.7) : premier arret de la tabulation, il saute
+          la navigation laterale que chaque page repete a l'identique. */}
+      <a href="#contenu" className="lien-evitement">
+        Aller au contenu principal
+      </a>
       <SiteSidebar
         session={
           user
@@ -22,7 +27,9 @@ export async function SiteShell({ children }: { children: React.ReactNode }) {
             : null
         }
       />
-      <div className="lg:pl-64">{children}</div>
+      <div id="contenu" tabIndex={-1} className="lg:pl-64">
+        {children}
+      </div>
     </div>
   );
 }

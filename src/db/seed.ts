@@ -21,7 +21,11 @@ import {
   verification,
 } from "@/db/schema";
 import type { City, Sector, Skill } from "@/lib/vocabulary";
-import { DEFAULT_CERTIFICATION_THRESHOLD, DEFAULT_PAGE_SIZE } from "@/lib/vocabulary";
+import {
+  DEFAULT_CERTIFICATION_THRESHOLD,
+  DEFAULT_PAGE_SIZE,
+  VIDEO_CONSENT_VERSION,
+} from "@/lib/vocabulary";
 
 /**
  * Jeu de donnees de demonstration, repris de la maquette fonctionnelle.
@@ -667,6 +671,14 @@ async function seed() {
       });
     }
 
+    // Consentement de demonstration (R.3) : un profil qui heberge une video a
+    // forcement accepte le texte, sinon le fichier n'aurait pas pu etre depose.
+    // L'horodatage est anterieur au seed pour que la fiche montre une date
+    // d'accord plausible plutot que l'instant du peuplement.
+    const consentAt = videoUrl?.startsWith("/api/videos/")
+      ? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      : null;
+
     await db
       .update(profile)
       .set({
@@ -680,6 +692,10 @@ async function seed() {
         certifiedAt,
         views: item.views,
         contactCount: item.contactCount,
+        videoConsentGranted: consentAt !== null,
+        videoConsentAt: consentAt,
+        videoConsentVersion: consentAt ? VIDEO_CONSENT_VERSION : null,
+        videoConsentRevokedAt: null,
       })
       .where(eq(profile.userId, userId));
 

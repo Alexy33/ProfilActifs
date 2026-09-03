@@ -13,7 +13,7 @@ export default function LoginPage() {
         <h1 className="text-4xl font-semibold tracking-tight text-[#2d3748]">
           Bon retour
         </h1>
-        <p className="text-base text-[#718096]">
+        <p className="text-base text-[#566274]">
           Saisissez vos identifiants pour accéder à votre compte.
         </p>
       </div>

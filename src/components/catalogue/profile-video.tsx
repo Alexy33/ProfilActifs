@@ -113,10 +113,10 @@ export function ProfileVideo({ videoUrl, name }: { videoUrl: string | null; name
       <div className="flex size-16 items-center justify-center rounded-2xl bg-[#D1DEF0] text-[#1B2D3E]">
         <PlayCircle aria-hidden="true" className="size-7 stroke-[1.6]" />
       </div>
-      <p className="mt-5 max-w-md break-all font-mono text-xs text-[#718096]">
+      <p className="mt-5 max-w-md break-all font-mono text-xs text-[#566274]">
         {videoUrl}
       </p>
-      <p className="mt-2 font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
+      <p className="mt-2 font-mono text-xs font-semibold uppercase tracking-wider text-[#566274]">
         Format d&apos;hébergement non pris en charge
       </p>
     </div>

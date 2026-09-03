@@ -93,7 +93,7 @@ export function RegisterForm() {
             autoCorrect="off"
             disabled={loading}
             required
-            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#566274] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
           />
         </div>
 
@@ -111,7 +111,7 @@ export function RegisterForm() {
             autoCorrect="off"
             disabled={loading}
             required
-            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#566274] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
           />
         </div>
 
@@ -129,10 +129,10 @@ export function RegisterForm() {
             required
             aria-describedby="birthDate-help"
             aria-invalid={tooYoung || undefined}
-            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#566274] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
           />
 
-          <p id="birthDate-help" className="text-sm text-[#718096]">
+          <p id="birthDate-help" className="text-sm text-[#566274]">
             L&apos;inscription est réservée aux personnes de {MINIMUM_AGE} ans et plus.
           </p>
 
@@ -175,9 +175,9 @@ export function RegisterForm() {
             minLength={8}
             disabled={loading}
             required
-            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#566274] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
           />
-          <p className="text-sm text-[#718096]">
+          <p className="text-sm text-[#566274]">
             Doit contenir au moins 8 caractères.
           </p>
         </div>
@@ -194,7 +194,7 @@ export function RegisterForm() {
           {loading ? "Création du compte..." : "Créer le compte"}
         </Button>
       </form>
-      <p className="text-center text-base text-[#718096]">
+      <p className="text-center text-base text-[#566274]">
         Vous avez déjà un compte ?{" "}
         <Link
           href="/login"

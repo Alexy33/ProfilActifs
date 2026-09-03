@@ -4,6 +4,7 @@ import { profile, profileSkill, user } from "@/db/schema";
 import type { City, ProfileStatus, Sector, Skill } from "@/lib/vocabulary";
 import { MAJORITY_AGE, isMinor } from "@/lib/age";
 
+
 /**
  * Lecture des profils : catalogue, fiche publique, profil du titulaire.
  *
@@ -24,7 +25,6 @@ export interface ProfileCard {
   skills: Skill[];
   certified: boolean;
   score: number | null;
-  views: number;
 }
 
 export interface FullProfile extends ProfileCard {
@@ -34,6 +34,27 @@ export interface FullProfile extends ProfileCard {
   contactCount: number;
   certifiedAt: string | null;
   createdAt: string;
+}
+
+/**
+ * Profil vu par son titulaire.
+ *
+ * Seule forme qui porte `views` : le compteur d'audience est tenu en base et
+ * montre au candidat dans son espace, mais ne sort jamais du serveur autrement
+ * — ni fiche publique, ni catalogue, ni vue recruteur, ni export.
+ */
+/** Consentement video tel qu'il est servi : dates en ISO, comme le reste du module. */
+export interface VideoConsentView {
+  granted: boolean;
+  grantedAt: string | null;
+  version: string | null;
+  revokedAt: string | null;
+}
+
+export interface OwnProfile extends FullProfile {
+  views: number;
+  /** Etat du consentement a la diffusion video (R.3). Ne sort pas de l'espace du titulaire. */
+  videoConsent: VideoConsentView;
 }
 
 /** « Sonia Delaunay-Frey » -> « SD ». Calcule ici pour que le front n'ait rien a deviner. */
@@ -64,7 +85,6 @@ export function toCard(row: ProfileRow, name: string, skills: Skill[]): ProfileC
     skills,
     certified: row.certifiedAt !== null,
     score: row.score,
-    views: row.views,
   };
 }
 
@@ -276,8 +296,9 @@ export async function searchCatalog(filters: CatalogFilters): Promise<CatalogRes
     .innerJoin(user, eq(user.id, profile.userId))
     .where(where)
     // Certifies d'abord, puis les mieux notes : le catalogue met en avant ce
-    // que le dispositif certifie, ce qui est tout son objet.
-    .orderBy(desc(profile.certifiedAt), desc(profile.score), desc(profile.views))
+    // que le dispositif certifie, ce qui est tout son objet. L'audience ne
+    // departage pas — on ne classe pas des personnes par nombre de vues.
+    .orderBy(desc(profile.certifiedAt), desc(profile.score), desc(profile.createdAt))
     .limit(pageSize)
     .offset((page - 1) * pageSize);
 
@@ -297,11 +318,15 @@ export async function searchCatalog(filters: CatalogFilters): Promise<CatalogRes
  * @param session session de l'appelant, pour resoudre le niveau de
  *   consultation. `undefined` vaut consultation publique : un appelant qui
  *   oublie l'argument n'expose rien de plus que le public.
+ *
+ * Rend toujours la forme du titulaire (`OwnProfile`). C'est `findProfileById`
+ * qui retire ce qui ne sort pas de l'espace candidat : un seul endroit ou le
+ * tri se fait, donc un seul endroit ou l'oublier.
  */
 async function findOne(
   where: ReturnType<typeof eq>,
   session?: SessionLike,
-): Promise<FullProfile | null> {
+): Promise<OwnProfile | null> {
   const [row] = await db
     .select({ profile, name: user.name, birthDate: user.birthDate })
     .from(profile)
@@ -315,21 +340,43 @@ async function findOne(
   // « le candidat regarde sa propre fiche » de « un tiers la regarde ».
   const viewer = viewerOf(session, row.profile.userId);
   const skills = await skillsByProfile([row.profile.id]);
-  return toFull(row.profile, row.name, skills.get(row.profile.id) ?? [], row.birthDate, viewer);
-}
-
-/** Fiche d'un profil par son identifiant. */
-export function findProfileById(id: string, session?: SessionLike) {
-  return findOne(eq(profile.id, id), session);
+  return {
+    ...toFull(row.profile, row.name, skills.get(row.profile.id) ?? [], row.birthDate, viewer),
+    views: row.profile.views,
+    videoConsent: {
+      granted: row.profile.videoConsentGranted,
+      grantedAt: row.profile.videoConsentAt?.toISOString() ?? null,
+      version: row.profile.videoConsentVersion,
+      revokedAt: row.profile.videoConsentRevokedAt?.toISOString() ?? null,
+    },
+  };
 }
 
 /**
- * Profil d'un utilisateur.
+ * Fiche publique : sans le compteur de vues ni l'etat du consentement.
+ *
+ * Le masquage de la video d'un mineur (R.1) est deja fait par `toFull` selon le
+ * `viewer` ; ce qui se retire ici, ce sont les donnees qui ne quittent jamais
+ * l'espace du titulaire, quel que soit celui qui regarde (R.3, R.4).
+ */
+export async function findProfileById(
+  id: string,
+  session?: SessionLike,
+): Promise<FullProfile | null> {
+  const found = await findOne(eq(profile.id, id), session);
+  if (!found) return null;
+  const { views: _views, videoConsent: _consent, ...pub } = found;
+  return pub;
+}
+
+/**
+ * Profil d'un utilisateur, avec le compteur de vues et le consentement.
  *
  * Appele depuis l'espace candidat et les routes `/api/me/*`, toujours pour le
- * titulaire connecte : il voit sa propre video, mineur ou non.
+ * titulaire connecte : il voit sa propre video, mineur ou non, et les seuls
+ * compteurs qui ne sortent pas d'ici.
  */
-export function findProfileByUserId(userId: string, session?: SessionLike) {
+export function findProfileByUserId(userId: string, session?: SessionLike): Promise<OwnProfile | null> {
   return findOne(eq(profile.userId, userId), session ?? OWNER_OF(userId));
 }
 

@@ -29,7 +29,7 @@ export function CataloguePagination({ page, totalPages, params }: CataloguePagin
   const linkClassName =
     "inline-flex h-11 items-center gap-2 border border-[#1B3A6B]/30 bg-white px-5 text-sm font-semibold text-[#2d3748] transition-colors hover:border-[#1B3A6B] hover:text-[#273D4F]";
   const disabledClassName =
-    "inline-flex h-11 cursor-not-allowed items-center gap-2 border border-[#1B3A6B]/10 bg-transparent px-5 text-sm font-semibold text-[#718096]/50";
+    "inline-flex h-11 cursor-not-allowed items-center gap-2 border border-[#1B3A6B]/10 bg-transparent px-5 text-sm font-semibold text-[#606e82]";
 
   return (
     <nav
@@ -48,7 +48,7 @@ export function CataloguePagination({ page, totalPages, params }: CataloguePagin
         </span>
       )}
 
-      <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
+      <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#566274]">
         Page {page} / {totalPages}
       </p>
 

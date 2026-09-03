@@ -8,6 +8,7 @@ import { findProfileByUserId } from "@/server/services/profiles";
 import {
   deleteProfileVideo,
   extensionForMime,
+  MissingVideoConsentError,
   saveProfileVideo,
   VideoTooLargeError,
 } from "@/server/services/video";
@@ -55,6 +56,7 @@ export async function PUT(request: Request): Promise<Response> {
     await saveProfileVideo(ctx.profileId, extension, request.body);
   } catch (error) {
     if (error instanceof VideoTooLargeError) return fail(ApiError.unprocessable(error.message));
+    if (error instanceof MissingVideoConsentError) return fail(ApiError.forbidden(error.message));
     return fail(new ApiError("internal", `Enregistrement impossible : ${(error as Error).message}`));
   }
 

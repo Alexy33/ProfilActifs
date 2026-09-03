@@ -112,14 +112,14 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
       >
         <label
           htmlFor="catalogue-search"
-          className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]"
+          className="font-mono text-xs font-semibold uppercase tracking-wider text-[#566274]"
         >
           Recherche
         </label>
         <div className="relative mt-2">
           <Search
             aria-hidden="true"
-            className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#718096]"
+            className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#566274]"
           />
           <input
             id="catalogue-search"
@@ -127,7 +127,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Nom, métier, compétence"
-            className="h-12 w-full rounded-2xl border-0 bg-[#ebf0f7] pl-11 pr-4 text-sm text-[#2d3748] outline-none transition-all shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30"
+            className="h-12 w-full rounded-2xl border-0 bg-[#ebf0f7] pl-11 pr-4 text-sm text-[#2d3748] outline-none transition-all shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#566274] focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30"
           />
         </div>
       </form>
@@ -136,7 +136,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
       <div className="mt-6">
         <label
           htmlFor="catalogue-sector"
-          className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]"
+          className="font-mono text-xs font-semibold uppercase tracking-wider text-[#566274]"
         >
           Secteur
         </label>
@@ -159,7 +159,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
       <div className="mt-6">
         <label
           htmlFor="catalogue-city"
-          className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]"
+          className="font-mono text-xs font-semibold uppercase tracking-wider text-[#566274]"
         >
           Localisation
         </label>
@@ -180,7 +180,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
 
       {/* Certification */}
       <div className="mt-6">
-        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
+        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-[#566274]">
           Certification JEB
         </span>
         <div className="mt-2 grid grid-cols-2 gap-2 rounded-2xl bg-[#ebf0f7] p-1.5 shadow-[inset_3px_3px_6px_#c5d1e0,inset_-3px_-3px_6px_#ffffff]">
@@ -190,7 +190,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
             onClick={() => setSingle("certified", "")}
             className={`h-10 rounded-xl text-sm font-semibold transition-all ${
               certifiedOnly
-                ? "text-[#718096] hover:text-[#273D4F]"
+                ? "text-[#566274] hover:text-[#273D4F]"
                 : "bg-[#ebf0f7] text-[#2d3748] shadow-[3px_3px_6px_#c5d1e0,-3px_-3px_6px_#ffffff]"
             }`}
           >
@@ -203,7 +203,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
             className={`h-10 rounded-xl text-sm font-semibold transition-all ${
               certifiedOnly
                 ? "bg-[#1B3A6B] text-white"
-                : "text-[#718096] hover:text-[#273D4F]"
+                : "text-[#566274] hover:text-[#273D4F]"
             }`}
           >
             Certifiés
@@ -213,7 +213,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
 
       {/* Competences : cumulables, un profil doit toutes les posseder */}
       <div className="mt-6">
-        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
+        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-[#566274]">
           Compétences
         </span>
         <div className="mt-3 flex flex-wrap gap-2">
