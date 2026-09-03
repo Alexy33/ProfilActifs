@@ -7,10 +7,12 @@ import {
   AUTH_RESPONSES,
   IdParam,
   NOT_FOUND_RESPONSE,
+  OkSchema,
   VALIDATION_RESPONSE,
 } from "@/server/contracts/common";
 import { ModerateProfileBody, ModerationRowSchema } from "@/server/contracts/admin";
 import { notify } from "@/server/services/notifications";
+import { deleteProfileVideo } from "@/server/services/video";
 
 export const dynamic = "force-dynamic";
 
@@ -60,5 +62,32 @@ export const { PATCH } = defineRoute({
       status: updated.status,
       createdAt: updated.createdAt.toISOString(),
     };
+  },
+});
+
+export const { DELETE } = defineRoute({
+  method: "DELETE",
+  path: "/api/admin/profiles/{id}",
+  tags: ["Administration"],
+  summary: "Supprimer un profil",
+  description:
+    "Supprime definitivement un profil et ses donnees associees (competences, favoris et prises de contact). Le compte utilisateur est conserve.",
+  access: "admin",
+  params: IdParam,
+  responses: {
+    "200": { description: "Profil supprime.", schema: OkSchema },
+    ...AUTH_RESPONSES,
+    ...NOT_FOUND_RESPONSE,
+  },
+  handler: async ({ params }) => {
+    const deleted = await db
+      .delete(profile)
+      .where(eq(profile.id, params.id))
+      .returning({ id: profile.id });
+
+    if (deleted.length === 0) throw ApiError.notFound("Ce profil n'existe pas.");
+
+    await deleteProfileVideo(params.id);
+    return { ok: true as const };
   },
 });
