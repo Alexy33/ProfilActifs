@@ -67,7 +67,7 @@ export default async function ProfilePage({
         <div className="w-full px-5 pb-24 pt-10 md:px-10 md:pt-14 lg:pl-4">
           <Link
             href="/catalogue"
-            className="group inline-flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-[#5980a6] transition-colors hover:text-[#416180] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5980a6]"
+            className="group inline-flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-[#1B3A6B] transition-colors hover:text-[#273D4F] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1B3A6B]"
           >
             <ArrowLeft
               aria-hidden="true"
@@ -76,7 +76,7 @@ export default async function ProfilePage({
             Retour au catalogue
           </Link>
 
-          <div className="mt-7 border-b border-[#5980a6]/15 pb-7">
+          <div className="mt-7 border-b border-[#1B3A6B]/15 pb-7">
             <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
               Profil public · présentation vidéo
             </p>
@@ -92,12 +92,12 @@ export default async function ProfilePage({
               <ProfileVideo videoUrl={profile.videoUrl} name={profile.name} />
 
               <div className="mt-5 flex flex-wrap items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-wider">
-                <span className="rounded-full bg-[#d6ebff] px-3 py-1.5 text-[#2c455d]">{profile.city}</span>
+                <span className="rounded-full bg-[#D1DEF0] px-3 py-1.5 text-[#1B2D3E]">{profile.city}</span>
                 <span className="rounded-full bg-[#eee7ff] px-3 py-1.5 text-[#65449b]">{profile.sector}</span>
               </div>
 
               {profile.bio ? (
-                <div className="mt-6 rounded-3xl border border-[#b5d9fd] bg-[#f8fbff] p-6">
+                <div className="mt-6 rounded-3xl border border-[#A8C5E0] bg-[#F5F9FE] p-6">
                   <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">Présentation</h2>
                   <p className="mt-3 max-w-[70ch] text-[15.5px] leading-[1.65] text-[#4a5568]">
                     {profile.bio}
@@ -106,7 +106,7 @@ export default async function ProfilePage({
               ) : null}
 
               {profile.skills.length > 0 ? (
-                <div className="mt-6 rounded-3xl border border-[#b5d9fd] bg-[#f8fbff] p-6">
+                <div className="mt-6 rounded-3xl border border-[#A8C5E0] bg-[#F5F9FE] p-6">
                   <h2 className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#1d1f20]/55">
                     Compétences déclarées
                   </h2>
@@ -129,7 +129,7 @@ export default async function ProfilePage({
               {profile.certified ? (
                 // Le badge est le seul aplat plein de la page : le CDC (2.3)
                 // demande qu'il soit visuellement distinct et mis en avant.
-                <div className="rounded-3xl bg-[#5980a6] p-7 text-white">
+                <div className="rounded-3xl bg-[#1B3A6B] p-7 text-white">
                   <div className="flex items-center gap-2">
                     <BadgeCheck aria-hidden="true" className="size-5 stroke-[2]" />
                     <span className="font-mono text-[10.5px] font-bold uppercase tracking-[0.16em] text-white/80">

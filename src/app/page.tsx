@@ -63,7 +63,7 @@ const profileModules = [
 ];
 
 const demoAccounts = [
-  { role: "Demandeur", email: "amina@exemple.fr", color: "bg-[#d6ebff] text-[#2c455d]" },
+  { role: "Demandeur", email: "amina@exemple.fr", color: "bg-[#D1DEF0] text-[#1B2D3E]" },
   { role: "Recruteur", email: "recruteur@exemple.fr", color: "bg-[#dff7e9] text-[#17603a]" },
   { role: "Administration", email: "admin@jeb.gouv.fr", color: "bg-[#eee7ff] text-[#65449b]" },
 ];
@@ -72,7 +72,7 @@ export default async function HomePage() {
   const session = await getCurrentSession();
 
   return (
-    <main className="min-h-screen bg-[#ebf0f7] text-[#2d3748] selection:bg-[#5980a6] selection:text-white antialiased">
+    <main className="min-h-screen bg-[#ebf0f7] text-[#2d3748] selection:bg-[#1B3A6B] selection:text-white antialiased">
       {/* Navigation */}
       <header className="sticky top-0 z-50 bg-[#ebf0f7]/80 backdrop-blur-md">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 md:px-10">
@@ -88,19 +88,19 @@ export default async function HomePage() {
           <nav className="hidden items-center gap-2 rounded-full bg-[#ebf0f7] p-2 shadow-[inset_3px_3px_6px_#c5d1e0,inset_-3px_-3px_6px_#ffffff] md:flex">
             <Link
               href="#concept"
-              className="rounded-full px-5 py-2 text-sm font-semibold text-[#4a5568] transition-all hover:text-[#416180]"
+              className="rounded-full px-5 py-2 text-sm font-semibold text-[#4a5568] transition-all hover:text-[#273D4F]"
             >
               Le concept
             </Link>
             <Link
               href="#fonctionnement"
-              className="rounded-full px-5 py-2 text-sm font-semibold text-[#4a5568] transition-all hover:text-[#416180]"
+              className="rounded-full px-5 py-2 text-sm font-semibold text-[#4a5568] transition-all hover:text-[#273D4F]"
             >
               Fonctionnement
             </Link>
             <Link
               href="#recruteurs"
-              className="rounded-full px-5 py-2 text-sm font-semibold text-[#4a5568] transition-all hover:text-[#416180]"
+              className="rounded-full px-5 py-2 text-sm font-semibold text-[#4a5568] transition-all hover:text-[#273D4F]"
             >
               Recruteurs
             </Link>
@@ -120,7 +120,7 @@ export default async function HomePage() {
               <br />
               se voit,
               <br />
-              <span className="text-[#5980a6]">se certifie.</span>
+              <span className="text-[#1B3A6B]"> se certifie.</span>
             </h1>
 
             <p className="mt-6 max-w-xl text-base leading-relaxed text-[#4a5568] md:text-lg">
@@ -138,7 +138,7 @@ export default async function HomePage() {
               <Button
                 asChild
                 size="lg"
-                className="group h-14 rounded-2xl bg-[#5980a6] px-8 text-base font-semibold text-white shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff] transition-all hover:bg-[#416180] active:scale-[0.97]"
+                className="group h-14 rounded-2xl bg-[#1B3A6B] px-8 text-base font-semibold text-white shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff] transition-all hover:bg-[#273D4F] active:scale-[0.97]"
               >
                 <Link href="/register">
                   Créer mon profil
@@ -159,11 +159,11 @@ export default async function HomePage() {
 
           {/* Technical card / Overview Card */}
           <div className="flex items-center justify-center">
-            <div className="w-full rounded-3xl border border-[#416180]/15 bg-white p-8 md:p-10">
+            <div className="w-full rounded-3xl border border-[#273D4F]/15 bg-white p-8 md:p-10">
               {/* Card Header */}
               <div className="flex items-start justify-between gap-4 border-b border-[#2d3748]/10 pb-6">
                 <div className="flex items-center gap-4">
-                  <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[#5980a6] text-white">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[#1B3A6B] text-white">
                     <LuUserRound aria-hidden="true" className="size-6" />
                   </div>
                   <div>
@@ -185,9 +185,9 @@ export default async function HomePage() {
                   return (
                     <div
                       key={profileModule.title}
-                      className="group flex items-center gap-4 rounded-2xl bg-[#ebf0f7] p-4 transition-colors hover:bg-[#5980a6]/15"
+                      className="group flex items-center gap-4 rounded-2xl bg-[#ebf0f7] p-4 transition-colors hover:bg-[#1B3A6B]/15"
                     >
-                      <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#5980a6]">
+                      <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#1B3A6B]">
                         <Icon aria-hidden="true" className="size-5" />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -198,7 +198,7 @@ export default async function HomePage() {
                           {profileModule.description}
                         </p>
                       </div>
-                      <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#5980a6] text-white">
+                      <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#1B3A6B] text-white">
                         <Check aria-hidden="true" className="size-3.5 stroke-[2.5]" />
                       </div>
                     </div>
@@ -223,7 +223,7 @@ export default async function HomePage() {
 
             <h2 className="mt-5 text-3xl font-bold uppercase tracking-tight text-[#2d3748] md:text-5xl">
               Votre profil en
-              <span className="text-[#5980a6]"> 3 étapes.</span>
+              <span className="text-[#1B3A6B]"> 3 étapes.</span>
             </h2>
 
             <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-[#718096]">
@@ -239,9 +239,9 @@ export default async function HomePage() {
 
               return (
                 <div key={feature.number} className="relative">
-                  <article className="group relative h-full overflow-hidden rounded-3xl border border-[#5980a6]/15 bg-white/55 p-7 transition-all duration-500 hover:-translate-y-2 hover:border-[#5980a6]/35 hover:bg-white">
+                  <article className="group relative h-full overflow-hidden rounded-3xl border border-[#1B3A6B]/15 bg-white/55 p-7 transition-all duration-500 hover:-translate-y-2 hover:border-[#1B3A6B]/35 hover:bg-white">
                     {/* Animated top line */}
-                    <div className="absolute left-0 top-0 h-1 w-0 bg-[#5980a6] transition-all duration-500 group-hover:w-full" />
+                    <div className="absolute left-0 top-0 h-1 w-0 bg-[#1B3A6B] transition-all duration-500 group-hover:w-full" />
 
                     {/* Number */}
                     <span className="absolute right-6 top-6 font-mono text-4xl font-bold text-[#718096]/35 transition-all duration-500 group-hover:text-[#718096]/60">
@@ -249,7 +249,7 @@ export default async function HomePage() {
                     </span>
 
                     {/* Icon */}
-                    <div className="flex size-14 items-center justify-center rounded-2xl bg-[#5980a6]/10 text-[#5980a6] transition-all duration-500 group-hover:rotate-3 group-hover:scale-110 group-hover:bg-[#5980a6] group-hover:text-white">
+                    <div className="flex size-14 items-center justify-center rounded-2xl bg-[#1B3A6B]/10 text-[#1B3A6B] transition-all duration-500 group-hover:rotate-3 group-hover:scale-110 group-hover:bg-[#1B3A6B] group-hover:text-white">
                       <Icon className="size-6 stroke-[1.7]" />
                     </div>
 
@@ -266,10 +266,10 @@ export default async function HomePage() {
 
                     {/* Bottom indicator */}
                     <div className="mt-8 flex items-center gap-3">
-                      <div className="size-1.5 rounded-full bg-[#5980a6]" />
+                      <div className="size-1.5 rounded-full bg-[#1B3A6B]" />
 
-                      <div className="h-px flex-1 overflow-hidden bg-[#5980a6]/15">
-                        <div className="h-full w-0 bg-[#5980a6] transition-all duration-700 group-hover:w-full" />
+                      <div className="h-px flex-1 overflow-hidden bg-[#1B3A6B]/15">
+                        <div className="h-full w-0 bg-[#1B3A6B] transition-all duration-700 group-hover:w-full" />
                       </div>
                     </div>
                   </article>
@@ -277,7 +277,7 @@ export default async function HomePage() {
                   {/* Desktop connector */}
                   {index < features.length - 1 && (
                     <div className="absolute -right-12 top-1/2 z-10 hidden -translate-y-1/2 md:flex lg:-right-14">
-                      <div className="group/arrow flex size-12 items-center justify-center rounded-full border border-[#5980a6]/20 bg-[#ebf0f7] text-[#5980a6]">
+                      <div className="group/arrow flex size-12 items-center justify-center rounded-full border border-[#1B3A6B]/20 bg-[#ebf0f7] text-[#1B3A6B]">
                         <ArrowRight className="size-5 animate-[pulse_2s_ease-in-out_infinite] transition-transform duration-300 group-hover/arrow:translate-x-1" />
                       </div>
                     </div>
@@ -291,10 +291,10 @@ export default async function HomePage() {
           <div className="mt-12 hidden items-center justify-center gap-3 md:flex">
             {features.map((feature, index) => (
               <div key={feature.number} className="flex items-center gap-3">
-                <span className="size-2 rounded-full bg-[#5980a6]" />
+                <span className="size-2 rounded-full bg-[#1B3A6B]" />
 
                 {index < features.length - 1 && (
-                  <div className="h-px w-16 bg-gradient-to-r from-[#5980a6] to-[#5980a6]/20" />
+                  <div className="h-px w-16 bg-gradient-to-r from-[#1B3A6B] to-[#1B3A6B]/20" />
                 )}
               </div>
             ))}
@@ -305,13 +305,13 @@ export default async function HomePage() {
       {/* Recruiter section */}
       <section id="recruteurs" className="py-20 md:py-28">
         <div className="mx-auto max-w-7xl px-6 md:px-10">
-          <div className="overflow-hidden rounded-[2rem] border border-[#5980a6]/15 bg-white/55">
+          <div className="overflow-hidden rounded-[2rem] border border-[#1B3A6B]/15 bg-white/55">
             <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
               {/* Left */}
               <div className="relative flex flex-col justify-center p-8 md:p-12 lg:p-14">
                 <h2 className="mt-6 max-w-xl text-3xl font-bold uppercase leading-tight tracking-tight text-[#2d3748] md:text-5xl">
                   Trouvez les bons profils
-                  <span className="text-[#5980a6]"> plus rapidement.</span>
+                  <span className="text-[#1B3A6B]"> plus rapidement.</span>
                 </h2>
 
                 <p className="mt-6 max-w-xl text-base leading-relaxed text-[#718096]">
@@ -323,7 +323,7 @@ export default async function HomePage() {
                 <div className="mt-8">
                   <Button
                     asChild
-                    className="group h-12 rounded-2xl bg-[#5980a6] px-6 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#416180]"
+                    className="group h-12 rounded-2xl bg-[#1B3A6B] px-6 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#273D4F]"
                   >
                     <Link href="/catalogue">
                       Parcourir le catalogue
@@ -334,14 +334,14 @@ export default async function HomePage() {
               </div>
 
               {/* Right */}
-              <div className="grid border-t border-[#5980a6]/10 sm:grid-cols-2 lg:border-l lg:border-t-0">
+              <div className="grid border-t border-[#1B3A6B]/10 sm:grid-cols-2 lg:border-l lg:border-t-0">
                 {/* Search card */}
-                <div className="group relative overflow-hidden border-b border-[#5980a6]/10 p-8 transition-all duration-500 hover:bg-[#5980a6]/5 sm:border-b-0 sm:border-r">
+                <div className="group relative overflow-hidden border-b border-[#1B3A6B]/10 p-8 transition-all duration-500 hover:bg-[#1B3A6B]/5 sm:border-b-0 sm:border-r">
                   <div className="absolute right-6 top-6 font-mono text-5xl font-bold text-[#718096]/35 transition-all duration-500 group-hover:text-[#718096]/60">
                     01
                   </div>
 
-                  <div className="flex size-14 items-center justify-center rounded-2xl bg-[#5980a6]/10 text-[#5980a6] transition-all duration-500 group-hover:-rotate-3 group-hover:scale-110 group-hover:bg-[#5980a6] group-hover:text-white">
+                  <div className="flex size-14 items-center justify-center rounded-2xl bg-[#1B3A6B]/10 text-[#1B3A6B] transition-all duration-500 group-hover:-rotate-3 group-hover:scale-110 group-hover:bg-[#1B3A6B] group-hover:text-white">
                     <BriefcaseBusiness className="size-6 stroke-[1.6]" />
                   </div>
 
@@ -354,18 +354,18 @@ export default async function HomePage() {
                     aller directement aux candidats les plus pertinents.
                   </p>
 
-                  <div className="mt-8 h-px overflow-hidden bg-[#5980a6]/15">
-                    <div className="h-full w-0 bg-[#5980a6] transition-all duration-700 group-hover:w-full" />
+                  <div className="mt-8 h-px overflow-hidden bg-[#1B3A6B]/15">
+                    <div className="h-full w-0 bg-[#1B3A6B] transition-all duration-700 group-hover:w-full" />
                   </div>
                 </div>
 
                 {/* Certified profiles card */}
-                <div className="group relative overflow-hidden p-8 transition-all duration-500 hover:bg-[#5980a6]/5">
+                <div className="group relative overflow-hidden p-8 transition-all duration-500 hover:bg-[#1B3A6B]/5">
                   <div className="absolute right-6 top-6 font-mono text-5xl font-bold text-[#718096]/35 transition-all duration-500 group-hover:text-[#718096]/60">
                     02
                   </div>
 
-                  <div className="flex size-14 items-center justify-center rounded-2xl bg-[#5980a6]/10 text-[#5980a6] transition-all duration-500 group-hover:rotate-3 group-hover:scale-110 group-hover:bg-[#5980a6] group-hover:text-white">
+                  <div className="flex size-14 items-center justify-center rounded-2xl bg-[#1B3A6B]/10 text-[#1B3A6B] transition-all duration-500 group-hover:rotate-3 group-hover:scale-110 group-hover:bg-[#1B3A6B] group-hover:text-white">
                     <ShieldCheck className="size-6 stroke-[1.6]" />
                   </div>
 
@@ -378,29 +378,29 @@ export default async function HomePage() {
                     certification et consultez leurs aptitudes professionnelles.
                   </p>
 
-                  <div className="mt-8 h-px overflow-hidden bg-[#5980a6]/15">
-                    <div className="h-full w-0 bg-[#5980a6] transition-all duration-700 group-hover:w-full" />
+                  <div className="mt-8 h-px overflow-hidden bg-[#1B3A6B]/15">
+                    <div className="h-full w-0 bg-[#1B3A6B] transition-all duration-700 group-hover:w-full" />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Bottom flow */}
-            <div className="border-t border-[#5980a6]/10 px-8 py-5 md:px-12">
+            <div className="border-t border-[#1B3A6B]/10 px-8 py-5 md:px-12">
               <div className="flex flex-wrap items-center gap-4 text-xs font-semibold uppercase tracking-wider text-[#718096]">
-                <span className="transition-colors hover:text-[#5980a6]">
+                <span className="transition-colors hover:text-[#1B3A6B]">
                   Rechercher
                 </span>
-                <ArrowRight className="size-4 text-[#5980a6]/50" />
-                <span className="transition-colors hover:text-[#5980a6]">
+                <ArrowRight className="size-4 text-[#1B3A6B]/50" />
+                <span className="transition-colors hover:text-[#1B3A6B]">
                   Comparer
                 </span>
-                <ArrowRight className="size-4 text-[#5980a6]/50" />
-                <span className="transition-colors hover:text-[#5980a6]">
+                <ArrowRight className="size-4 text-[#1B3A6B]/50" />
+                <span className="transition-colors hover:text-[#1B3A6B]">
                   Consulter
                 </span>
-                <ArrowRight className="size-4 text-[#5980a6]/50" />
-                <span className="text-[#5980a6]">Contacter</span>
+                <ArrowRight className="size-4 text-[#1B3A6B]/50" />
+                <span className="text-[#1B3A6B]">Contacter</span>
               </div>
             </div>
           </div>
@@ -414,7 +414,7 @@ export default async function HomePage() {
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <h2 className="text-3xl font-bold uppercase tracking-tight text-[#2d3748]">
-                  Comptes de <span className="text-[#5980a6]">démonstration.</span>
+                  Comptes de <span className="text-[#1B3A6B]">démonstration.</span>
                 </h2>
                 <p className="mt-2 text-sm text-[#718096]">
                   Utilisez ces accès pour découvrir chaque espace de la plateforme.
@@ -449,7 +449,7 @@ export default async function HomePage() {
 
                 <h2 className="mt-6 max-w-3xl text-3xl font-bold uppercase leading-tight tracking-tight text-[#2d3748] md:text-5xl">
                   Montrez ce que votre CV
-                  <span className="text-[#5980a6]"> ne peut pas montrer.</span>
+                  <span className="text-[#1B3A6B]"> ne peut pas montrer.</span>
                 </h2>
 
                 <p className="mt-5 max-w-2xl text-base leading-relaxed text-[#718096]">
@@ -459,19 +459,19 @@ export default async function HomePage() {
 
                 {/* Mini flow */}
                 <div className="mt-8 flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider text-[#718096]">
-                  <span className="transition-colors duration-300 hover:text-[#5980a6]">
+                  <span className="transition-colors duration-300 hover:text-[#1B3A6B]">
                     Créer
                   </span>
-                  <ArrowRight className="size-4 text-[#5980a6]/50" />
-                  <span className="transition-colors duration-300 hover:text-[#5980a6]">
+                  <ArrowRight className="size-4 text-[#1B3A6B]/50" />
+                  <span className="transition-colors duration-300 hover:text-[#1B3A6B]">
                     Compléter
                   </span>
-                  <ArrowRight className="size-4 text-[#5980a6]/50" />
-                  <span className="transition-colors duration-300 hover:text-[#5980a6]">
+                  <ArrowRight className="size-4 text-[#1B3A6B]/50" />
+                  <span className="transition-colors duration-300 hover:text-[#1B3A6B]">
                     Certifier
                   </span>
-                  <ArrowRight className="size-4 text-[#5980a6]/50" />
-                  <span className="text-[#5980a6]">Être visible</span>
+                  <ArrowRight className="size-4 text-[#1B3A6B]/50" />
+                  <span className="text-[#1B3A6B]">Être visible</span>
                 </div>
               </div>
 
@@ -479,7 +479,7 @@ export default async function HomePage() {
                 <Button
                   asChild
                   size="lg"
-                  className="group/button h-14 rounded-2xl bg-[#5980a6] px-8 text-base font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#416180]"
+                  className="group/button h-14 rounded-2xl bg-[#1B3A6B] px-8 text-base font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#273D4F]"
                 >
                   <Link href="/register">
                     Commencer
@@ -491,7 +491,7 @@ export default async function HomePage() {
                   asChild
                   size="lg"
                   variant="ghost"
-                  className="h-14 rounded-2xl border border-[#5980a6]/15 bg-transparent px-8 text-base font-semibold text-[#2d3748] transition-all duration-300 hover:-translate-y-1 hover:bg-[#5980a6]/5"
+                  className="h-14 rounded-2xl border border-[#1B3A6B]/15 bg-transparent px-8 text-base font-semibold text-[#2d3748] transition-all duration-300 hover:-translate-y-1 hover:bg-[#1B3A6B]/5"
                 >
                   <Link href="/login">Se connecter</Link>
                 </Button>

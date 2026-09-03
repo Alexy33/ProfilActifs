@@ -27,14 +27,14 @@ export function CataloguePagination({ page, totalPages, params }: CataloguePagin
   };
 
   const linkClassName =
-    "inline-flex h-11 items-center gap-2 border border-[#5980a6]/30 bg-white px-5 text-sm font-semibold text-[#2d3748] transition-colors hover:border-[#5980a6] hover:text-[#416180]";
+    "inline-flex h-11 items-center gap-2 border border-[#1B3A6B]/30 bg-white px-5 text-sm font-semibold text-[#2d3748] transition-colors hover:border-[#1B3A6B] hover:text-[#273D4F]";
   const disabledClassName =
-    "inline-flex h-11 cursor-not-allowed items-center gap-2 border border-[#5980a6]/10 bg-transparent px-5 text-sm font-semibold text-[#718096]/50";
+    "inline-flex h-11 cursor-not-allowed items-center gap-2 border border-[#1B3A6B]/10 bg-transparent px-5 text-sm font-semibold text-[#718096]/50";
 
   return (
     <nav
       aria-label="Pagination du catalogue"
-      className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-[#5980a6]/10 pt-8"
+      className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-[#1B3A6B]/10 pt-8"
     >
       {page > 1 ? (
         <Link href={href(page - 1)} scroll={false} className={linkClassName}>

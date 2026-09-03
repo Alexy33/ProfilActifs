@@ -88,11 +88,11 @@ export default async function CataloguePage({
       <main className="lg:h-screen lg:overflow-y-hidden">
         <div className="w-full px-5 pb-24 pt-10 md:px-10 md:pt-14 lg:flex lg:h-full lg:flex-col lg:pb-8 lg:pl-4">
           {/* En-tete */}
-          <div className="flex flex-wrap items-end justify-between gap-6 border-b border-[#5980a6]/15 pb-8">
+          <div className="flex flex-wrap items-end justify-between gap-6 border-b border-[#1B3A6B]/15 pb-8">
             <div>
               <h1 className="text-4xl font-extrabold uppercase leading-tight tracking-tight text-[#2d3748] md:text-6xl">
                 Découvrez les
-                <span className="text-[#5980a6]"> talents.</span>
+                <span className="text-[#1B3A6B]"> talents.</span>
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#718096]">
                 Parcourez les compétences des demandeurs d&apos;emploi et repérez
@@ -101,7 +101,7 @@ export default async function CataloguePage({
               </p>
             </div>
 
-            <p className="font-mono text-sm font-semibold uppercase tracking-wider text-[#5980a6]">
+            <p className="font-mono text-sm font-semibold uppercase tracking-wider text-[#1B3A6B]">
               {meta.total} profil{meta.total > 1 ? "s" : ""}
             </p>
           </div>
@@ -109,7 +109,7 @@ export default async function CataloguePage({
           <div className="mt-10 grid gap-8 lg:min-h-0 lg:flex-1 lg:grid-cols-[320px_1fr] lg:gap-12">
             <div className="lg:sticky lg:top-28 lg:self-start">
               {/* useSearchParams impose une frontiere de suspense au prerendu. */}
-              <Suspense fallback={<div className="h-[520px] border border-[#5980a6]/20 bg-white" />}>
+              <Suspense fallback={<div className="h-[520px] border border-[#1B3A6B]/20 bg-white" />}>
                 <CatalogueFilters sectors={SECTORS} cities={CITIES} skills={SKILLS} />
               </Suspense>
             </div>
@@ -127,8 +127,8 @@ export default async function CataloguePage({
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center border border-[#5980a6]/20 bg-white px-8 py-24 text-center">
-                  <div className="flex size-16 items-center justify-center border border-[#5980a6]/25 bg-[#eef6ff] text-[#5980a6]">
+                <div className="flex flex-col items-center justify-center border border-[#1B3A6B]/20 bg-white px-8 py-24 text-center">
+                  <div className="flex size-16 items-center justify-center border border-[#1B3A6B]/25 bg-[#E8F0F8] text-[#1B3A6B]">
                     <SearchX aria-hidden="true" className="size-7 stroke-[1.6]" />
                   </div>
                   <h2 className="mt-8 text-xl font-bold uppercase tracking-tight text-[#2d3748]">

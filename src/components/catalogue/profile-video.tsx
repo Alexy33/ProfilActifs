@@ -2,7 +2,7 @@ import { PlayCircle } from "lucide-react";
 
 function VideoFrame({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-[#b5d9fd] bg-[#f8fbff]">
+    <div className="relative overflow-hidden rounded-3xl border border-[#A8C5E0] bg-[#F5F9FE]">
       {children}
     </div>
   );
@@ -62,11 +62,11 @@ export function ProfileVideo({ videoUrl, name }: { videoUrl: string | null; name
   if (!videoUrl) {
     return (
       <VideoFrame>
-        <div className="flex aspect-video w-full flex-col items-center justify-center bg-[#eef6ff] text-center">
-        <div className="flex size-16 items-center justify-center rounded-2xl bg-[#d6ebff] text-[#2c455d]">
+        <div className="flex aspect-video w-full flex-col items-center justify-center bg-[#E8F0F8] text-center">
+        <div className="flex size-16 items-center justify-center rounded-2xl bg-[#D1DEF0] text-[#1B2D3E]">
           <PlayCircle aria-hidden="true" className="size-7 stroke-[1.6]" />
         </div>
-        <p className="mt-4 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#2c455d]">
+        <p className="mt-4 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1B2D3E]">
           Aucune présentation vidéo
         </p>
         </div>
@@ -109,8 +109,8 @@ export function ProfileVideo({ videoUrl, name }: { videoUrl: string | null; name
   // l'affiche sans pretendre la lire, plutot que de casser la page.
   return (
     <VideoFrame>
-    <div className="flex aspect-video w-full flex-col items-center justify-center bg-[#eef6ff] px-6 text-center">
-      <div className="flex size-16 items-center justify-center rounded-2xl bg-[#d6ebff] text-[#2c455d]">
+    <div className="flex aspect-video w-full flex-col items-center justify-center bg-[#E8F0F8] px-6 text-center">
+      <div className="flex size-16 items-center justify-center rounded-2xl bg-[#D1DEF0] text-[#1B2D3E]">
         <PlayCircle aria-hidden="true" className="size-7 stroke-[1.6]" />
       </div>
       <p className="mt-5 max-w-md break-all font-mono text-xs text-[#718096]">

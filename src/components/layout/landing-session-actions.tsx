@@ -24,7 +24,7 @@ export function LandingSessionActions({ connected }: { connected: boolean }) {
       <div className="flex items-center gap-3">
         <Button
           asChild
-          className="rounded-2xl bg-[#5980a6] px-5 font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#416180] active:scale-[0.97]"
+          className="rounded-2xl bg-[#1B3A6B] px-5 font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#273D4F] active:scale-[0.97]"
         >
           <Link href="/catalogue">
             <LayoutGrid aria-hidden="true" className="size-4" />
@@ -49,7 +49,7 @@ export function LandingSessionActions({ connected }: { connected: boolean }) {
     <div className="flex items-center gap-3">
       <Button
         asChild
-        className="rounded-2xl bg-[#5980a6] px-5 font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#416180] active:scale-[0.97]"
+        className="rounded-2xl bg-[#1B3A6B] px-5 font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#273D4F] active:scale-[0.97]"
       >
         <Link href="/catalogue">
           <LayoutGrid aria-hidden="true" className="size-4" />
@@ -65,7 +65,7 @@ export function LandingSessionActions({ connected }: { connected: boolean }) {
       </Button>
       <Button
         asChild
-        className="rounded-2xl bg-[#5980a6] px-6 font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#416180] active:scale-[0.97]"
+        className="rounded-2xl bg-[#1B3A6B] px-6 font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#273D4F] active:scale-[0.97]"
       >
         <Link href="/register">Créer un profil</Link>
       </Button>

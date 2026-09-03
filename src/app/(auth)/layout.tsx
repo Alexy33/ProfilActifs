@@ -10,11 +10,11 @@ export default function AuthLayout({
       <div aria-hidden="true" className="absolute inset-0 -z-20 bg-[#ebf0f7]" />
       <div
         aria-hidden="true"
-        className="absolute -left-32 top-[-12rem] -z-10 size-[32rem] rounded-full bg-[#b5d9fd]/35 blur-[120px]"
+        className="absolute -left-32 top-[-12rem] -z-10 size-[32rem] rounded-full bg-[#A8C5E0]/35 blur-[120px]"
       />
       <div
         aria-hidden="true"
-        className="absolute -bottom-64 -right-32 -z-10 size-[38rem] rounded-full bg-[#749dc4]/20 blur-[140px]"
+        className="absolute -bottom-64 -right-32 -z-10 size-[38rem] rounded-full bg-[#4A6B8A]/20 blur-[140px]"
       />
       <div
         aria-hidden="true"
