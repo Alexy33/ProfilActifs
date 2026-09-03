@@ -23,7 +23,6 @@ export interface ProfileCard {
   skills: Skill[];
   certified: boolean;
   score: number | null;
-  views: number;
 }
 
 export interface FullProfile extends ProfileCard {
@@ -33,6 +32,17 @@ export interface FullProfile extends ProfileCard {
   contactCount: number;
   certifiedAt: string | null;
   createdAt: string;
+}
+
+/**
+ * Profil vu par son titulaire.
+ *
+ * Seule forme qui porte `views` : le compteur d'audience est tenu en base et
+ * montre au candidat dans son espace, mais ne sort jamais du serveur autrement
+ * — ni fiche publique, ni catalogue, ni vue recruteur, ni export.
+ */
+export interface OwnProfile extends FullProfile {
+  views: number;
 }
 
 /** « Sonia Delaunay-Frey » -> « SD ». Calcule ici pour que le front n'ait rien a deviner. */
@@ -63,7 +73,6 @@ export function toCard(row: ProfileRow, name: string, skills: Skill[]): ProfileC
     skills,
     certified: row.certifiedAt !== null,
     score: row.score,
-    views: row.views,
   };
 }
 
@@ -176,8 +185,9 @@ export async function searchCatalog(filters: CatalogFilters): Promise<CatalogRes
     .innerJoin(user, eq(user.id, profile.userId))
     .where(where)
     // Certifies d'abord, puis les mieux notes : le catalogue met en avant ce
-    // que le dispositif certifie, ce qui est tout son objet.
-    .orderBy(desc(profile.certifiedAt), desc(profile.score), desc(profile.views))
+    // que le dispositif certifie, ce qui est tout son objet. L'audience ne
+    // departage pas — on ne classe pas des personnes par nombre de vues.
+    .orderBy(desc(profile.certifiedAt), desc(profile.score), desc(profile.createdAt))
     .limit(pageSize)
     .offset((page - 1) * pageSize);
 
@@ -193,7 +203,7 @@ export async function searchCatalog(filters: CatalogFilters): Promise<CatalogRes
  * Fiches
  * ----------------------------------------------------------------------- */
 
-async function findOne(where: ReturnType<typeof eq>): Promise<FullProfile | null> {
+async function findOne(where: ReturnType<typeof eq>): Promise<OwnProfile | null> {
   const [row] = await db
     .select({ profile, name: user.name })
     .from(profile)
@@ -203,14 +213,19 @@ async function findOne(where: ReturnType<typeof eq>): Promise<FullProfile | null
 
   if (!row) return null;
   const skills = await skillsByProfile([row.profile.id]);
-  return toFull(row.profile, row.name, skills.get(row.profile.id) ?? []);
+  return { ...toFull(row.profile, row.name, skills.get(row.profile.id) ?? []), views: row.profile.views };
 }
 
-export function findProfileById(id: string) {
-  return findOne(eq(profile.id, id));
+/** Fiche publique : sans le compteur de vues. */
+export async function findProfileById(id: string): Promise<FullProfile | null> {
+  const found = await findOne(eq(profile.id, id));
+  if (!found) return null;
+  const { views: _views, ...pub } = found;
+  return pub;
 }
 
-export function findProfileByUserId(userId: string) {
+/** Fiche du titulaire : avec le compteur de vues, qui ne va pas plus loin. */
+export function findProfileByUserId(userId: string): Promise<OwnProfile | null> {
   return findOne(eq(profile.userId, userId));
 }
 

@@ -139,9 +139,16 @@ renommer. `user.role` est le seul ajout maison.
 | `status` | text (`pending` \| `published` \| `removed`) | NOT NULL | `'pending'` |
 | `score` | integer | NULL | — dernier score de certification obtenu |
 | `certified_at` | timestamp | NULL | — fait foi pour le badge JEB |
-| `views` | integer | NOT NULL | `0` — compteur dénormalisé |
+| `views` | integer | NOT NULL | `0` — compteur dénormalisé, **privé** (voir ci-dessous) |
 | `contact_count` | integer | NOT NULL | `0` — compteur dénormalisé |
 | `created_at` / `updated_at` | timestamp | NOT NULL | `unixepoch()` |
+
+`views` est tenu en base et incrémenté à chaque consultation, mais ne sort pas
+du serveur : il figure dans le seul schéma `MyProfile` et ne s'affiche que dans
+l'espace du titulaire. Ni `Profile`, ni `ProfileCard`, ni un export, ni une vue
+recruteur ne le portent, et le catalogue ne s'en sert pas pour trier — on ne
+classe pas des personnes par audience. Toute mesure d'audience ajoutée plus tard
+(compteur de « j'aime » compris) suit la même règle.
 
 #### `profile_skill` — compétences d'un profil
 

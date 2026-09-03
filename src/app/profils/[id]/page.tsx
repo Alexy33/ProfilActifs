@@ -54,10 +54,9 @@ export default async function ProfilePage({
 
   if (!profile) notFound();
 
-  // La consultation compte comme une vue : c'est le compteur d'interactions que
-  // le candidat suit depuis son espace (CDC 2.1).
+  // La consultation compte comme une vue, mais le compteur n'est pas affiche
+  // ici : il ne se lit que depuis l'espace du titulaire (CDC 2.1).
   await recordProfileView(profile.id);
-  const views = profile.views + 1;
 
   const [settings, session] = await Promise.all([getSettings(), getCurrentSession()]);
 
@@ -161,15 +160,7 @@ export default async function ProfilePage({
               )}
 
               <div className="rounded-3xl bg-[#ebf0f7] p-7 shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff]">
-                <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <p className="text-3xl font-bold leading-none text-[#2d3748]">
-                    {views}
-                  </p>
-                  <p className="mt-1 text-xs text-[#718096]">
-                    vues du profil
-                  </p>
-                </div>
+                <div className="grid grid-cols-1 gap-5">
                 <div>
                   <p className="text-3xl font-bold leading-none text-[#2d3748]">
                     {profile.contactCount}

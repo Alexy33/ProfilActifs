@@ -6,11 +6,11 @@ import { BadgeCheck, Bell, Eye, FileVideo, Loader2, MessageSquare, Save, Upload 
 
 import { ProfileVideo } from "@/components/catalogue/profile-video";
 import type { City, Sector, Skill } from "@/lib/vocabulary";
-import type { FullProfile } from "@/server/services/profiles";
+import type { OwnProfile } from "@/server/services/profiles";
 
 type Certification = { status: "not_started" | "in_progress" | "submitted"; answered: number; questionCount: number; score: number | null; passed: boolean | null };
 type Notice = { id: string; text: string; createdAt: string };
-type Props = { initialProfile: FullProfile; sectors: readonly Sector[]; cities: readonly City[]; skills: readonly Skill[] };
+type Props = { initialProfile: OwnProfile; sectors: readonly Sector[]; cities: readonly City[]; skills: readonly Skill[] };
 
 const field = "mt-2 h-11 w-full rounded-xl border border-[#1B3A6B]/20 bg-white px-4 text-sm text-[#2d3748] outline-none transition-colors focus:border-[#1B3A6B]";
 

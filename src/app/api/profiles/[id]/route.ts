@@ -12,7 +12,7 @@ export const { GET } = defineRoute({
   tags: ["Catalogue"],
   summary: "Fiche publique d'un profil",
   description:
-    "Chaque appel incremente le compteur de vues affiche au candidat. Un profil non publie repond 404, y compris a un recruteur.",
+    "Chaque appel incremente le compteur de vues, visible du seul titulaire depuis son espace. Un profil non publie repond 404, y compris a un recruteur.",
   params: IdParam,
   responses: {
     "200": { description: "Profil trouve.", schema: ProfileSchema },
@@ -24,7 +24,9 @@ export const { GET } = defineRoute({
       throw ApiError.notFound("Ce profil n'existe pas ou n'est pas publie.");
     }
 
+    // La vue est comptee en base ; le compteur n'est pas renvoye : il ne se
+    // consulte que depuis l'espace du titulaire.
     await recordProfileView(found.id);
-    return { ...found, views: found.views + 1 };
+    return found;
   },
 });

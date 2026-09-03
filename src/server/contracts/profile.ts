@@ -29,7 +29,6 @@ export const ProfileCardSchema = named(
     skills: z.array(SkillSchema),
     certified: z.boolean(),
     score: z.number().int().nullable().meta({ description: "Nul tant que la certification n'est pas obtenue." }),
-    views: z.number().int(),
   }),
 );
 
@@ -49,10 +48,19 @@ export const ProfileSchema = named(
 /**
  * Profil vu par son proprietaire.
  *
- * Identique au profil public : le candidat voit exactement ce que les
- * recruteurs voient, y compris son statut de moderation.
+ * Le profil public plus le compteur de vues : le candidat suit son audience,
+ * mais ce compteur ne quitte pas son espace. Il n'apparait ni dans `Profile`,
+ * ni dans `ProfileCard`, ni dans un export, ni dans une vue recruteur — on ne
+ * publie pas un classement de personnes par audience.
  */
-export const MyProfileSchema = named("MyProfile", ProfileSchema.extend({}));
+export const MyProfileSchema = named(
+  "MyProfile",
+  ProfileSchema.extend({
+    views: z.number().int().meta({
+      description: "Nombre de consultations. Visible du seul titulaire du profil.",
+    }),
+  }),
+);
 
 export const ProfilePageSchema = pageOf("ProfilePage", ProfileCardSchema);
 
