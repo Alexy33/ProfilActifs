@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Loader2, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
 
@@ -25,6 +25,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
+  const paramsRef = useRef(searchParams.toString());
 
   const activeSector = searchParams.get("sector") ?? "";
   const activeCity = searchParams.get("city") ?? "";
@@ -36,7 +37,10 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
   // requete a chaque frappe. Il se resynchronise quand l'URL change ailleurs
   // (reinitialisation, retour arriere).
   const [query, setQuery] = useState(activeQuery);
-  useEffect(() => setQuery(activeQuery), [activeQuery]);
+  useEffect(() => {
+    setQuery(activeQuery);
+    paramsRef.current = searchParams.toString();
+  }, [activeQuery, searchParams]);
 
   const hasFilters =
     activeQuery !== "" ||
@@ -47,11 +51,16 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
 
   /** Applique une mutation des parametres et revient toujours page 1. */
   function apply(mutate: (params: URLSearchParams) => void) {
-    const params = new URLSearchParams(searchParams.toString());
+    // La navigation Next est asynchrone. Conserver immediatement la derniere
+    // URL evite que deux clics rapides repartent du meme snapshot et que le
+    // second filtre ecrase le premier (notamment pour les competences).
+    const params = new URLSearchParams(paramsRef.current);
     mutate(params);
     params.delete("page");
+    paramsRef.current = params.toString();
+    const target = paramsRef.current ? `${pathname}?${paramsRef.current}` : pathname;
     startTransition(() => {
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      router.push(target, { scroll: false });
     });
   }
 
@@ -74,10 +83,10 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
   }
 
   const selectClassName =
-    "h-12 w-full appearance-none rounded-2xl border border-[#5980a6]/15 bg-white px-4 text-sm font-semibold text-[#2d3748] outline-none transition-colors hover:border-[#5980a6]/35 focus-visible:border-[#5980a6]";
+    "h-12 w-full appearance-none rounded-2xl border-0 bg-[#ebf0f7] px-4 text-sm font-semibold text-[#2d3748] outline-none transition-all shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] hover:text-[#416180] focus-visible:ring-2 focus-visible:ring-[#5980a6]/30";
 
   return (
-    <aside className="rounded-3xl border border-[#5980a6]/15 bg-white/55 p-7">
+    <aside className="rounded-3xl bg-[#ebf0f7] p-7 shadow-[10px_10px_20px_#c5d1e0,-10px_-10px_20px_#ffffff]">
       <div className="flex items-center justify-between gap-4 border-b border-[#2d3748]/10 pb-5">
         <div className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-xl bg-[#5980a6]/10 text-[#5980a6]">
@@ -118,7 +127,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Nom, métier, compétence"
-            className="h-12 w-full rounded-2xl border border-[#5980a6]/15 bg-white pl-11 pr-4 text-sm text-[#2d3748] outline-none transition-colors placeholder:text-[#718096] hover:border-[#5980a6]/35 focus-visible:border-[#5980a6]"
+            className="h-12 w-full rounded-2xl border-0 bg-[#ebf0f7] pl-11 pr-4 text-sm text-[#2d3748] outline-none transition-all shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:ring-2 focus-visible:ring-[#5980a6]/30"
           />
         </div>
       </form>
@@ -174,7 +183,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
         <span className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
           Certification JEB
         </span>
-        <div className="mt-2 grid grid-cols-2 gap-2 rounded-2xl bg-[#ebf0f7] p-1.5">
+        <div className="mt-2 grid grid-cols-2 gap-2 rounded-2xl bg-[#ebf0f7] p-1.5 shadow-[inset_3px_3px_6px_#c5d1e0,inset_-3px_-3px_6px_#ffffff]">
           <button
             type="button"
             aria-pressed={!certifiedOnly}
@@ -182,7 +191,7 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
             className={`h-10 rounded-xl text-sm font-semibold transition-all ${
               certifiedOnly
                 ? "text-[#718096] hover:text-[#416180]"
-                : "bg-white text-[#2d3748]"
+                : "bg-[#ebf0f7] text-[#2d3748] shadow-[3px_3px_6px_#c5d1e0,-3px_-3px_6px_#ffffff]"
             }`}
           >
             Tous
@@ -219,8 +228,8 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
                 onClick={() => toggleSkill(skill)}
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
                   active
-                    ? "bg-[#5980a6] text-white"
-                    : "bg-[#ebf0f7] text-[#4a5568] hover:bg-[#5980a6]/15"
+                    ? "bg-[#5980a6] text-white shadow-[3px_3px_6px_#c5d1e0,-3px_-3px_6px_#ffffff]"
+                    : "bg-[#ebf0f7] text-[#4a5568] shadow-[2px_2px_5px_#c5d1e0,-2px_-2px_5px_#ffffff] hover:text-[#416180]"
                 }`}
               >
                 {skill}
@@ -233,7 +242,11 @@ export function CatalogueFilters({ sectors, cities, skills }: CatalogueFiltersPr
       {hasFilters ? (
         <button
           type="button"
-          onClick={() => startTransition(() => router.push(pathname, { scroll: false }))}
+          onClick={() => {
+            paramsRef.current = "";
+            setQuery("");
+            startTransition(() => router.push(pathname, { scroll: false }));
+          }}
           className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[#5980a6] transition-colors hover:text-[#416180]"
         >
           <RotateCcw aria-hidden="true" className="size-4" />

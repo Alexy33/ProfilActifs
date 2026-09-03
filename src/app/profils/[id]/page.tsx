@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BadgeCheck, Eye, MapPin, Users } from "lucide-react";
+import { ArrowLeft, BadgeCheck } from "lucide-react";
 
 import { ProfileVideo } from "@/components/catalogue/profile-video";
+import { ProfileActions } from "@/components/catalogue/profile-actions";
 import { SiteShell } from "@/components/layout/site-shell";
+import { getCurrentSession } from "@/lib/auth-session";
+import type { UserRole } from "@/lib/vocabulary";
 import { findProfileById, recordProfileView } from "@/server/services/profiles";
 import { getSettings } from "@/server/services/settings";
 
@@ -56,15 +59,15 @@ export default async function ProfilePage({
   await recordProfileView(profile.id);
   const views = profile.views + 1;
 
-  const settings = await getSettings();
+  const [settings, session] = await Promise.all([getSettings(), getCurrentSession()]);
 
   return (
     <SiteShell>
       <main>
-        <div className="mx-auto max-w-7xl px-5 pb-24 pt-8 md:px-10">
+        <div className="w-full px-5 pb-24 pt-10 md:px-10 md:pt-14 lg:pl-4">
           <Link
             href="/catalogue"
-            className="group inline-flex items-center gap-2 text-sm font-semibold text-[#5980a6] transition-colors hover:text-[#416180]"
+            className="group inline-flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-[#5980a6] transition-colors hover:text-[#416180] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5980a6]"
           >
             <ArrowLeft
               aria-hidden="true"
@@ -73,52 +76,45 @@ export default async function ProfilePage({
             Retour au catalogue
           </Link>
 
-          <div className="mt-8 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
+          <div className="mt-7 border-b border-[#5980a6]/15 pb-7">
+            <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
+              Profil public · présentation vidéo
+            </p>
+            <h1 className="mt-3 text-4xl font-extrabold uppercase leading-tight tracking-tight text-[#2d3748] md:text-5xl">
+              {profile.name}
+            </h1>
+            <p className="mt-2 text-lg text-[#4a5568]">{profile.title}</p>
+          </div>
+
+          <div className="mt-8 grid items-start gap-8 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.75fr)] xl:gap-10">
             {/* Colonne principale : video, identite, presentation */}
             <div>
               <ProfileVideo videoUrl={profile.videoUrl} name={profile.name} />
 
-              <div className="mt-10 flex flex-wrap items-center gap-5">
-                <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-[#5980a6] font-mono text-xl font-bold text-white">
-                  {profile.initials}
-                </div>
-                <div className="min-w-0">
-                  <h1 className="text-3xl font-extrabold uppercase leading-tight tracking-tight text-[#2d3748] md:text-5xl">
-                    {profile.name}
-                  </h1>
-                  <p className="mt-3 text-lg text-[#4a5568]">{profile.title}</p>
-                </div>
-              </div>
-
-              <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
-                <span className="flex items-center gap-1.5">
-                  <MapPin aria-hidden="true" className="size-3.5 text-[#5980a6]/60" />
-                  {profile.city}
-                </span>
-                <span className="text-[#5980a6]">{profile.sector}</span>
+              <div className="mt-5 flex flex-wrap items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-wider">
+                <span className="rounded-full bg-[#d6ebff] px-3 py-1.5 text-[#2c455d]">{profile.city}</span>
+                <span className="rounded-full bg-[#eee7ff] px-3 py-1.5 text-[#65449b]">{profile.sector}</span>
               </div>
 
               {profile.bio ? (
-                <div className="mt-10">
-                  <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
-                    Présentation
-                  </h2>
-                  <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#4a5568]">
+                <div className="mt-6 rounded-3xl border border-[#b5d9fd] bg-[#f8fbff] p-6">
+                  <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">Présentation</h2>
+                  <p className="mt-3 max-w-[70ch] text-[15.5px] leading-[1.65] text-[#4a5568]">
                     {profile.bio}
                   </p>
                 </div>
               ) : null}
 
               {profile.skills.length > 0 ? (
-                <div className="mt-10">
-                  <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
+                <div className="mt-6 rounded-3xl border border-[#b5d9fd] bg-[#f8fbff] p-6">
+                  <h2 className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#1d1f20]/55">
                     Compétences déclarées
                   </h2>
-                  <ul className="mt-4 flex flex-wrap gap-2">
+                  <ul className="mt-3 flex flex-wrap gap-1.5">
                     {profile.skills.map((skill) => (
                       <li
                         key={skill}
-                        className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#4a5568]"
+                        className="rounded-full bg-[#dff3f5] px-3 py-1.5 text-xs font-semibold text-[#25636a]"
                       >
                         {skill}
                       </li>
@@ -129,29 +125,28 @@ export default async function ProfilePage({
             </div>
 
             {/* Colonne laterale : certification et compteurs */}
-            <aside className="lg:sticky lg:top-28 lg:self-start">
+            <aside className="space-y-5 xl:sticky xl:top-8 xl:self-start">
               {profile.certified ? (
                 // Le badge est le seul aplat plein de la page : le CDC (2.3)
                 // demande qu'il soit visuellement distinct et mis en avant.
-                <div className="rounded-3xl bg-[#5980a6] p-8 text-white">
+                <div className="rounded-3xl bg-[#5980a6] p-7 text-white">
                   <div className="flex items-center gap-2">
                     <BadgeCheck aria-hidden="true" className="size-5 stroke-[2]" />
-                    <span className="font-mono text-xs font-bold uppercase tracking-wider">
-                      Certification JEB
+                    <span className="font-mono text-[10.5px] font-bold uppercase tracking-[0.16em] text-white/80">
+                      Certification officielle
                     </span>
                   </div>
-                  <p className="mt-6 text-5xl font-extrabold tracking-tight">
+                  <p className="mt-4 text-6xl font-bold leading-none tracking-tight">
                     {profile.score}
                     <span className="text-2xl font-bold text-white/70"> / 100</span>
                   </p>
-                  <p className="mt-4 text-sm leading-relaxed text-white/80">
-                    Aptitudes professionnelles certifiées par le Ministère du Job
-                    et Bonheur. Seuil d&apos;obtention :{" "}
-                    {settings.certificationThreshold}/100.
+                  <p className="mt-3 text-sm leading-relaxed text-white/80">
+                    Badge Aptitudes professionnelles JEB — délivré par la Direction
+                    Numérique et Innovation. Seuil : {settings.certificationThreshold}/100.
                   </p>
                 </div>
               ) : (
-                <div className="rounded-3xl border border-[#5980a6]/15 bg-white/55 p-8">
+                <div className="rounded-3xl bg-[#ebf0f7] p-7 shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff]">
                   <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#718096]">
                     Certification JEB
                   </span>
@@ -165,38 +160,29 @@ export default async function ProfilePage({
                 </div>
               )}
 
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                <div className="rounded-3xl border border-[#5980a6]/15 bg-white/55 p-6">
-                  <Eye aria-hidden="true" className="size-5 text-[#5980a6]" />
-                  <p className="mt-4 text-2xl font-extrabold tracking-tight text-[#2d3748]">
+              <div className="rounded-3xl bg-[#ebf0f7] p-7 shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff]">
+                <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <p className="text-3xl font-bold leading-none text-[#2d3748]">
                     {views}
                   </p>
-                  <p className="mt-1 font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
-                    Vues
+                  <p className="mt-1 text-xs text-[#718096]">
+                    vues du profil
                   </p>
                 </div>
-                <div className="rounded-3xl border border-[#5980a6]/15 bg-white/55 p-6">
-                  <Users aria-hidden="true" className="size-5 text-[#5980a6]" />
-                  <p className="mt-4 text-2xl font-extrabold tracking-tight text-[#2d3748]">
+                <div>
+                  <p className="text-3xl font-bold leading-none text-[#2d3748]">
                     {profile.contactCount}
                   </p>
-                  <p className="mt-1 font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
-                    Contacts
+                  <p className="mt-1 text-xs text-[#718096]">
+                    contacts reçus
                   </p>
                 </div>
-              </div>
-
-              <div className="mt-6 rounded-3xl border border-[#5980a6]/15 bg-white/55 p-8">
-                <p className="text-sm leading-relaxed text-[#718096]">
-                  La prise de contact et la mise en favori sont réservées aux
-                  comptes recruteurs.
-                </p>
-                <Link
-                  href="/login"
-                  className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-[#5980a6] px-6 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#416180]"
-                >
-                  Connexion recruteur
-                </Link>
+                </div>
+                <ProfileActions
+                  profileId={profile.id}
+                  role={(session?.user.role as UserRole | undefined) ?? null}
+                />
               </div>
             </aside>
           </div>

@@ -10,6 +10,10 @@ import { CITIES, SECTORS, SKILLS } from "@/lib/vocabulary";
 import { CatalogQuery } from "@/server/contracts/profile";
 import { getSettings } from "@/server/services/settings";
 import { searchCatalog } from "@/server/services/profiles";
+import { getCurrentSession } from "@/lib/auth-session";
+import { db } from "@/db";
+import { favorite } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +59,21 @@ export default async function CataloguePage({
     ? parsed.data
     : CatalogQuery.parse({ pageSize: settings.catalogPageSize });
 
-  const { items, meta } = await searchCatalog(filters);
+  const [{ items, meta }, session] = await Promise.all([
+    searchCatalog(filters),
+    getCurrentSession(),
+  ]);
+  const isRecruiter = session?.user.role === "recruiter";
+  const favoriteIds = isRecruiter
+    ? new Set(
+        (
+          await db
+            .select({ profileId: favorite.profileId })
+            .from(favorite)
+            .where(eq(favorite.recruiterId, session.user.id))
+        ).map((row) => row.profileId),
+      )
+    : new Set<string>();
 
   // Parametres reconduits par la pagination, sans `page`.
   const carried = new URLSearchParams();
@@ -67,17 +85,14 @@ export default async function CataloguePage({
 
   return (
     <SiteShell>
-      <main>
-        <div className="mx-auto max-w-7xl px-5 pb-24 pt-10 md:px-10 md:pt-14">
+      <main className="lg:h-screen lg:overflow-y-hidden">
+        <div className="w-full px-5 pb-24 pt-10 md:px-10 md:pt-14 lg:flex lg:h-full lg:flex-col lg:pb-8 lg:pl-4">
           {/* En-tete */}
           <div className="flex flex-wrap items-end justify-between gap-6 border-b border-[#5980a6]/15 pb-8">
             <div>
-              <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
-                Catalogue public · consultable sans compte
-              </p>
-              <h1 className="mt-4 text-4xl font-extrabold uppercase leading-tight tracking-tight text-[#2d3748] md:text-6xl">
-                Profils
-                <span className="text-[#5980a6]"> actifs.</span>
+              <h1 className="text-4xl font-extrabold uppercase leading-tight tracking-tight text-[#2d3748] md:text-6xl">
+                Découvrez les
+                <span className="text-[#5980a6]"> talents.</span>
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#718096]">
                 Parcourez les compétences des demandeurs d&apos;emploi et repérez
@@ -91,24 +106,29 @@ export default async function CataloguePage({
             </p>
           </div>
 
-          <div className="mt-10 grid gap-8 lg:grid-cols-[320px_1fr] lg:gap-12">
+          <div className="mt-10 grid gap-8 lg:min-h-0 lg:flex-1 lg:grid-cols-[320px_1fr] lg:gap-12">
             <div className="lg:sticky lg:top-28 lg:self-start">
               {/* useSearchParams impose une frontiere de suspense au prerendu. */}
-              <Suspense fallback={<div className="h-[520px] rounded-3xl border border-[#5980a6]/15 bg-white/55" />}>
+              <Suspense fallback={<div className="h-[520px] border border-[#5980a6]/20 bg-white" />}>
                 <CatalogueFilters sectors={SECTORS} cities={CITIES} skills={SKILLS} />
               </Suspense>
             </div>
 
-            <div>
+            <div className="lg:overflow-y-auto lg:pr-3">
               {items.length > 0 ? (
-                <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   {items.map((profile) => (
-                    <ProfileCard key={profile.id} profile={profile} />
+                    <ProfileCard
+                      key={profile.id}
+                      profile={profile}
+                      canFavorite={isRecruiter}
+                      initialFavorite={favoriteIds.has(profile.id)}
+                    />
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center rounded-3xl border border-[#5980a6]/15 bg-white/55 px-8 py-24 text-center">
-                  <div className="flex size-16 items-center justify-center rounded-2xl bg-[#5980a6]/10 text-[#5980a6]">
+                <div className="flex flex-col items-center justify-center border border-[#5980a6]/20 bg-white px-8 py-24 text-center">
+                  <div className="flex size-16 items-center justify-center border border-[#5980a6]/25 bg-[#eef6ff] text-[#5980a6]">
                     <SearchX aria-hidden="true" className="size-7 stroke-[1.6]" />
                   </div>
                   <h2 className="mt-8 text-xl font-bold uppercase tracking-tight text-[#2d3748]">
