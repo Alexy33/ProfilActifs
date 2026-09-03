@@ -97,16 +97,33 @@ export const auth = betterAuth({
   // correspond pas a baseURL (protection CSRF). localhost et 127.0.0.1 sont
   // deux origines distinctes : il faut declarer celles qui sont legitimes,
   // sinon les tests e2e et les appels depuis le conteneur repondent 403.
-  trustedOrigins: [
-    process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-  ],
+  // Le port n'est pas toujours 3000 : l'artefact de build se lance sur le PORT
+  // qu'on lui donne. On declare donc aussi l'origine derivee de PORT, sinon la
+  // connexion repond 403 des qu'on sort du port par defaut.
+  trustedOrigins: Array.from(
+    new Set([
+      process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      `http://localhost:${process.env.PORT ?? 3000}`,
+      `http://127.0.0.1:${process.env.PORT ?? 3000}`,
+    ]),
+  ),
 
   advanced: {
     // Cookie httpOnly + SameSite=Lax par defaut ; Secure des que l'app est
     // servie en HTTPS.
-    useSecureCookies: process.env.NODE_ENV === "production",
+    //
+    // On se cale sur le SCHEMA REEL de baseURL, pas sur NODE_ENV : le serveur
+    // standalone force NODE_ENV=production, et un cookie « Secure » est
+    // silencieusement ignore par le navigateur en http://. L'artefact de build
+    // lance en local acceptait donc la connexion (200) sans jamais ouvrir de
+    // session. En HTTPS le comportement est inchange.
+    // `BETTER_AUTH_SECURE_COOKIES=1` force le comportement si un jour l'app est
+    // servie en HTTPS par un proxy alors que BETTER_AUTH_URL reste en http://.
+    useSecureCookies:
+      process.env.BETTER_AUTH_SECURE_COOKIES === "1" ||
+      (process.env.BETTER_AUTH_URL ?? "").startsWith("https://"),
   },
 
   // Doit rester le DERNIER plugin : il pose les cookies sur la reponse
