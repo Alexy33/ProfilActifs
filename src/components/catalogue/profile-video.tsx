@@ -1,5 +1,13 @@
 import { PlayCircle } from "lucide-react";
 
+function VideoFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-[#b5d9fd] bg-[#f8fbff]">
+      {children}
+    </div>
+  );
+}
+
 /**
  * Presentation video d'un profil (CDC 3.2).
  *
@@ -53,20 +61,22 @@ function isUploadedVideo(raw: string): boolean {
 export function ProfileVideo({ videoUrl, name }: { videoUrl: string | null; name: string }) {
   if (!videoUrl) {
     return (
-      <div className="flex aspect-video w-full flex-col items-center justify-center rounded-3xl border border-[#5980a6]/15 bg-white/55 text-center">
-        <div className="flex size-14 items-center justify-center rounded-2xl bg-[#5980a6]/10 text-[#5980a6]">
+      <VideoFrame>
+        <div className="flex aspect-video w-full flex-col items-center justify-center bg-[#eef6ff] text-center">
+        <div className="flex size-16 items-center justify-center rounded-2xl bg-[#d6ebff] text-[#2c455d]">
           <PlayCircle aria-hidden="true" className="size-7 stroke-[1.6]" />
         </div>
-        <p className="mt-5 font-mono text-xs font-semibold uppercase tracking-wider text-[#718096]">
+        <p className="mt-4 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#2c455d]">
           Aucune présentation vidéo
         </p>
-      </div>
+        </div>
+      </VideoFrame>
     );
   }
 
   if (isUploadedVideo(videoUrl)) {
     return (
-      <div className="overflow-hidden rounded-3xl border border-[#5980a6]/15 bg-black">
+      <VideoFrame>
         {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
         <video
           src={videoUrl}
@@ -75,7 +85,7 @@ export function ProfileVideo({ videoUrl, name }: { videoUrl: string | null; name
           playsInline
           className="aspect-video w-full"
         />
-      </div>
+      </VideoFrame>
     );
   }
 
@@ -83,7 +93,7 @@ export function ProfileVideo({ videoUrl, name }: { videoUrl: string | null; name
 
   if (embed) {
     return (
-      <div className="overflow-hidden rounded-3xl border border-[#5980a6]/15 bg-black">
+      <VideoFrame>
         <iframe
           src={embed}
           title={`Présentation vidéo de ${name}`}
@@ -91,15 +101,16 @@ export function ProfileVideo({ videoUrl, name }: { videoUrl: string | null; name
           allowFullScreen
           className="aspect-video w-full"
         />
-      </div>
+      </VideoFrame>
     );
   }
 
   // URL renseignee mais d'un hebergeur qu'on ne sait pas embarquer : on
   // l'affiche sans pretendre la lire, plutot que de casser la page.
   return (
-    <div className="flex aspect-video w-full flex-col items-center justify-center rounded-3xl border border-[#5980a6]/15 bg-white/55 px-6 text-center">
-      <div className="flex size-14 items-center justify-center rounded-2xl bg-[#5980a6]/10 text-[#5980a6]">
+    <VideoFrame>
+    <div className="flex aspect-video w-full flex-col items-center justify-center bg-[#eef6ff] px-6 text-center">
+      <div className="flex size-16 items-center justify-center rounded-2xl bg-[#d6ebff] text-[#2c455d]">
         <PlayCircle aria-hidden="true" className="size-7 stroke-[1.6]" />
       </div>
       <p className="mt-5 max-w-md break-all font-mono text-xs text-[#718096]">
@@ -109,5 +120,6 @@ export function ProfileVideo({ videoUrl, name }: { videoUrl: string | null; name
         Format d&apos;hébergement non pris en charge
       </p>
     </div>
+    </VideoFrame>
   );
 }
