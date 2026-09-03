@@ -28,9 +28,7 @@ export function LoginForm() {
       const result = await authClient.signIn.email({ email, password });
 
       if (result.error) {
-        setError(
-          result.error.message ?? "Invalid credentials. Please try again.",
-        );
+        setError(result.error.message ?? "Identifiants invalides. Réessayez.");
         setLoading(false);
         return;
       }
@@ -38,7 +36,7 @@ export function LoginForm() {
       const session = await authClient.getSession();
 
       if (!session.data?.user) {
-        setError("Unable to retrieve the current session.");
+        setError("Impossible de récupérer la session actuelle.");
         setLoading(false);
         return;
       }
@@ -53,7 +51,7 @@ export function LoginForm() {
       router.push(destination);
       router.refresh();
     } catch {
-      setError("An unexpected error occurred. Please try again.");
+      setError("Une erreur inattendue est survenue. Réessayez.");
       setLoading(false);
     }
   }
@@ -72,7 +70,7 @@ export function LoginForm() {
         ) : null}
 
         <div className="grid gap-2">
-          <Label htmlFor="email" className="text-sm">Email</Label>
+          <Label htmlFor="email" className="text-sm text-[#2d3748]">Adresse e-mail</Label>
           <Input
             id="email"
             name="email"
@@ -86,12 +84,12 @@ export function LoginForm() {
             disabled={loading}
             aria-invalid={Boolean(error)}
             required
-            className="h-11 rounded-lg px-3.5 text-base md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#5980a6]/30 md:text-base"
           />
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="password" className="text-sm">Password</Label>
+          <Label htmlFor="password" className="text-sm text-[#2d3748]">Mot de passe</Label>
           <Input
             id="password"
             name="password"
@@ -102,7 +100,7 @@ export function LoginForm() {
             disabled={loading}
             aria-invalid={Boolean(error)}
             required
-            className="h-11 rounded-lg px-3.5 text-base md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#718096] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#5980a6]/30 md:text-base"
           />
         </div>
 
@@ -110,22 +108,22 @@ export function LoginForm() {
           type="submit"
           size="lg"
           disabled={loading}
-          className="mt-1 h-11 w-full rounded-lg text-base"
+          className="mt-1 h-11 w-full rounded-xl bg-[#5980a6] text-base text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#416180] hover:shadow-[inset_3px_3px_6px_#416180,inset_-3px_-3px_6px_#749dc4]"
         >
           {loading ? (
             <Loader2 aria-hidden="true" className="animate-spin" />
           ) : null}
-          {loading ? "Signing in..." : "Sign in"}
+          {loading ? "Connexion..." : "Se connecter"}
         </Button>
       </form>
 
-      <p className="text-center text-base text-muted-foreground">
-        Don&apos;t have an account?{" "}
+      <p className="text-center text-base text-[#718096]">
+        Vous n&apos;avez pas encore de compte ?{" "}
         <Link
           href="/register"
-          className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
+          className="font-medium text-[#416180] underline underline-offset-4 transition-colors hover:text-[#5980a6]"
         >
-          Sign up
+          S&apos;inscrire
         </Link>
       </p>
     </div>

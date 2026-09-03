@@ -37,7 +37,7 @@ COPY package.json package-lock.json ./
 # Pas de --mount=type=cache ici : cette directive exige BuildKit/buildx, qui
 # n'est pas disponible sur toutes les machines de l'equipe. Le cache de couche
 # Docker suffit tant que package.json et le lockfile ne bougent pas.
-RUN npm ci
+RUN npm i
 
 # ---------------------------------------------------------------------------
 # 3. DEV : cible utilisee par le profil "dev" du docker-compose

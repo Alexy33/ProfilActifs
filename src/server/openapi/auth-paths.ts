@@ -45,7 +45,7 @@ export const authPaths: Record<string, Record<string, unknown>> = {
               required: ["email", "password", "name"],
               properties: {
                 email: { type: "string", format: "email" },
-                password: { type: "string", minLength: 4 },
+                password: { type: "string", minLength: 8 },
                 name: { type: "string" },
                 role: { $ref: "#/components/schemas/UserRole" },
               },
