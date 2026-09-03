@@ -39,6 +39,18 @@ const PASSWORD = "demo1234";
 interface SeedProfile {
   name: string;
   email: string;
+  /**
+   * Date de naissance declarative (R.1), « AAAA-MM-JJ ».
+   *
+   * Le jeu de demonstration en porte une pour CHAQUE profil : sans elle, les
+   * 14 comptes seraient exactement le trou que le courrier Pontaillac reproche
+   * — un blocage a l'inscription que les profils deja en base contournent.
+   *
+   * « Tristan Lebel » est volontairement dans la tranche 16-18 ans : c'est le
+   * profil sur lequel se demontre le parcours mineur (video non diffusee
+   * publiquement, absence du catalogue consultable sans compte recruteur).
+   */
+  birthDate: string;
   title: string;
   sector: Sector;
   city: City;
@@ -55,6 +67,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Amina Berthier",
     email: "amina@exemple.fr",
+    birthDate: "1991-04-17",
     title: "Chargée de relation client",
     sector: "Commerce",
     city: "Lyon",
@@ -69,6 +82,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Karim Vasseur",
     email: "karim.vasseur@exemple.fr",
+    birthDate: "1988-11-03",
     title: "Préparateur de commandes",
     sector: "Logistique",
     city: "Lille",
@@ -83,6 +97,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Sonia Delaunay-Frey",
     email: "sonia.delaunay@exemple.fr",
+    birthDate: "1984-06-25",
     title: "Développeuse front-end",
     sector: "Numérique",
     city: "Nantes",
@@ -97,6 +112,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Mathieu Ozanne",
     email: "mathieu.ozanne@exemple.fr",
+    birthDate: "1995-02-09",
     title: "Aide-soignant",
     sector: "Santé",
     city: "Marseille",
@@ -111,6 +127,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Fatou Nguyen",
     email: "fatou.nguyen@exemple.fr",
+    birthDate: "1990-09-14",
     title: "Assistante de direction",
     sector: "Éducation",
     city: "Paris",
@@ -125,6 +142,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Tristan Lebel",
     email: "tristan.lebel@exemple.fr",
+    birthDate: "2009-03-22",
     title: "Électricien du bâtiment",
     sector: "Bâtiment",
     city: "Bordeaux",
@@ -139,6 +157,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Leïla Amrani",
     email: "leila.amrani@exemple.fr",
+    birthDate: "1993-12-01",
     title: "Conductrice de ligne",
     sector: "Industrie",
     city: "Strasbourg",
@@ -153,6 +172,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Pierre-Yves Caron",
     email: "pierre-yves.caron@exemple.fr",
+    birthDate: "1979-07-30",
     title: "Technicien support",
     sector: "Numérique",
     city: "Toulouse",
@@ -167,6 +187,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Marion Estève",
     email: "marion.esteve@exemple.fr",
+    birthDate: "1997-05-12",
     title: "Éducatrice de jeunes enfants",
     sector: "Éducation",
     city: "Lyon",
@@ -181,6 +202,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Yann Kervella",
     email: "yann.kervella@exemple.fr",
+    birthDate: "1986-10-08",
     title: "Magasinier cariste",
     sector: "Logistique",
     city: "Nantes",
@@ -195,6 +217,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Nadia Chevallier",
     email: "nadia.chevallier@exemple.fr",
+    birthDate: "1992-01-26",
     title: "Vendeuse conseil",
     sector: "Commerce",
     city: "Paris",
@@ -209,6 +232,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Olivier Ranucci",
     email: "olivier.ranucci@exemple.fr",
+    birthDate: "1975-08-19",
     title: "Chef de projet junior",
     sector: "Numérique",
     city: "Marseille",
@@ -223,6 +247,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Claire Bonnefoy",
     email: "claire.bonnefoy@exemple.fr",
+    birthDate: "1999-03-05",
     title: "Infirmière",
     sector: "Santé",
     city: "Lille",
@@ -237,6 +262,7 @@ const PROFILES: SeedProfile[] = [
   {
     name: "Sébastien Marchal",
     email: "sebastien.marchal@exemple.fr",
+    birthDate: "1983-11-21",
     title: "Conducteur de travaux",
     sector: "Bâtiment",
     city: "Toulouse",
@@ -410,9 +436,17 @@ async function wipe() {
  * d'administration est donc promu ensuite, en base : c'est volontairement le
  * seul chemin qui y mene.
  */
-async function createAccount(name: string, email: string, role: "candidate" | "recruiter" | "admin") {
+async function createAccount(
+  name: string,
+  email: string,
+  role: "candidate" | "recruiter" | "admin",
+  birthDate: string,
+) {
+  // `birthDate` traverse la vraie inscription : le seed passe donc par le meme
+  // blocage des moins de 16 ans que le public (R.1). Un jeu de demonstration
+  // qui contournerait ce controle ne prouverait rien.
   const result = await auth.api.signUpEmail({
-    body: { name, email, password: PASSWORD },
+    body: { name, email, password: PASSWORD, birthDate },
   });
 
   if (role !== "candidate") {
@@ -613,7 +647,7 @@ async function seed() {
   let videoFailures = 0;
 
   for (const item of PROFILES) {
-    const userId = await createAccount(item.name, item.email, "candidate");
+    const userId = await createAccount(item.name, item.email, "candidate", item.birthDate);
 
     // Le hook better-auth a deja cree un profil vide : on le complete.
     const certifiedAt = item.score > 0 ? new Date() : null;
@@ -657,8 +691,13 @@ async function seed() {
     }
   }
 
-  const recruiterId = await createAccount("Hélène Vaugirard", "recruteur@exemple.fr", "recruiter");
-  await createAccount("Thomas Vignal", "admin@jeb.gouv.fr", "admin");
+  const recruiterId = await createAccount(
+    "Hélène Vaugirard",
+    "recruteur@exemple.fr",
+    "recruiter",
+    "1980-02-14",
+  );
+  await createAccount("Thomas Vignal", "admin@jeb.gouv.fr", "admin", "1972-06-09");
 
   console.log("[seed] suivi recruteur…");
   await seedRecruiterActivity(recruiterId);
