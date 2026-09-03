@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   BadgeCheck,
+  ArrowLeft,
   Home,
   LayoutGrid,
   LogOut,
@@ -79,7 +80,7 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
   }, [open]);
 
   const links = [
-    { href: "/", label: "Accueil", icon: Home },
+    { href: "/", label: "Accueil", icon: ArrowLeft },
     { href: "/catalogue", label: "Catalogue", icon: LayoutGrid },
     ...(session ? [ROLE_HOME[session.role]] : []),
   ];
@@ -97,8 +98,8 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
   const panel = (variant: "fixe" | "tiroir") => (
     <div className="flex h-full flex-col bg-[#ebf0f7] px-5 py-7">
       <div className="flex items-center justify-between">
-        <Link href="/" className="text-lg font-bold tracking-wider text-[#2d3748]">
-          PROFILSACTIFS
+        <Link href="/" className="text-xl font-extrabold tracking-tight text-[#2d3748]">
+          Profils<span className="text-[#5980a6]">Actifs.</span>
         </Link>
         {variant === "tiroir" ? (
           <button
@@ -112,15 +113,11 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
         ) : null}
       </div>
 
-      <p className="mt-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-[#718096]">
-        JEB · DNI
-      </p>
-
       <nav
         aria-label={
           variant === "fixe" ? "Navigation principale" : "Navigation principale (menu mobile)"
         }
-        className="mt-9 flex flex-col gap-2"
+        className="mt-8 flex flex-col gap-2"
       >
         {links.map((link) => {
           const Icon = link.icon;
@@ -192,7 +189,7 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
   return (
     <>
       {/* Barre fixe a partir de lg */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-[#5980a6]/10 lg:block">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 lg:block">
         {panel("fixe")}
       </aside>
 
@@ -207,8 +204,8 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
         >
           <Menu aria-hidden="true" className="size-6" />
         </button>
-        <Link href="/" className="text-base font-bold tracking-wider text-[#2d3748]">
-          PROFILSACTIFS
+        <Link href="/" className="text-lg font-extrabold tracking-tight text-[#2d3748]">
+          Profils<span className="text-[#5980a6]">Actifs.</span>
         </Link>
       </div>
 
