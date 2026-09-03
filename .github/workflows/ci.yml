@@ -46,16 +46,32 @@ jobs:
         run: npm run typecheck
       - name: Apply database migrations
         run: npm run db:migrate
+      - name: Seed demonstration data
+        run: npm run db:seed
+      - name: Checkpoint database
+        run: node -e "const D=require('better-sqlite3');const d=new D('ci.db');d.pragma('wal_checkpoint(TRUNCATE)');d.close()"
       - name: Build
         timeout-minutes: 5
         run: npm run build
       - name: Check build output
         run: |
-          if [ ! -d .next ]; then
-            echo "::error::Build output .next/ not found"
+          if [ ! -d .next/standalone ]; then
+            echo "::error::Build output .next/standalone not found"
             exit 1
           fi
           echo "Build output found"
+      - name: Assemble standalone bundle
+        run: |
+          cp -r .next/static .next/standalone/.next/static
+          cp -r public .next/standalone/public
+          cp -r drizzle .next/standalone/drizzle
+          cp ci.db .next/standalone/ci.db
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: profilsactifs-build
+          path: .next/standalone
+          if-no-files-found: error
 
   run_tests:
     name: Run test
