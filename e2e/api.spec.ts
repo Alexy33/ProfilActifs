@@ -13,6 +13,8 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
  */
 
 const PASSWORD = "demo1234";
+/** Date de naissance majeure : l'inscription la refuse desormais si elle manque (R.1). */
+const ADULT_BIRTH_DATE = "1990-05-17";
 
 async function signIn(request: APIRequestContext, email: string) {
   const response = await request.post("/api/auth/sign-in/email", {
@@ -94,6 +96,7 @@ test.describe("Controle d'acces", () => {
         name: "Tentative",
         email: `escalade-${Date.now()}@test.fr`,
         password: PASSWORD,
+        birthDate: ADULT_BIRTH_DATE,
         role: "admin",
       },
     });
@@ -259,7 +262,7 @@ test.describe("Consentement video (R.3)", () => {
     const context = await playwright.request.newContext({ baseURL });
 
     const signUp = await context.post("/api/auth/sign-up/email", {
-      data: { name: "Consentement Test", email, password: PASSWORD },
+      data: { name: "Consentement Test", email, password: PASSWORD, birthDate: ADULT_BIRTH_DATE },
     });
     expect(signUp.status()).toBe(200);
 

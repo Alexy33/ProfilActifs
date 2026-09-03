@@ -9,7 +9,7 @@ import { SiteShell } from "@/components/layout/site-shell";
 import { CITIES, SECTORS, SKILLS } from "@/lib/vocabulary";
 import { CatalogQuery } from "@/server/contracts/profile";
 import { getSettings } from "@/server/services/settings";
-import { searchCatalog } from "@/server/services/profiles";
+import { catalogViewerOf, searchCatalog } from "@/server/services/profiles";
 import { getCurrentSession } from "@/lib/auth-session";
 import { db } from "@/db";
 import { favorite } from "@/db/schema";
@@ -59,10 +59,11 @@ export default async function CataloguePage({
     ? parsed.data
     : CatalogQuery.parse({ pageSize: settings.catalogPageSize });
 
-  const [{ items, meta }, session] = await Promise.all([
-    searchCatalog(filters),
-    getCurrentSession(),
-  ]);
+  // La session est lue AVANT le catalogue : les profils de mineurs ne figurent
+  // au catalogue que pour un recruteur connecte ou l'administration (R.1), ce
+  // qui se decide donc au moment de la requete et non a l'affichage.
+  const session = await getCurrentSession();
+  const { items, meta } = await searchCatalog({ ...filters, viewer: catalogViewerOf(session) });
   const isRecruiter = session?.user.role === "recruiter";
   const favoriteIds = isRecruiter
     ? new Set(

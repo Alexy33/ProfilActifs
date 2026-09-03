@@ -33,6 +33,15 @@ export const user = sqliteTable("user", {
     .notNull()
     .default("candidate"),
 
+  // Date de naissance declarative, exigee a l'inscription (courrier Pontaillac,
+  // R.1). Stockee en texte « AAAA-MM-JJ » et non en timestamp : c'est une date
+  // civile, sans heure ni fuseau. Un timestamp la decalerait d'un jour selon le
+  // fuseau du serveur, ce qui change l'age a la veille d'un anniversaire.
+  //
+  // Nullable a dessein : les comptes crees avant cette exigence n'en ont pas.
+  // Toute inscription NOUVELLE la renseigne obligatoirement (cf. src/lib/auth.ts).
+  birthDate: text("birth_date"),
+
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

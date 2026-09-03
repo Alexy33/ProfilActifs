@@ -1,6 +1,6 @@
 {
   "base": "http://localhost:3000",
-  "measuredAt": "2026-09-03T15:52:09.577Z",
+  "measuredAt": "2026-09-03T18:41:56.820Z",
   "screens": [
     {
       "id": "inscription",
@@ -51,7 +51,7 @@
           "pass": true,
           "tag": "label",
           "sample": "Nom complet",
-          "count": 3
+          "count": 4
         },
         {
           "fg": "#2d3748",
@@ -105,6 +105,14 @@
           "tag": "input",
           "type": "email",
           "label": "jean@exemple.fr",
+          "changed": true,
+          "outlineVisible": true,
+          "indicated": true
+        },
+        {
+          "tag": "input",
+          "type": "date",
+          "label": "",
           "changed": true,
           "outlineVisible": true,
           "indicated": true
@@ -198,6 +206,20 @@
           "key": "input#email.w-full|jean@exemple.fr"
         },
         {
+          "path": "input#birthDate.w-full",
+          "label": "",
+          "outline": true,
+          "ring": true,
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(27, 58, 107)",
+          "outlineOffset": "2px",
+          "ringContrast": 9.84,
+          "ringOn": "#ebf0f7",
+          "offscreen": false,
+          "indicated": true,
+          "key": "input#birthDate.w-full|"
+        },
+        {
           "path": "input#password.w-full",
           "label": "8 caractères minimum",
           "outline": true,
@@ -244,8 +266,8 @@
     {
       "id": "fiche-profil",
       "label": "Fiche profil publique",
-      "path": "/profils/77dd3d82-c287-4f0a-a54d-968c03c2e27a",
-      "url": "http://localhost:3000/profils/77dd3d82-c287-4f0a-a54d-968c03c2e27a",
+      "path": "/profils/efd93871-3699-41ed-ab68-bff8afca1f87",
+      "url": "http://localhost:3000/profils/efd93871-3699-41ed-ab68-bff8afca1f87",
       "pairs": [
         {
           "fg": "#566274",
@@ -263,6 +285,36 @@
           "count": 2
         },
         {
+          "fg": "#566274",
+          "bg": "#f5f9fe",
+          "ratio": 5.85,
+          "required": 4.5,
+          "large": false,
+          "size": 12,
+          "weight": 600,
+          "gradient": false,
+          "inactive": false,
+          "pass": true,
+          "tag": "h2",
+          "sample": "Présentation",
+          "count": 2
+        },
+        {
+          "fg": "#25636a",
+          "bg": "#dff3f5",
+          "ratio": 5.95,
+          "required": 4.5,
+          "large": false,
+          "size": 12,
+          "weight": 600,
+          "gradient": false,
+          "inactive": false,
+          "pass": true,
+          "tag": "li",
+          "sample": "Rigueur",
+          "count": 1
+        },
+        {
           "fg": "#65449b",
           "bg": "#eee7ff",
           "ratio": 6.14,
@@ -274,7 +326,22 @@
           "inactive": false,
           "pass": true,
           "tag": "span",
-          "sample": "Numérique",
+          "sample": "Commerce",
+          "count": 1
+        },
+        {
+          "fg": "#bac4d2",
+          "bg": "#1b3a6b",
+          "ratio": 6.39,
+          "required": 3,
+          "large": true,
+          "size": 24,
+          "weight": 700,
+          "gradient": false,
+          "inactive": false,
+          "pass": true,
+          "tag": "span",
+          "sample": "/ 100",
           "count": 1
         },
         {
@@ -291,6 +358,36 @@
           "tag": "a",
           "sample": "Accueil",
           "count": 3
+        },
+        {
+          "fg": "#4a5568",
+          "bg": "#f5f9fe",
+          "ratio": 7.12,
+          "required": 4.5,
+          "large": false,
+          "size": 15.5,
+          "weight": 400,
+          "gradient": false,
+          "inactive": false,
+          "pass": true,
+          "tag": "p",
+          "sample": "Sept ans en boutique et en centre d'appels. Je cherche un po",
+          "count": 1
+        },
+        {
+          "fg": "#d1d8e1",
+          "bg": "#1b3a6b",
+          "ratio": 7.84,
+          "required": 4.5,
+          "large": false,
+          "size": 10.5,
+          "weight": 700,
+          "gradient": false,
+          "inactive": false,
+          "pass": true,
+          "tag": "span",
+          "sample": "Certification officielle",
+          "count": 2
         },
         {
           "fg": "#1b3a6b",
@@ -334,7 +431,7 @@
           "inactive": false,
           "pass": true,
           "tag": "span",
-          "sample": "Paris",
+          "sample": "Lyon",
           "count": 1
         },
         {
@@ -349,7 +446,7 @@
           "inactive": false,
           "pass": true,
           "tag": "p",
-          "sample": "0",
+          "sample": "8",
           "count": 1
         },
         {
@@ -365,7 +462,7 @@
           "pass": true,
           "tag": "a",
           "sample": "Connexion",
-          "count": 2
+          "count": 1
         },
         {
           "fg": "#ffffff",
@@ -381,6 +478,36 @@
           "tag": "a",
           "sample": "Créer un profil",
           "count": 2
+        },
+        {
+          "fg": "#ffffff",
+          "bg": "#1b3a6b",
+          "ratio": 11.27,
+          "required": 3,
+          "large": true,
+          "size": 60,
+          "weight": 700,
+          "gradient": false,
+          "inactive": false,
+          "pass": true,
+          "tag": "p",
+          "sample": "100",
+          "count": 1
+        },
+        {
+          "fg": "#1b2d3e",
+          "bg": "#e8f0f8",
+          "ratio": 12.24,
+          "required": 4.5,
+          "large": false,
+          "size": 11,
+          "weight": 600,
+          "gradient": false,
+          "inactive": false,
+          "pass": true,
+          "tag": "p",
+          "sample": "Aucune présentation vidéo",
+          "count": 1
         }
       ],
       "focus": [
@@ -441,14 +568,6 @@
           "indicated": false
         },
         {
-          "tag": "video",
-          "type": "",
-          "label": "",
-          "changed": false,
-          "outlineVisible": false,
-          "indicated": false
-        },
-        {
           "tag": "a",
           "type": "",
           "label": "Connexion recruteur",
@@ -459,12 +578,14 @@
       ],
       "structure": {
         "lang": "fr",
-        "title": "Test R7 Video — Intitulé à compléter | ProfilsActifs",
+        "title": "Amina Berthier — Responsable relation client | ProfilsActifs",
         "h1": [
-          "Test R7 Video"
+          "Amina Berthier"
         ],
         "headingOrder": [
-          1
+          1,
+          2,
+          2
         ],
         "landmarks": {
           "main": 1,
@@ -577,20 +698,6 @@
           "key": "a.group|Retour au catalogue"
         },
         {
-          "path": "video.aspect-video",
-          "label": "",
-          "outline": true,
-          "ring": false,
-          "outlineWidth": "3px",
-          "outlineColor": "rgb(27, 58, 107)",
-          "outlineOffset": "2px",
-          "ringContrast": 10.66,
-          "ringOn": "#f5f9fe",
-          "offscreen": false,
-          "indicated": true,
-          "key": "video.aspect-video|"
-        },
-        {
           "path": "a.mt-4",
           "label": "Connexion recruteur",
           "outline": true,
@@ -613,21 +720,6 @@
       "url": "http://localhost:3000/catalogue",
       "pairs": [
         {
-          "fg": "#606e82",
-          "bg": "#ebf0f7",
-          "ratio": 4.53,
-          "required": 4.5,
-          "large": false,
-          "size": 14,
-          "weight": 600,
-          "gradient": false,
-          "inactive": true,
-          "pass": true,
-          "tag": "span",
-          "sample": "Précédent",
-          "count": 1
-        },
-        {
           "fg": "#566274",
           "bg": "#ebf0f7",
           "ratio": 5.4,
@@ -640,7 +732,7 @@
           "pass": true,
           "tag": "label",
           "sample": "Secteur",
-          "count": 6
+          "count": 5
         },
         {
           "fg": "#8a5208",
@@ -655,7 +747,7 @@
           "pass": true,
           "tag": "span",
           "sample": "NON CERTIFIÉ",
-          "count": 3
+          "count": 2
         },
         {
           "fg": "#566274",
@@ -685,7 +777,7 @@
           "pass": true,
           "tag": "li",
           "sample": "Rigueur",
-          "count": 3
+          "count": 7
         },
         {
           "fg": "#25636a",
@@ -700,7 +792,7 @@
           "pass": true,
           "tag": "li",
           "sample": "Autonomie",
-          "count": 6
+          "count": 4
         },
         {
           "fg": "#8a3f5b",
@@ -730,7 +822,7 @@
           "pass": true,
           "tag": "span",
           "sample": "Santé",
-          "count": 12
+          "count": 10
         },
         {
           "fg": "#4a5568",
@@ -760,7 +852,7 @@
           "pass": true,
           "tag": "span",
           "sample": "JEB 93 /100",
-          "count": 9
+          "count": 8
         },
         {
           "fg": "#4a5568",
@@ -775,7 +867,7 @@
           "pass": true,
           "tag": "p",
           "sample": "Infirmière",
-          "count": 12
+          "count": 10
         },
         {
           "fg": "#1b3a6b",
@@ -804,7 +896,7 @@
           "inactive": false,
           "pass": true,
           "tag": "p",
-          "sample": "13 profil s",
+          "sample": "11 profil s",
           "count": 1
         },
         {
@@ -819,8 +911,8 @@
           "inactive": false,
           "pass": true,
           "tag": "div",
-          "sample": "CB",
-          "count": 12
+          "sample": "AB",
+          "count": 11
         },
         {
           "fg": "#2d3748",
@@ -865,7 +957,7 @@
           "pass": true,
           "tag": "a",
           "sample": "Catalogue",
-          "count": 14
+          "count": 13
         },
         {
           "fg": "#2d3748",
@@ -879,23 +971,8 @@
           "inactive": false,
           "pass": true,
           "tag": "h3",
-          "sample": "Leïla Amrani",
-          "count": 10
-        },
-        {
-          "fg": "#2d3748",
-          "bg": "#ffffff",
-          "ratio": 11.99,
-          "required": 4.5,
-          "large": false,
-          "size": 14,
-          "weight": 600,
-          "gradient": false,
-          "inactive": false,
-          "pass": true,
-          "tag": "a",
-          "sample": "Suivant",
-          "count": 1
+          "sample": "Fatou Nguyen",
+          "count": 9
         }
       ],
       "focus": [
@@ -1054,7 +1131,23 @@
         {
           "tag": "a",
           "type": "",
+          "label": "Consulter le profil de Amina Berthier",
+          "changed": false,
+          "outlineVisible": false,
+          "indicated": false
+        },
+        {
+          "tag": "a",
+          "type": "",
           "label": "Consulter le profil de Claire Bonnefoy",
+          "changed": false,
+          "outlineVisible": false,
+          "indicated": false
+        },
+        {
+          "tag": "a",
+          "type": "",
+          "label": "Consulter le profil de Fatou Nguyen",
           "changed": false,
           "outlineVisible": false,
           "indicated": false
@@ -1102,22 +1195,6 @@
         {
           "tag": "a",
           "type": "",
-          "label": "Consulter le profil de Fatou Nguyen",
-          "changed": false,
-          "outlineVisible": false,
-          "indicated": false
-        },
-        {
-          "tag": "a",
-          "type": "",
-          "label": "Consulter le profil de Amina Berthier",
-          "changed": false,
-          "outlineVisible": false,
-          "indicated": false
-        },
-        {
-          "tag": "a",
-          "type": "",
           "label": "Consulter le profil de Karim Vasseur",
           "changed": false,
           "outlineVisible": false,
@@ -1126,15 +1203,7 @@
         {
           "tag": "a",
           "type": "",
-          "label": "Consulter le profil de Test R7 Video",
-          "changed": false,
-          "outlineVisible": false,
-          "indicated": false
-        },
-        {
-          "tag": "a",
-          "type": "",
-          "label": "Consulter le profil de Tristan Lebel",
+          "label": "Consulter le profil de Mathieu Ozanne",
           "changed": false,
           "outlineVisible": false,
           "indicated": false
@@ -1143,14 +1212,6 @@
           "tag": "a",
           "type": "",
           "label": "Consulter le profil de Yann Kervella",
-          "changed": false,
-          "outlineVisible": false,
-          "indicated": false
-        },
-        {
-          "tag": "a",
-          "type": "",
-          "label": "Suivant",
           "changed": false,
           "outlineVisible": false,
           "indicated": false
@@ -1175,12 +1236,11 @@
           3,
           3,
           3,
-          3,
           3
         ],
         "landmarks": {
           "main": 1,
-          "nav": 2,
+          "nav": 1,
           "header": 0,
           "footer": 0
         },
@@ -1458,6 +1518,20 @@
         },
         {
           "path": "a.group/link",
+          "label": "Consulter le profil de Amina Berthier",
+          "outline": true,
+          "ring": false,
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(27, 58, 107)",
+          "outlineOffset": "2px",
+          "ringContrast": 10.66,
+          "ringOn": "#f5f9fe",
+          "offscreen": false,
+          "indicated": true,
+          "key": "a.group/link|Consulter le profil de Amina Berthier"
+        },
+        {
+          "path": "a.group/link",
           "label": "Consulter le profil de Claire Bonnefoy",
           "outline": true,
           "ring": false,
@@ -1469,6 +1543,20 @@
           "offscreen": false,
           "indicated": true,
           "key": "a.group/link|Consulter le profil de Claire Bonnefoy"
+        },
+        {
+          "path": "a.group/link",
+          "label": "Consulter le profil de Fatou Nguyen",
+          "outline": true,
+          "ring": false,
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(27, 58, 107)",
+          "outlineOffset": "2px",
+          "ringContrast": 10.66,
+          "ringOn": "#f5f9fe",
+          "offscreen": false,
+          "indicated": true,
+          "key": "a.group/link|Consulter le profil de Fatou Nguyen"
         },
         {
           "path": "a.group/link",
@@ -1542,34 +1630,6 @@
         },
         {
           "path": "a.group/link",
-          "label": "Consulter le profil de Fatou Nguyen",
-          "outline": true,
-          "ring": false,
-          "outlineWidth": "3px",
-          "outlineColor": "rgb(27, 58, 107)",
-          "outlineOffset": "2px",
-          "ringContrast": 10.66,
-          "ringOn": "#f5f9fe",
-          "offscreen": false,
-          "indicated": true,
-          "key": "a.group/link|Consulter le profil de Fatou Nguyen"
-        },
-        {
-          "path": "a.group/link",
-          "label": "Consulter le profil de Amina Berthier",
-          "outline": true,
-          "ring": false,
-          "outlineWidth": "3px",
-          "outlineColor": "rgb(27, 58, 107)",
-          "outlineOffset": "2px",
-          "ringContrast": 10.66,
-          "ringOn": "#f5f9fe",
-          "offscreen": false,
-          "indicated": true,
-          "key": "a.group/link|Consulter le profil de Amina Berthier"
-        },
-        {
-          "path": "a.group/link",
           "label": "Consulter le profil de Karim Vasseur",
           "outline": true,
           "ring": false,
@@ -1584,7 +1644,7 @@
         },
         {
           "path": "a.group/link",
-          "label": "Consulter le profil de Test R7 Video",
+          "label": "Consulter le profil de Mathieu Ozanne",
           "outline": true,
           "ring": false,
           "outlineWidth": "3px",
@@ -1594,21 +1654,7 @@
           "ringOn": "#f5f9fe",
           "offscreen": false,
           "indicated": true,
-          "key": "a.group/link|Consulter le profil de Test R7 Video"
-        },
-        {
-          "path": "a.group/link",
-          "label": "Consulter le profil de Tristan Lebel",
-          "outline": true,
-          "ring": false,
-          "outlineWidth": "3px",
-          "outlineColor": "rgb(27, 58, 107)",
-          "outlineOffset": "2px",
-          "ringContrast": 10.66,
-          "ringOn": "#f5f9fe",
-          "offscreen": false,
-          "indicated": true,
-          "key": "a.group/link|Consulter le profil de Tristan Lebel"
+          "key": "a.group/link|Consulter le profil de Mathieu Ozanne"
         },
         {
           "path": "a.group/link",
@@ -1623,20 +1669,6 @@
           "offscreen": false,
           "indicated": true,
           "key": "a.group/link|Consulter le profil de Yann Kervella"
-        },
-        {
-          "path": "a.inline-flex",
-          "label": "Suivant",
-          "outline": true,
-          "ring": false,
-          "outlineWidth": "3px",
-          "outlineColor": "rgb(27, 58, 107)",
-          "outlineOffset": "2px",
-          "ringContrast": 9.84,
-          "ringOn": "#ebf0f7",
-          "offscreen": false,
-          "indicated": true,
-          "key": "a.inline-flex|Suivant"
         }
       ]
     }

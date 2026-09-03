@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
+import { MAJORITY_AGE, MINIMUM_AGE, ageOn, latestAllowedBirthDate } from "@/lib/age";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,17 +16,41 @@ export function RegisterForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Age declare, recalcule a chaque frappe : sert a bloquer l'envoi et a
+  // afficher la mention d'information des 16-18 ans (R.1). Le serveur refait
+  // le meme controle — celui-ci n'est qu'un confort de saisie.
+  const declaredAge = ageOn(birthDate);
+  const tooYoung = declaredAge !== null && declaredAge < MINIMUM_AGE;
+  const isMinorApplicant =
+    declaredAge !== null && declaredAge >= MINIMUM_AGE && declaredAge < MAJORITY_AGE;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setError("");
+
+    // Blocage strict avant tout appel reseau : inutile d'envoyer une
+    // inscription que le serveur refusera, et le message est plus clair ici.
+    if (tooYoung) {
+      setError(
+        `L'inscription est réservée aux personnes de ${MINIMUM_AGE} ans et plus.`,
+      );
+      return;
+    }
+
+    if (declaredAge === null) {
+      setError("Indiquez une date de naissance valide.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const result = await authClient.signUp.email({ name, email, password });
+      const result = await authClient.signUp.email({ name, email, password, birthDate });
 
       if (result.error) {
         setError(result.error.message ?? "Impossible de créer le compte.");
@@ -91,6 +116,53 @@ export function RegisterForm() {
         </div>
 
         <div className="grid gap-2">
+          <Label htmlFor="birthDate" className="text-sm text-[#2d3748]">Date de naissance</Label>
+
+          <Input
+            id="birthDate"
+            type="date"
+            value={birthDate}
+            onChange={(event) => setBirthDate(event.target.value)}
+            max={latestAllowedBirthDate()}
+            autoComplete="bday"
+            disabled={loading}
+            required
+            aria-describedby="birthDate-help"
+            aria-invalid={tooYoung || undefined}
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#566274] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
+          />
+
+          <p id="birthDate-help" className="text-sm text-[#566274]">
+            L&apos;inscription est réservée aux personnes de {MINIMUM_AGE} ans et plus.
+          </p>
+
+          {tooYoung ? (
+            <p role="alert" className="text-sm font-medium text-destructive">
+              Vous devez avoir au moins {MINIMUM_AGE} ans pour créer un compte sur ProfilsActifs.
+            </p>
+          ) : null}
+
+          {/*
+            Parcours distinct 16-18 ans (R.1) : la mention est affichee des que
+            la date declaree tombe dans cette tranche, avant meme l'envoi, pour
+            que la personne sache a quoi elle s'engage au moment ou elle decide.
+          */}
+          {isMinorApplicant ? (
+            <div
+              role="note"
+              className="rounded-lg border border-[#1B3A6B]/20 bg-[#1B3A6B]/5 px-4 py-3 text-sm text-[#2d3748]"
+            >
+              <p className="font-medium">Vous avez moins de {MAJORITY_AGE} ans</p>
+              <p className="mt-1 text-[#4A6B8A]">
+                Votre compte est créé normalement, mais votre présentation vidéo ne sera pas
+                diffusée publiquement : elle reste visible de vous seul et de l&apos;administration.
+                Votre profil n&apos;apparaît pas dans le catalogue consultable sans compte recruteur.
+              </p>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="grid gap-2">
           <Label htmlFor="password" className="text-sm text-[#2d3748]">Mot de passe</Label>
 
           <Input
@@ -113,7 +185,7 @@ export function RegisterForm() {
         <Button
           type="submit"
           size="lg"
-          disabled={loading}
+          disabled={loading || tooYoung}
           className="mt-1 h-11 w-full rounded-xl bg-[#1B3A6B] text-base text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#273D4F] hover:shadow-[inset_3px_3px_6px_#273D4F,inset_-3px_-3px_6px_#4A6B8A]"
         >
           {loading ? (

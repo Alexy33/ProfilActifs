@@ -1,7 +1,7 @@
 # Déclaration d'accessibilité — partielle (R.7)
 
 **Référence :** JEB/DNI/2026-003 — R.7
-**Date de mesure :** 3 septembre 2026
+**Date de mesure :** 3 septembre 2026 (refaite après intégration de `dev`)
 **Outil :** `scripts/a11y-audit.mjs` (`npm run a11y`), Chromium 1234 sans affichage
 
 ## Ce que cette déclaration couvre — et ce qu'elle ne couvre pas
@@ -60,9 +60,14 @@ conclu l'inverse.
 
 | Écran | Couples mesurés | Minimum relevé | Sous le seuil | Arrêts Tab | Anneau de focus |
 | --- | --- | --- | --- | --- | --- |
-| Inscription | 5 | 5,40:1 | 0 | 6 | 9,84:1 |
-| Fiche profil | 9 | 5,40:1 | 0 | 9 | 9,84 – 10,66:1 |
-| Catalogue | 19 | 4,53:1 | 0 | 32 | 9,84 – 10,66:1 |
+| Inscription | 5 | 5,40:1 | 0 | 7 | 9,84:1 |
+| Fiche profil | 16 | 5,40:1 | 0 | 8 | 9,84:1 |
+| Catalogue | 17 | 5,40:1 | 0 | 30 | 9,84 – 10,66:1 |
+
+Relevé refait après l'intégration de `dev` : le parcours d'inscription porte
+désormais le champ « Date de naissance » exigé par R.1, d'où un arrêt de
+tabulation supplémentaire. Ce champ était arrivé avec `#718096`, la teinte
+précisément écartée par cette mesure ; il a été aligné sur `#566274`.
 
 Chaque élément atteignable au clavier est atteint par la tabulation, et chacun
 porte un indicateur mesuré au-dessus de 3:1. Aucun piège au clavier n'a été

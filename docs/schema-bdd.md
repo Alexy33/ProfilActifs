@@ -2,7 +2,8 @@
 
 > Modèle **logique**, cardinalités et index.
 > Il décrit ce que produisent les migrations `drizzle/0000_complex_shriek.sql`
-> et `drizzle/0001_far_shiva.sql`, pas des intentions. Toute divergence entre
+> `drizzle/0001_far_shiva.sql` et `drizzle/0002_stale_post.sql`, pas des
+> intentions. Toute divergence entre
 > ce document et `src/db/schema.ts` est un bug de l'un des deux.
 
 - **SGBD** : SQLite (fichier unique, `DATABASE_URL=file:…`).
@@ -71,7 +72,7 @@ primaire composite :
 ### 2.1 Socle d'authentification (better-auth)
 
 Noms et colonnes **imposés** par l'adaptateur Drizzle de better-auth : ne rien
-renommer. `user.role` est le seul ajout maison.
+renommer. `user.role` et `user.birth_date` sont les seuls ajouts maison.
 
 #### `user`
 
@@ -83,8 +84,20 @@ renommer. `user.role` est le seul ajout maison.
 | `email_verified` | booléen | NOT NULL | `false` |
 | `image` | text | NULL | — |
 | `role` | text (`candidate` \| `recruiter` \| `admin`) | NOT NULL | `'candidate'` |
+| `birth_date` | text (`AAAA-MM-JJ`) | NULL | — |
 | `created_at` | timestamp | NOT NULL | `unixepoch()` |
 | `updated_at` | timestamp | NOT NULL | `unixepoch()` |
+
+**`birth_date`** — date de naissance déclarative, exigée à l'inscription
+(vérification de l'âge, R.1). Stockée en **texte** et non en timestamp : c'est
+une date civile, sans heure ni fuseau ; un timestamp la décalerait d'un jour
+selon le fuseau du serveur, ce qui change l'âge la veille d'un anniversaire.
+
+La colonne est **nullable**, et c'est délibéré : les comptes créés avant cette
+exigence n'en portent pas. Toute inscription *nouvelle* la renseigne
+obligatoirement — le contrôle vit dans `src/lib/auth.ts` et non dans le seul
+formulaire, donc un appel direct à l'API ne le contourne pas. Voir
+`docs/verification-age.md` pour le traitement des comptes antérieurs.
 
 #### `session`
 

@@ -6,7 +6,7 @@ interrupteur, et son retrait efface réellement le fichier.
 
 ## Ce qui est enregistré
 
-Quatre colonnes sur `profile` (`drizzle/0002_large_mac_gargan.sql`) :
+Quatre colonnes sur `profile` (`drizzle/0003_red_moonstone.sql`) :
 
 | Colonne | Rôle |
 | --- | --- |

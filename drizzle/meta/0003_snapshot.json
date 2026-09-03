@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "3dcd1f93-33fe-4ccd-9067-05b208ba5ea8",
-  "prevId": "98403b7e-2423-47fd-80f6-9a3607d649d5",
+  "id": "22baf857-bade-4479-a76f-67ddb34a4015",
+  "prevId": "3dcd1f93-33fe-4ccd-9067-05b208ba5ea8",
   "tables": {
     "account": {
       "name": "account",
@@ -577,6 +577,35 @@
         "video_url": {
           "name": "video_url",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "video_consent_granted": {
+          "name": "video_consent_granted",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "video_consent_at": {
+          "name": "video_consent_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "video_consent_version": {
+          "name": "video_consent_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "video_consent_revoked_at": {
+          "name": "video_consent_revoked_at",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
