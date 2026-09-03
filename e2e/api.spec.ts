@@ -12,7 +12,7 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
  * demonstration et les profils publies viennent de la.
  */
 
-const PASSWORD = "demo";
+const PASSWORD = "demo1234";
 
 async function signIn(request: APIRequestContext, email: string) {
   const response = await request.post("/api/auth/sign-in/email", {
