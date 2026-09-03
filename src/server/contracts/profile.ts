@@ -11,6 +11,39 @@ import {
 } from "./common";
 
 /**
+ * Etat du consentement a la diffusion video (R.3).
+ *
+ * Rattache au seul `MyProfile` : c'est une donnee personnelle du titulaire, pas
+ * un attribut public de la fiche. Un recruteur n'a pas a savoir a quelle date
+ * quelqu'un a accepte quoi.
+ */
+export const VideoConsentSchema = named(
+  "VideoConsent",
+  z.object({
+    granted: z.boolean().meta({ description: "Accord en cours. false apres un retrait." }),
+    grantedAt: z.iso
+      .datetime()
+      .nullable()
+      .meta({ description: "Horodatage de l'accord ; conserve apres un retrait, comme trace." }),
+    version: z
+      .string()
+      .nullable()
+      .meta({ description: "Version du texte de consentement effectivement acceptee." }),
+    revokedAt: z.iso.datetime().nullable().meta({ description: "Horodatage du retrait." }),
+  }),
+);
+
+/** Texte en vigueur et sa version, pour que le client affiche ce qu'il fait accepter. */
+export const VideoConsentNoticeSchema = named(
+  "VideoConsentNotice",
+  z.object({
+    version: z.string(),
+    text: z.string(),
+    consent: VideoConsentSchema,
+  }),
+);
+
+/**
  * Carte de profil telle qu'elle apparait dans le catalogue.
  *
  * Volontairement plus pauvre que `Profile` : la liste n'a besoin ni de la
@@ -59,6 +92,7 @@ export const MyProfileSchema = named(
     views: z.number().int().meta({
       description: "Nombre de consultations. Visible du seul titulaire du profil.",
     }),
+    videoConsent: VideoConsentSchema,
   }),
 );
 

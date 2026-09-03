@@ -76,3 +76,22 @@ export const DEFAULT_PAGE_SIZE = 12;
 
 /** Valeurs par defaut des reglages modifiables par l'administration. */
 export const DEFAULT_CERTIFICATION_THRESHOLD = 70;
+
+/* --- Consentement a la diffusion video (R.3) ------------------------------ */
+
+/**
+ * Version du texte de consentement en vigueur.
+ *
+ * Elle est enregistree avec chaque accord donne. Toute reecriture du texte
+ * impose d'incrementer cette valeur : un consentement recueilli sur l'ancienne
+ * redaction ne vaut pas accord sur la nouvelle, et il faut pouvoir le prouver
+ * profil par profil des lors qu'on est interroge sur la portee de l'accord.
+ */
+export const VIDEO_CONSENT_VERSION = "2026-01-v1";
+
+/** Texte soumis au candidat pour cette version. Archive avec le code. */
+export const VIDEO_CONSENT_TEXT =
+  "J'autorise le dispositif ProfilsActifs a heberger et diffuser ma video de " +
+  "presentation, image et voix comprises, aupres des recruteurs inscrits. " +
+  "Je peux retirer cet accord a tout moment : le retrait entraine la " +
+  "suppression definitive du fichier video.";

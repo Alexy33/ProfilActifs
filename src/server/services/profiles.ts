@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { profile, profileSkill, user } from "@/db/schema";
 import type { City, ProfileStatus, Sector, Skill } from "@/lib/vocabulary";
 
+
 /**
  * Lecture des profils : catalogue, fiche publique, profil du titulaire.
  *
@@ -41,8 +42,18 @@ export interface FullProfile extends ProfileCard {
  * montre au candidat dans son espace, mais ne sort jamais du serveur autrement
  * — ni fiche publique, ni catalogue, ni vue recruteur, ni export.
  */
+/** Consentement video tel qu'il est servi : dates en ISO, comme le reste du module. */
+export interface VideoConsentView {
+  granted: boolean;
+  grantedAt: string | null;
+  version: string | null;
+  revokedAt: string | null;
+}
+
 export interface OwnProfile extends FullProfile {
   views: number;
+  /** Etat du consentement a la diffusion video (R.3). Ne sort pas de l'espace du titulaire. */
+  videoConsent: VideoConsentView;
 }
 
 /** « Sonia Delaunay-Frey » -> « SD ». Calcule ici pour que le front n'ait rien a deviner. */
@@ -213,14 +224,23 @@ async function findOne(where: ReturnType<typeof eq>): Promise<OwnProfile | null>
 
   if (!row) return null;
   const skills = await skillsByProfile([row.profile.id]);
-  return { ...toFull(row.profile, row.name, skills.get(row.profile.id) ?? []), views: row.profile.views };
+  return {
+    ...toFull(row.profile, row.name, skills.get(row.profile.id) ?? []),
+    views: row.profile.views,
+    videoConsent: {
+      granted: row.profile.videoConsentGranted,
+      grantedAt: row.profile.videoConsentAt?.toISOString() ?? null,
+      version: row.profile.videoConsentVersion,
+      revokedAt: row.profile.videoConsentRevokedAt?.toISOString() ?? null,
+    },
+  };
 }
 
 /** Fiche publique : sans le compteur de vues. */
 export async function findProfileById(id: string): Promise<FullProfile | null> {
   const found = await findOne(eq(profile.id, id));
   if (!found) return null;
-  const { views: _views, ...pub } = found;
+  const { views: _views, videoConsent: _consent, ...pub } = found;
   return pub;
 }
 

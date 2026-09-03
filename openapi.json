@@ -2215,6 +2215,227 @@
         }
       }
     },
+    "/api/me/profile/video/consent": {
+      "get": {
+        "tags": [
+          "Espace demandeur"
+        ],
+        "summary": "Texte de consentement en vigueur et etat de mon accord",
+        "description": "Renvoie la redaction actuellement soumise, sa version, et ou en est le consentement du candidat connecte.",
+        "operationId": "getMeProfileVideoConsent",
+        "responses": {
+          "200": {
+            "description": "Texte en vigueur et etat de l'accord.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoConsentNotice"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Authentification requise."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "forbidden",
+                    "message": "Cette ressource est reservee au role « candidate »."
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun profil rattache a ce compte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "not_found",
+                    "message": "Aucun profil rattache a ce compte."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Espace demandeur"
+        ],
+        "summary": "Donner mon consentement a la diffusion video",
+        "description": "Enregistre l'accord avec son horodatage et la version du texte en vigueur. La version n'est pas fournie par le client : le serveur enregistre celle qu'il a effectivement affichee.",
+        "operationId": "postMeProfileVideoConsent",
+        "responses": {
+          "200": {
+            "description": "Consentement enregistre.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoConsent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Authentification requise."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "forbidden",
+                    "message": "Cette ressource est reservee au role « candidate »."
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun profil rattache a ce compte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "not_found",
+                    "message": "Aucun profil rattache a ce compte."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Espace demandeur"
+        ],
+        "summary": "Retirer mon consentement a la diffusion video",
+        "description": "Retire l'accord ET supprime physiquement le fichier video du stockage, par le meme service que la suppression d'un profil. Le profil n'est pas masque : il subsiste sans video. La date de l'accord et la version acceptee restent enregistrees, comme trace de ce qui avait ete consenti.",
+        "operationId": "deleteMeProfileVideoConsent",
+        "responses": {
+          "200": {
+            "description": "Consentement retire, video supprimee du stockage.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoConsent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Authentification requise."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "forbidden",
+                    "message": "Cette ressource est reservee au role « candidate »."
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun profil rattache a ce compte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "not_found",
+                    "message": "Aucun profil rattache a ce compte."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
     "/api/me/stats": {
       "get": {
         "tags": [
@@ -3072,6 +3293,59 @@
         ],
         "additionalProperties": false
       },
+      "VideoConsent": {
+        "type": "object",
+        "properties": {
+          "granted": {
+            "type": "boolean",
+            "description": "Accord en cours. false apres un retrait."
+          },
+          "grantedAt": {
+            "nullable": true,
+            "type": "string",
+            "format": "date-time",
+            "description": "Horodatage de l'accord ; conserve apres un retrait, comme trace."
+          },
+          "version": {
+            "description": "Version du texte de consentement effectivement acceptee.",
+            "nullable": true,
+            "type": "string"
+          },
+          "revokedAt": {
+            "nullable": true,
+            "type": "string",
+            "format": "date-time",
+            "description": "Horodatage du retrait."
+          }
+        },
+        "required": [
+          "granted",
+          "grantedAt",
+          "version",
+          "revokedAt"
+        ],
+        "additionalProperties": false
+      },
+      "VideoConsentNotice": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "consent": {
+            "$ref": "#/components/schemas/VideoConsent"
+          }
+        },
+        "required": [
+          "version",
+          "text",
+          "consent"
+        ],
+        "additionalProperties": false
+      },
       "ProfileCard": {
         "type": "object",
         "properties": {
@@ -3264,6 +3538,9 @@
           "views": {
             "type": "integer",
             "description": "Nombre de consultations. Visible du seul titulaire du profil."
+          },
+          "videoConsent": {
+            "$ref": "#/components/schemas/VideoConsent"
           }
         },
         "required": [
@@ -3282,7 +3559,8 @@
           "contactCount",
           "certifiedAt",
           "createdAt",
-          "views"
+          "views",
+          "videoConsent"
         ],
         "additionalProperties": false
       },

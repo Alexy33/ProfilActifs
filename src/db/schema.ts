@@ -142,6 +142,26 @@ export const profile = sqliteTable("profile", {
   // n'heberge pas les fichiers.
   videoUrl: text("video_url"),
 
+  // Consentement a la diffusion de la video (R.3).
+  //
+  // Trois colonnes et non un booleen : la video porte l'image et la voix d'une
+  // personne identifiable, et il faut pouvoir etablir non pas « il a accepte »
+  // mais « il a accepte CECI, a CETTE date ». Sans l'horodatage ni la version
+  // du texte, l'accord n'est pas opposable et un changement de redaction
+  // effacerait silencieusement la portee de ce qui avait ete accepte.
+  //
+  // `videoConsentAt` fait foi pour la date, `videoConsentVersion` pour la
+  // redaction acceptee, et `videoConsentGranted` porte l'etat courant : il
+  // repasse a false au retrait sans effacer les deux autres, qui restent la
+  // trace de ce qui avait ete consenti. `videoConsentRevokedAt` date le
+  // retrait, qui doit se prouver autant que l'accord.
+  videoConsentGranted: integer("video_consent_granted", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  videoConsentAt: integer("video_consent_at", { mode: "timestamp" }),
+  videoConsentVersion: text("video_consent_version"),
+  videoConsentRevokedAt: integer("video_consent_revoked_at", { mode: "timestamp" }),
+
   status: text("status", { enum: mutable(PROFILE_STATUSES) })
     .notNull()
     .default("pending"),

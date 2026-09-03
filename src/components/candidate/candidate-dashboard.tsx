@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BadgeCheck, Bell, Eye, FileVideo, Loader2, MessageSquare, Save, Upload } from "lucide-react";
+import { BadgeCheck, Bell, Eye, FileVideo, Loader2, MessageSquare, Save, ShieldCheck, ShieldOff, Upload } from "lucide-react";
 
 import { ProfileVideo } from "@/components/catalogue/profile-video";
 import type { City, Sector, Skill } from "@/lib/vocabulary";
@@ -10,6 +10,7 @@ import type { OwnProfile } from "@/server/services/profiles";
 
 type Certification = { status: "not_started" | "in_progress" | "submitted"; answered: number; questionCount: number; score: number | null; passed: boolean | null };
 type Notice = { id: string; text: string; createdAt: string };
+type ConsentNotice = { version: string; text: string };
 type Props = { initialProfile: OwnProfile; sectors: readonly Sector[]; cities: readonly City[]; skills: readonly Skill[] };
 
 const field = "mt-2 h-11 w-full rounded-xl border border-[#1B3A6B]/20 bg-white px-4 text-sm text-[#2d3748] outline-none transition-colors focus:border-[#1B3A6B]";
@@ -24,7 +25,8 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
   });
   const [certification, setCertification] = useState<Certification | null>(null);
   const [notices, setNotices] = useState<Notice[]>([]);
-  const [busy, setBusy] = useState<"save" | "upload" | null>(null);
+  const [notice, setNotice] = useState<ConsentNotice | null>(null);
+  const [busy, setBusy] = useState<"save" | "upload" | "consent" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,6 +34,7 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
     void fetch("/api/me/notifications").then(async (r) => {
       if (r.ok) setNotices(((await r.json()) as { items: Notice[] }).items);
     });
+    void fetch("/api/me/profile/video/consent").then(async (r) => r.ok && setNotice(await r.json()));
   }, []);
 
   function toggleSkill(skill: Skill) {
@@ -60,6 +63,36 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
     else setMessage(data?.error?.message ?? "Impossible d’envoyer la vidéo.");
     setBusy(null);
   }
+
+  /**
+   * Donner ou retirer le consentement.
+   *
+   * Le retrait supprime le fichier : on le fait confirmer, et on rafraichit le
+   * profil complet plutot que le seul consentement, parce que `videoUrl` tombe
+   * en meme temps que la video.
+   */
+  async function setConsent(granted: boolean) {
+    if (!granted && !window.confirm(
+      "Retirer votre consentement supprime définitivement votre vidéo du stockage. Continuer ?",
+    )) return;
+
+    setBusy("consent"); setMessage(null);
+    const response = await fetch("/api/me/profile/video/consent", { method: granted ? "POST" : "DELETE" });
+    const data = await response.json();
+    if (!response.ok) {
+      setMessage(data?.error?.message ?? "Impossible de modifier le consentement.");
+      setBusy(null);
+      return;
+    }
+    const refreshed = await fetch("/api/me/profile");
+    if (refreshed.ok) setProfile(await refreshed.json());
+    setMessage(granted ? "Consentement enregistré." : "Consentement retiré : la vidéo a été supprimée du stockage.");
+    setBusy(null);
+  }
+
+  const consent = profile.videoConsent;
+  const consentDate = (value: string | null) =>
+    value ? new Date(value).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" }) : "—";
 
   const status = { pending: "En attente", published: "Publié", removed: "Retiré" }[profile.status];
   const stats = [
@@ -118,6 +151,63 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
               <label className="flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-[#1B3A6B]/40 bg-white px-4 text-center text-sm font-semibold text-[#273D4F] hover:bg-[#E8F0F8]">{busy === "upload" ? <Loader2 className="mb-2 size-5 animate-spin" /> : <Upload className="mb-2 size-5" />}Importer une vidéo (100 Mo max.)<input type="file" accept="video/mp4,video/webm,video/ogg,video/quicktime" className="sr-only" disabled={busy !== null} onChange={(e) => { const file = e.target.files?.[0]; if (file) void upload(file); }} /></label>
               {form.videoUrl.trim() ? <button type="button" onClick={save} disabled={busy !== null} className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#1B3A6B] px-4 text-sm font-semibold text-white hover:bg-[#273D4F] disabled:opacity-60"><Save className="size-4" /> Enregistrer le lien</button> : null}
             </div>
+          </div>
+
+          {/* Consentement a la diffusion (R.3) : ce qui a ete accepte, quand, et
+              sur quelle redaction — puis le retrait, qui efface le fichier. */}
+          <div className="mt-6 rounded-2xl border border-[#A8C5E0] bg-white p-5" id="consentement">
+            <div className="flex items-center gap-3">
+              <span className={`flex size-10 items-center justify-center rounded-xl ${consent.granted ? "bg-[#dff7e9] text-[#17603a]" : "bg-[#ffe8ef] text-[#8a3f5b]"}`}>
+                {consent.granted ? <ShieldCheck className="size-5" /> : <ShieldOff className="size-5" />}
+              </span>
+              <div>
+                <h3 className="text-lg font-bold uppercase text-[#2d3748]">Consentement à la diffusion</h3>
+                <p className="text-sm text-[#718096]">{consent.granted ? "Accord en cours." : "Aucun accord en cours : aucune vidéo ne peut être hébergée."}</p>
+              </div>
+            </div>
+
+            <dl className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl bg-[#F5F9FE] p-3">
+                <dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#718096]">État</dt>
+                <dd className="mt-1 text-sm font-semibold text-[#2d3748]">{consent.granted ? "Accordé" : consent.revokedAt ? "Retiré" : "Jamais donné"}</dd>
+              </div>
+              <div className="rounded-xl bg-[#F5F9FE] p-3">
+                <dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#718096]">Accordé le</dt>
+                <dd className="mt-1 text-sm font-semibold text-[#2d3748]">{consentDate(consent.grantedAt)}</dd>
+              </div>
+              <div className="rounded-xl bg-[#F5F9FE] p-3">
+                <dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#718096]">Version acceptée</dt>
+                <dd className="mt-1 text-sm font-semibold text-[#2d3748]">{consent.version ?? "—"}</dd>
+              </div>
+            </dl>
+
+            {consent.revokedAt ? (
+              <p className="mt-3 font-mono text-[11px] uppercase tracking-wider text-[#8a3f5b]">
+                Retiré le {consentDate(consent.revokedAt)} — vidéo supprimée du stockage
+              </p>
+            ) : null}
+
+            {notice ? (
+              <p className="mt-4 rounded-xl bg-[#F5F9FE] p-3 text-xs leading-relaxed text-[#4a5568]">
+                <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#718096]">Texte en vigueur ({notice.version})</span>
+                <br />
+                {notice.text}
+              </p>
+            ) : null}
+
+            {consent.granted ? (
+              <button type="button" onClick={() => void setConsent(false)} disabled={busy !== null}
+                className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#8a3f5b] px-5 text-sm font-semibold text-white hover:bg-[#6f314a] disabled:opacity-60">
+                {busy === "consent" ? <Loader2 className="size-4 animate-spin" /> : <ShieldOff className="size-4" />}
+                Retirer mon consentement et supprimer ma vidéo
+              </button>
+            ) : (
+              <button type="button" onClick={() => void setConsent(true)} disabled={busy !== null}
+                className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1B3A6B] px-5 text-sm font-semibold text-white hover:bg-[#273D4F] disabled:opacity-60">
+                {busy === "consent" ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
+                {consent.revokedAt ? "Redonner mon consentement" : "Donner mon consentement"}
+              </button>
+            )}
           </div>
         </section>
         </div>
