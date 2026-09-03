@@ -27,9 +27,9 @@ export function CataloguePagination({ page, totalPages, params }: CataloguePagin
   };
 
   const linkClassName =
-    "inline-flex h-12 items-center gap-2 rounded-2xl border border-[#5980a6]/15 bg-white px-5 text-sm font-semibold text-[#2d3748] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#5980a6]/35 hover:text-[#416180]";
+    "inline-flex h-11 items-center gap-2 border border-[#5980a6]/30 bg-white px-5 text-sm font-semibold text-[#2d3748] transition-colors hover:border-[#5980a6] hover:text-[#416180]";
   const disabledClassName =
-    "inline-flex h-12 cursor-not-allowed items-center gap-2 rounded-2xl border border-[#5980a6]/10 px-5 text-sm font-semibold text-[#718096]/50";
+    "inline-flex h-11 cursor-not-allowed items-center gap-2 border border-[#5980a6]/10 bg-transparent px-5 text-sm font-semibold text-[#718096]/50";
 
   return (
     <nav
