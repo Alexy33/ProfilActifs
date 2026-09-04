@@ -6,6 +6,7 @@ import { defineRoute } from "@/server/openapi/routes";
 import { AUTH_RESPONSES, errorResponse } from "@/server/contracts/common";
 import { MyProfileSchema, UpdateMyProfileBody } from "@/server/contracts/profile";
 import { findProfileByUserId, replaceSkills } from "@/server/services/profiles";
+import { resetVideoModeration } from "@/server/services/video";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +82,14 @@ export const { PATCH } = defineRoute({
     }
 
     if (skills) await replaceSkills(owned.id, skills);
+
+    // Changer le lien de la video, c'est changer la video : la nouvelle repasse
+    // en attente de moderation (R.2). Compare a la valeur courante pour qu'un
+    // enregistrement du profil qui renvoie le meme lien n'annule pas une
+    // validation deja obtenue.
+    if (body.videoUrl !== undefined && body.videoUrl !== owned.videoUrl) {
+      await resetVideoModeration(owned.id);
+    }
 
     const updated = await findProfileByUserId(session.user.id);
     if (!updated) throw ApiError.notFound("Aucun profil rattache a ce compte.");

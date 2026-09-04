@@ -9,6 +9,7 @@ import {
   deleteProfileVideo,
   extensionForMime,
   MissingVideoConsentError,
+  resetVideoModeration,
   saveProfileVideo,
   VideoTooLargeError,
 } from "@/server/services/video";
@@ -81,6 +82,12 @@ export async function DELETE(): Promise<Response> {
     .update(profile)
     .set({ videoUrl: null, updatedAt: new Date() })
     .where(eq(profile.id, ctx.profileId));
+
+  // Le fichier valide n'existe plus : la decision qui le concernait non plus
+  // (R.2). Sans cela, un depot ulterieur heriterait de la validation du
+  // precedent — `saveProfileVideo` la remettrait a zero, mais on ne laisse pas
+  // la base traverser un etat « validee, sans video ».
+  await resetVideoModeration(ctx.profileId);
 
   return Response.json(await findProfileByUserId(ctx.userId));
 }

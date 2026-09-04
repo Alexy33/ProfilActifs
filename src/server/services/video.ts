@@ -5,7 +5,7 @@ import { Readable } from "node:stream";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { profile } from "@/db/schema";
-import { VIDEO_CONSENT_VERSION } from "@/lib/vocabulary";
+import { VIDEO_CONSENT_VERSION, type VideoStatus } from "@/lib/vocabulary";
 
 export const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
 
@@ -114,6 +114,11 @@ export async function saveProfileVideo(
   }
 
   await rename(partPath, finalPath);
+
+  // Un fichier neuf n'herite jamais de la decision prise sur celui qu'il
+  // remplace : il repart en attente de moderation (R.2).
+  await resetVideoModeration(profileId);
+
   return { path: finalPath, bytes, extension };
 }
 
@@ -239,12 +244,99 @@ export async function revokeVideoConsent(profileId: string): Promise<VideoConsen
       videoConsentGranted: false,
       videoConsentRevokedAt: now,
       videoUrl: null,
+      // Le fichier vient d'etre efface : la decision de moderation n'a plus
+      // d'objet, la conserver ferait etat d'une video validee qui n'existe pas.
+      videoStatus: "pending",
+      videoReviewReason: null,
+      videoReviewedBy: null,
+      videoReviewedAt: null,
       updatedAt: now,
     })
     .where(eq(profile.id, profileId));
 
   const after = await readVideoConsent(profileId);
   return after ?? { granted: false, grantedAt: null, version: null, revokedAt: now };
+}
+
+/* --------------------------------------------------------------------------
+ * Moderation de la video avant publication (R.2)
+ *
+ * Meme raison qu'au-dessus pour loger cela ici : la moderation porte sur le
+ * fichier. Un depot repasse la video en `pending` dans la MEME operation que
+ * l'ecriture disque, sinon il existerait un instant ou un fichier neuf porte
+ * encore la validation de celui qu'il remplace.
+ * ----------------------------------------------------------------------- */
+
+export interface VideoModeration {
+  status: VideoStatus;
+  /** Motif de la decision. Montre au candidat en cas de refus. */
+  reason: string | null;
+  /** Identifiant de l'administrateur qui a decide. */
+  decidedBy: string | null;
+  decidedAt: Date | null;
+}
+
+export async function readVideoModeration(profileId: string): Promise<VideoModeration | null> {
+  const [row] = await db
+    .select({
+      status: profile.videoStatus,
+      reason: profile.videoReviewReason,
+      decidedBy: profile.videoReviewedBy,
+      decidedAt: profile.videoReviewedAt,
+    })
+    .from(profile)
+    .where(eq(profile.id, profileId))
+    .limit(1);
+
+  return row ?? null;
+}
+
+/**
+ * Remet la video en attente de moderation.
+ *
+ * Appele a chaque fois que le contenu change : upload, suppression, ou
+ * remplacement du lien externe. La decision precedente est EFFACEE et non
+ * conservee — elle portait sur un autre fichier, la garder afficherait au
+ * candidat le motif d'un refus qui ne concerne plus rien.
+ */
+export async function resetVideoModeration(profileId: string): Promise<void> {
+  await db
+    .update(profile)
+    .set({
+      videoStatus: "pending",
+      videoReviewReason: null,
+      videoReviewedBy: null,
+      videoReviewedAt: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(profile.id, profileId));
+}
+
+/**
+ * Enregistre une decision de moderation.
+ *
+ * Les quatre colonnes sont ecrites ensemble : statut, motif, auteur et date.
+ * Un refus sans motif n'est pas acceptable — le candidat doit pouvoir savoir ce
+ * qu'on lui reproche — et c'est le contrat de route qui l'impose a l'entree.
+ */
+export async function decideVideoModeration(
+  profileId: string,
+  decision: Exclude<VideoStatus, "pending">,
+  moderatorId: string,
+  reason: string | null,
+): Promise<VideoModeration | null> {
+  await db
+    .update(profile)
+    .set({
+      videoStatus: decision,
+      videoReviewReason: reason,
+      videoReviewedBy: moderatorId,
+      videoReviewedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(profile.id, profileId));
+
+  return readVideoModeration(profileId);
 }
 
 export function openVideoStream(

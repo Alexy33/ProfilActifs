@@ -23,7 +23,12 @@ export async function GET(
   const { id } = await params;
 
   const [row] = await db
-    .select({ status: profile.status, userId: profile.userId, birthDate: user.birthDate })
+    .select({
+      status: profile.status,
+      videoStatus: profile.videoStatus,
+      userId: profile.userId,
+      birthDate: user.birthDate,
+    })
     .from(profile)
     .innerJoin(user, eq(user.id, profile.userId))
     .where(eq(profile.id, id))
@@ -31,17 +36,23 @@ export async function GET(
   if (!row) return notFound();
 
   /**
-   * Deux motifs distincts de restriction, un seul controle d'acces.
+   * Trois motifs distincts de restriction, un seul controle d'acces.
    *
    * - profil non publie : la moderation ne l'a pas encore valide ;
+   * - video non validee (R.2) : `pending` tant qu'un administrateur ne l'a pas
+   *   examinee, `rejected` s'il l'a refusee. C'est ici que se joue « une video
+   *   en attente est inaccessible par son URL directe » : la restriction tient
+   *   a la route qui sert le fichier, pas au fait que l'interface n'affiche
+   *   pas de lien ;
    * - titulaire mineur (16-18 ans) : sa video n'est pas diffusee publiquement
    *   par defaut (R.1). Le profil peut exister et etre publie, la video reste
    *   reservee a son titulaire et a l'administration.
    *
-   * Dans les deux cas la reponse est 404 et non 403 : un 403 confirmerait
-   * l'existence d'une video de mineur a qui la demande.
+   * Dans tous les cas la reponse est 404 et non 403 : un 403 confirmerait
+   * l'existence d'une video de mineur, ou en attente, a qui la demande.
    */
-  const restricted = row.status !== "published" || isMinor(row.birthDate);
+  const restricted =
+    row.status !== "published" || row.videoStatus !== "approved" || isMinor(row.birthDate);
 
   if (restricted) {
     const session = await auth.api.getSession({ headers: await headers() });

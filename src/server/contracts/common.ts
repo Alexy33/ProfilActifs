@@ -8,6 +8,7 @@ import {
   SECTORS,
   SKILLS,
   USER_ROLES,
+  VIDEO_STATUSES,
   mutable,
 } from "@/lib/vocabulary";
 import { named } from "../openapi/schemas";
@@ -27,6 +28,13 @@ export const ProfileStatusSchema = named(
   z.enum(mutable(PROFILE_STATUSES)).meta({
     description:
       "pending : cree, en attente de moderation. published : visible au catalogue. removed : retire par l'administration.",
+  }),
+);
+export const VideoStatusSchema = named(
+  "VideoStatus",
+  z.enum(mutable(VIDEO_STATUSES)).meta({
+    description:
+      "pending : deposee, en attente de moderation — servie au seul titulaire et a l'administration. approved : diffusable. rejected : refusee, motif communique au candidat.",
   }),
 );
 export const ContactStatusSchema = named("ContactStatus", z.enum(mutable(CONTACT_STATUSES)));

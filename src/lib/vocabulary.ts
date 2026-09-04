@@ -42,6 +42,16 @@ export const SKILLS = [
 /** Cycle de vie d'un profil, pilote par la moderation (CDC 2.1). */
 export const PROFILE_STATUSES = ["pending", "published", "removed"] as const;
 
+/**
+ * Cycle de vie d'une video de presentation, distinct de celui du profil (R.2).
+ *
+ * Une video se modere pour elle-meme : un profil deja publie qui remplace sa
+ * video repasse la nouvelle en `pending` sans que la fiche disparaisse du
+ * catalogue. Confondre les deux statuts obligerait a depublier le profil entier
+ * pour re-examiner un seul fichier.
+ */
+export const VIDEO_STATUSES = ["pending", "approved", "rejected"] as const;
+
 /** Suivi d'un candidat dans le pipeline d'un recruteur. */
 export const CONTACT_STATUSES = [
   "À qualifier",
@@ -56,6 +66,7 @@ export type Sector = (typeof SECTORS)[number];
 export type City = (typeof CITIES)[number];
 export type Skill = (typeof SKILLS)[number];
 export type ProfileStatus = (typeof PROFILE_STATUSES)[number];
+export type VideoStatus = (typeof VIDEO_STATUSES)[number];
 export type ContactStatus = (typeof CONTACT_STATUSES)[number];
 export type UserRole = (typeof USER_ROLES)[number];
 

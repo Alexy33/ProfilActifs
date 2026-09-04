@@ -1,13 +1,14 @@
 import { spawn } from "node:child_process";
 import { mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull, ne } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import {
   account,
   certificationAnswer,
   certificationAttempt,
+  company,
   contact,
   favorite,
   notification,
@@ -414,6 +415,7 @@ const QUESTIONS: { text: string; weight: number; options: string[] }[] = [
 async function wipe() {
   await db.delete(certificationAnswer);
   await db.delete(certificationAttempt);
+  await db.delete(company);
   await db.delete(contact);
   await db.delete(favorite);
   await db.delete(notification);
@@ -713,7 +715,81 @@ async function seed() {
     "recruiter",
     "1980-02-14",
   );
-  await createAccount("Thomas Vignal", "admin@jeb.gouv.fr", "admin", "1972-06-09");
+
+  // Un compte recruteur declare toujours l'entreprise pour laquelle il agit
+  // (CDC 3.1) : le jeu de demonstration doit donc en porter une, sinon
+  // l'espace recruteur affiche un encart vide qui ne correspond a aucun
+  // parcours d'inscription possible.
+  await db.insert(company).values({
+    id: crypto.randomUUID(),
+    userId: recruiterId,
+    name: "Atelier Vasseur SAS",
+    siren: "552100554",
+    position: "Responsable des ressources humaines",
+    address: "12 rue des Tanneurs",
+    postalCode: "44000",
+    city: "Nantes",
+    sector: "Industrie",
+    phone: "02 40 12 34 56",
+    website: "https://atelier-vasseur.example.fr",
+  });
+  const adminId = await createAccount("Thomas Vignal", "admin@jeb.gouv.fr", "admin", "1972-06-09");
+
+  /**
+   * Moderation des videos de demonstration (R.2).
+   *
+   * Le jeu de donnees doit montrer les TROIS etats, sinon l'ecran d'admin est
+   * vide et la restriction d'acces indemontrable :
+   *
+   * - la video de « Marion Estève » reste `pending` : c'est celle sur
+   *   laquelle se prouve qu'une video en attente repond 404 par son URL
+   *   directe, y compris en navigation privee ;
+   * - celle de « Yann Kervella » est refusee avec un motif, pour que l'espace
+   *   candidat ait quelque chose a afficher ;
+   * - toutes les autres sont validees, faute de quoi le catalogue de
+   *   demonstration n'aurait plus aucune video visible.
+   */
+  console.log("[seed] moderation des videos…");
+  const PENDING_VIDEO = "marion.esteve@exemple.fr";
+  const REJECTED_VIDEO = "yann.kervella@exemple.fr";
+  const REJECTION_REASON =
+    "Le son est inaudible sur toute la seconde moitie de la video. " +
+    "Merci de la reenregistrer dans un environnement plus calme.";
+
+  const decided = new Date();
+  for (const [email, decision, reason] of [
+    [REJECTED_VIDEO, "rejected", REJECTION_REASON],
+  ] as const) {
+    const [account] = await db.select({ id: user.id }).from(user).where(eq(user.email, email)).limit(1);
+    if (account) {
+      await db
+        .update(profile)
+        .set({
+          videoStatus: decision,
+          videoReviewReason: reason,
+          videoReviewedBy: adminId,
+          videoReviewedAt: decided,
+        })
+        .where(eq(profile.userId, account.id));
+    }
+  }
+
+  const [waiting] = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.email, PENDING_VIDEO))
+    .limit(1);
+
+  await db
+    .update(profile)
+    .set({ videoStatus: "approved", videoReviewedBy: adminId, videoReviewedAt: decided })
+    .where(
+      and(
+        isNotNull(profile.videoUrl),
+        eq(profile.videoStatus, "pending"),
+        waiting ? ne(profile.userId, waiting.id) : undefined,
+      ),
+    );
 
   console.log("[seed] suivi recruteur…");
   await seedRecruiterActivity(recruiterId);
