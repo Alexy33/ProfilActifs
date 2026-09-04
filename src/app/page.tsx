@@ -497,6 +497,37 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="border-t border-[#2d3748]/10 bg-white py-8 md:py-12">
+        <div className="mx-auto max-w-7xl px-6 md:px-10">
+          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
+            <div className="text-center md:text-left">
+              <p className="font-semibold text-[#2d3748]">ProfilsActifs</p>
+              <p className="text-sm text-[#718096]">
+                Ministère du Job et Bonheur (JEB/DNI/2026-003)
+              </p>
+            </div>
+            <nav className="flex gap-6 text-sm">
+              <Link
+                href="/cgu"
+                className="text-[#4a5568] transition-colors hover:text-[#1B3A6B] hover:underline"
+              >
+                Conditions d'utilisation
+              </Link>
+              <a
+                href="/api/docs"
+                className="text-[#4a5568] transition-colors hover:text-[#1B3A6B] hover:underline"
+              >
+                Documentation API
+              </a>
+            </nav>
+          </div>
+          <div className="mt-6 border-t border-[#2d3748]/10 pt-6 text-center text-xs text-[#718096]">
+            <p>Démonstrateur — ProfilsActifs</p>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

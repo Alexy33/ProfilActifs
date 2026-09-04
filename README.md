@@ -2,10 +2,10 @@
 
 Demonstrateur pour le Ministere du Job et Bonheur (JEB/DNI/2026-003).
 
-Ce depot contient **le backend complet et sa documentation interactive**. Les
-ecrans restent a construire : l'API couvre deja le perimetre de la maquette
-fonctionnelle (catalogue, certification, espace recruteur, administration) et
-se decouvre sur [`/api/docs`](http://localhost:3000/api/docs).
+Ce depot contient **le backend complet et sa documentation interactive**. L'API
+couvre le perimetre de la maquette fonctionnelle (catalogue, certification,
+espace recruteur, administration) et se decouvre sur
+[`/api/docs`](http://localhost:3000/api/docs).
 
 ## Stack
 
@@ -85,8 +85,6 @@ Elle n'est pas decorative : chaque ligne est verifiee a l'execution.
 - **SQLite + Drizzle** — les compteurs viennent de vrais `COUNT(*)`.
 - **better-auth** — le bouton ouvre une session ; elle survit a un F5, ce qui
   prouve que le cookie httpOnly est bien pose (et pas un simple etat React).
-- **Ecriture en base** — « Ping la base » insere une ligne et le compteur
-  augmente apres re-rendu serveur.
 - **Scalar** — la doc est servie sur `/api/docs`, lue depuis `/api/openapi`.
 
 ## L'API
@@ -187,7 +185,7 @@ moderation.
 
 | Espace | Routes |
 | --- | --- |
-| Systeme | `GET /api/health`, `POST /api/ping` |
+| Systeme | `GET /api/health` |
 | Reference | `GET /api/reference`, `GET /api/stats` |
 | Authentification | `/api/auth/*` (better-auth) |
 | Catalogue | `GET /api/profiles`, `GET /api/profiles/{id}` |
@@ -222,7 +220,7 @@ Les migrations sont **rejouees automatiquement au demarrage** par
 `src/instrumentation.ts` : rien a lancer a la main dans le conteneur.
 
 Les quatre tables `user`, `session`, `account`, `verification` sont imposees
-par better-auth — ne pas les renommer. La table `ping` est temporaire.
+par better-auth — ne pas les renommer.
 
 Les vocabulaires fermes (secteurs, villes, competences, statuts) vivent dans
 `src/lib/vocabulary.ts` et **nulle part ailleurs** : le schema Drizzle, les
@@ -240,7 +238,6 @@ Le backend couvre le perimetre de la maquette fonctionnelle. Restent ouverts :
 - [ ] Interface : les ecrans sont a construire sur cette API
 - [ ] Heberger les videos plutot que referencer une URL YouTube/Vimeo
 - [ ] Notifications par e-mail (aujourd'hui uniquement en base)
-- [ ] Supprimer la route `/api/ping` et sa table avec la page de verification
 
 ## Points a savoir
 
