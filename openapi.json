@@ -38,7 +38,7 @@
     },
     {
       "name": "Espace recruteur",
-      "description": "Favoris, prise de contact et suivi des candidats (CDC 2.1)."
+      "description": "Entreprise declaree a l'inscription, favoris, prise de contact et suivi des candidats (CDC 2.1, 3.1)."
     },
     {
       "name": "Administration",
@@ -651,6 +651,122 @@
         ]
       }
     },
+    "/api/admin/retention": {
+      "get": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Durees de conservation appliquees",
+        "description": "Les delais reellement appliques par la purge. C'est la meme source que le registre des traitements (docs/registre-traitements.md) et que les CGU : si les trois divergent, l'un des trois est faux.",
+        "operationId": "getAdminRetention",
+        "responses": {
+          "200": {
+            "description": "Politique de conservation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionPolicy"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Authentification requise."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "forbidden",
+                    "message": "Cette ressource est reservee au role « candidate »."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Executer la purge maintenant",
+        "description": "Applique les durees de conservation immediatement. Idempotente : sur une base deja purgee, tous les compteurs sont a zero. La purge tourne de toute facon au demarrage puis toutes les 24 heures.",
+        "operationId": "postAdminRetention",
+        "responses": {
+          "200": {
+            "description": "Lignes supprimees.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionReport"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Authentification requise."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "forbidden",
+                    "message": "Cette ressource est reservee au role « candidate »."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
     "/api/admin/settings": {
       "get": {
         "tags": [
@@ -844,6 +960,198 @@
         ]
       }
     },
+    "/api/admin/videos": {
+      "get": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "File de moderation des videos",
+        "description": "Les profils qui portent une video, avec son statut de moderation et la decision deja prise. Seule route qui expose l'URL d'une video non validee.",
+        "operationId": "getAdminVideos",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "approved",
+                "rejected"
+              ]
+            },
+            "description": "Filtre optionnel. Sans lui, toutes les videos sont renvoyees."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Videos a moderer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoModerationQueue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Authentification requise."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "forbidden",
+                    "message": "Cette ressource est reservee au role « candidate »."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/admin/videos/{id}": {
+      "patch": {
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Moderer une video",
+        "description": "Valide ou refuse la video d'un profil (`id` = `profile.id`).\nUn refus exige un motif : il est enregistre, notifie au candidat et affiche\nsur son espace. La decision conserve son auteur et sa date.\n\nTant que la video n'est pas validee, `GET /api/videos/{id}` repond 404 a\ntoute autre personne que son titulaire et l'administration.",
+        "operationId": "patchAdminVideosById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Identifiant de la ressource."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecideVideoInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Decision enregistree.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoModerationRow"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Authentification requise."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "forbidden",
+                    "message": "Cette ressource est reservee au role « candidate »."
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource introuvable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "not_found",
+                    "message": "Ressource introuvable."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
     "/api/auth/get-session": {
       "get": {
         "tags": [
@@ -977,7 +1285,7 @@
         ],
         "summary": "Creer un compte",
         "operationId": "authSignUpEmail",
-        "description": "Un compte `candidate` cree aussi un profil vide, en attente de moderation. Un compte `recruiter` n'en cree pas.",
+        "description": "Route better-auth brute : elle cree TOUJOURS un compte `candidate`, avec son profil vide en attente de moderation. Le role n'est pas un champ d'entree — personne ne se promeut recruteur ni administrateur par ici. Pour creer un compte recruteur, utiliser `POST /api/register`, qui exige la declaration de l'entreprise.",
         "requestBody": {
           "required": true,
           "content": {
@@ -1093,6 +1401,65 @@
             }
           }
         }
+      }
+    },
+    "/api/me/account": {
+      "delete": {
+        "tags": [
+          "Authentification"
+        ],
+        "summary": "Supprimer mon compte",
+        "description": "Efface definitivement le compte et tout ce qui en depend : profil, video, entreprise, sessions, notifications, tentatives de certification, favoris et prises de contact. Sans effet retardateur et sans confirmation par courriel : la requete suffit.",
+        "operationId": "deleteMeAccount",
+        "responses": {
+          "200": {
+            "description": "Compte supprime.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ok"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Authentification requise."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "forbidden",
+                    "message": "Cette ressource est reservee au role « candidate »."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
       }
     },
     "/api/me/certification": {
@@ -1366,6 +1733,174 @@
                   "error": {
                     "code": "forbidden",
                     "message": "Cette ressource est reservee au role « candidate »."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/me/company": {
+      "get": {
+        "tags": [
+          "Espace recruteur"
+        ],
+        "summary": "Mon entreprise",
+        "description": "Les informations declarees a l'inscription du compte recruteur.",
+        "operationId": "getMeCompany",
+        "responses": {
+          "200": {
+            "description": "Entreprise du recruteur connecte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Authentification requise."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "forbidden",
+                    "message": "Cette ressource est reservee au role « candidate »."
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aucune entreprise rattachee a ce compte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "not_found",
+                    "message": "Ressource introuvable."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Espace recruteur"
+        ],
+        "summary": "Mettre a jour mon entreprise",
+        "description": "Mise a jour partielle : n'envoyez que les champs modifies. Le SIREN reste unique dans le dispositif.",
+        "operationId": "patchMeCompany",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCompanyInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Entreprise mise a jour.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Aucune session valide.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Authentification requise."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Session valide, mais role insuffisant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "forbidden",
+                    "message": "Cette ressource est reservee au role « candidate »."
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aucune entreprise rattachee a ce compte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "not_found",
+                    "message": "Ressource introuvable."
                   }
                 }
               }
@@ -2845,6 +3380,64 @@
         }
       }
     },
+    "/api/register": {
+      "post": {
+        "tags": [
+          "Authentification"
+        ],
+        "summary": "Creer un compte",
+        "description": "Cree un compte **demandeur d'emploi** ou **recruteur**, et ouvre la session.\n\nLe corps est discrimine par `role` : un recruteur DOIT declarer son\nentreprise (raison sociale, SIREN, adresse, secteur, et le poste qu'il y\noccupe), un candidat ne le peut pas. Le SIREN est normalise puis verifie\npar sa cle de Luhn, et reste unique dans le dispositif.\n\nLe role `admin` n'est pas accessible : les comptes d'administration sont\ncrees en base, jamais par l'API.",
+        "operationId": "postRegister",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Compte cree, session ouverte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Registered"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametres ou corps de requete invalides.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Adresse e-mail ou SIREN deja utilise.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "code": "conflict",
+                    "message": "Un compte existe deja avec cette adresse e-mail."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/stats": {
       "get": {
         "tags": [
@@ -2874,7 +3467,7 @@
         ],
         "summary": "Lire la vidéo d'un profil",
         "operationId": "getVideosById",
-        "description": "Sert le fichier téléversé. Gère l'en-tête `Range` : réponse **206 Partial\nContent** avec `Content-Range` quand le lecteur cherche dans la timeline\n(CDC §3.2, prévisionnement sans quitter la page).\n\nUn profil non `published` n'est servi qu'à son titulaire ou à un admin.",
+        "description": "Sert le fichier téléversé. Gère l'en-tête `Range` : réponse **206 Partial\nContent** avec `Content-Range` quand le lecteur cherche dans la timeline\n(CDC §3.2, prévisionnement sans quitter la page).\n\nUn profil non `published`, ou dont la vidéo n'est pas validée par la\nmodération (R.2), n'est servi qu'à son titulaire ou à un admin : la\nréponse est **404** pour tout autre appelant, URL directe comprise.",
         "parameters": [
           {
             "name": "id",
@@ -3029,6 +3622,15 @@
           "removed"
         ],
         "description": "pending : cree, en attente de moderation. published : visible au catalogue. removed : retire par l'administration."
+      },
+      "VideoStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "approved",
+          "rejected"
+        ],
+        "description": "pending : deposee, en attente de moderation — servie au seul titulaire et a l'administration. approved : diffusable. rejected : refusee, motif communique au candidat."
       },
       "ContactStatus": {
         "type": "string",
@@ -3346,6 +3948,37 @@
         ],
         "additionalProperties": false
       },
+      "VideoModeration": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/VideoStatus"
+          },
+          "reason": {
+            "description": "Motif de la decision. Renseigne pour tout refus.",
+            "nullable": true,
+            "type": "string"
+          },
+          "decidedBy": {
+            "description": "Nom de l'administrateur qui a decide.",
+            "nullable": true,
+            "type": "string"
+          },
+          "decidedAt": {
+            "nullable": true,
+            "type": "string",
+            "format": "date-time",
+            "description": "Horodatage de la decision."
+          }
+        },
+        "required": [
+          "status",
+          "reason",
+          "decidedBy",
+          "decidedAt"
+        ],
+        "additionalProperties": false
+      },
       "ProfileCard": {
         "type": "object",
         "properties": {
@@ -3541,6 +4174,9 @@
           },
           "videoConsent": {
             "$ref": "#/components/schemas/VideoConsent"
+          },
+          "videoModeration": {
+            "$ref": "#/components/schemas/VideoModeration"
           }
         },
         "required": [
@@ -3560,7 +4196,8 @@
           "certifiedAt",
           "createdAt",
           "views",
-          "videoConsent"
+          "videoConsent",
+          "videoModeration"
         ],
         "additionalProperties": false
       },
@@ -4044,6 +4681,315 @@
         ],
         "additionalProperties": false
       },
+      "CompanyInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Raison sociale de l'entreprise."
+          },
+          "siren": {
+            "description": "Neuf chiffres. Les espaces et tirets sont acceptes a la saisie."
+          },
+          "position": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Poste occupe par la personne AU SEIN de l'entreprise."
+          },
+          "address": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Adresse (voie)."
+          },
+          "postalCode": {
+            "type": "string",
+            "pattern": "^\\d{5}$",
+            "description": "Code postal a cinq chiffres."
+          },
+          "city": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Commune de l'etablissement."
+          },
+          "sector": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Sector"
+              }
+            ],
+            "description": "Secteur d'activite, meme vocabulaire que les profils."
+          },
+          "phone": {
+            "description": "Telephone professionnel. Facultatif.",
+            "type": "string",
+            "maxLength": 30
+          },
+          "website": {
+            "description": "Site de l'entreprise. Facultatif.",
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "name",
+          "siren",
+          "position",
+          "address",
+          "postalCode",
+          "city",
+          "sector"
+        ],
+        "additionalProperties": false
+      },
+      "RegisterInput": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "enum": [
+                  "candidate"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "email": {
+                "type": "string",
+                "maxLength": 255,
+                "format": "email"
+              },
+              "password": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 200
+              },
+              "birthDate": {
+                "type": "string",
+                "description": "Date de naissance declarative, « AAAA-MM-JJ »."
+              }
+            },
+            "required": [
+              "role",
+              "name",
+              "email",
+              "password",
+              "birthDate"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "enum": [
+                  "recruiter"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "email": {
+                "type": "string",
+                "maxLength": 255,
+                "format": "email"
+              },
+              "password": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 200
+              },
+              "birthDate": {
+                "type": "string",
+                "description": "Date de naissance declarative, « AAAA-MM-JJ »."
+              },
+              "company": {
+                "$ref": "#/components/schemas/CompanyInput"
+              }
+            },
+            "required": [
+              "role",
+              "name",
+              "email",
+              "password",
+              "birthDate",
+              "company"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "Company": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Raison sociale de l'entreprise."
+          },
+          "siren": {
+            "description": "Neuf chiffres. Les espaces et tirets sont acceptes a la saisie."
+          },
+          "position": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Poste occupe par la personne AU SEIN de l'entreprise."
+          },
+          "address": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Adresse (voie)."
+          },
+          "postalCode": {
+            "type": "string",
+            "pattern": "^\\d{5}$",
+            "description": "Code postal a cinq chiffres."
+          },
+          "city": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Commune de l'etablissement."
+          },
+          "sector": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Sector"
+              }
+            ],
+            "description": "Secteur d'activite, meme vocabulaire que les profils."
+          },
+          "phone": {
+            "nullable": true,
+            "type": "string"
+          },
+          "website": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "name",
+          "siren",
+          "position",
+          "address",
+          "postalCode",
+          "city",
+          "sector",
+          "phone",
+          "website",
+          "id",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateCompanyInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Raison sociale de l'entreprise."
+          },
+          "siren": {
+            "description": "Neuf chiffres. Les espaces et tirets sont acceptes a la saisie."
+          },
+          "position": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Poste occupe par la personne AU SEIN de l'entreprise."
+          },
+          "address": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Adresse (voie)."
+          },
+          "postalCode": {
+            "type": "string",
+            "pattern": "^\\d{5}$",
+            "description": "Code postal a cinq chiffres."
+          },
+          "city": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Commune de l'etablissement."
+          },
+          "sector": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Sector"
+              }
+            ],
+            "description": "Secteur d'activite, meme vocabulaire que les profils."
+          },
+          "phone": {
+            "description": "Telephone professionnel. Facultatif.",
+            "type": "string",
+            "maxLength": 30
+          },
+          "website": {
+            "description": "Site de l'entreprise. Facultatif.",
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "additionalProperties": false,
+        "description": "N'envoyez que les champs modifies. Le SIREN reste modifiable, mais unique."
+      },
+      "Registered": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "candidate",
+              "recruiter"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "role"
+        ],
+        "additionalProperties": false
+      },
       "AdminStats": {
         "type": "object",
         "properties": {
@@ -4120,6 +5066,84 @@
         },
         "required": [
           "status"
+        ],
+        "additionalProperties": false
+      },
+      "VideoModerationRow": {
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Titulaire de la video."
+          },
+          "title": {
+            "type": "string"
+          },
+          "videoUrl": {
+            "nullable": true,
+            "type": "string"
+          },
+          "profileStatus": {
+            "$ref": "#/components/schemas/ProfileStatus"
+          },
+          "videoStatus": {
+            "$ref": "#/components/schemas/VideoStatus"
+          },
+          "reason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "decidedBy": {
+            "description": "Nom de l'administrateur decideur.",
+            "nullable": true,
+            "type": "string"
+          },
+          "decidedAt": {
+            "nullable": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Derniere modification du profil."
+          }
+        },
+        "required": [
+          "profileId",
+          "name",
+          "title",
+          "videoUrl",
+          "profileStatus",
+          "videoStatus",
+          "reason",
+          "decidedBy",
+          "decidedAt",
+          "submittedAt"
+        ],
+        "additionalProperties": false
+      },
+      "DecideVideoInput": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "rejected"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "decision"
         ],
         "additionalProperties": false
       },
@@ -4247,6 +5271,132 @@
         },
         "additionalProperties": false
       },
+      "RetentionPolicy": {
+        "type": "object",
+        "properties": {
+          "accountInactivityMonths": {
+            "type": "integer",
+            "description": "Mois d'inactivite au terme desquels un compte non administrateur est supprime, avec profil, entreprise, favoris et contacts."
+          },
+          "sessionLogMonths": {
+            "type": "integer",
+            "description": "Mois de conservation du journal de connexion (table session : IP, user agent)."
+          },
+          "verificationGraceDays": {
+            "type": "integer",
+            "description": "Jours de conservation d'un jeton apres son expiration."
+          },
+          "contactMonths": {
+            "type": "integer",
+            "description": "Mois de conservation d'une prise de contact, depuis son dernier changement."
+          },
+          "favoriteMonths": {
+            "type": "integer",
+            "description": "Mois de conservation d'un favori."
+          },
+          "notificationMonths": {
+            "type": "integer",
+            "description": "Mois de conservation d'une notification, lue ou non."
+          },
+          "submittedAttemptMonths": {
+            "type": "integer",
+            "description": "Mois de conservation d'une tentative de certification soumise."
+          },
+          "abandonedAttemptDays": {
+            "type": "integer",
+            "description": "Jours au bout desquels une tentative jamais soumise est effacee."
+          },
+          "rejectedVideoDays": {
+            "type": "integer",
+            "description": "Jours de conservation du fichier d'une video refusee, apres la decision."
+          },
+          "revokedConsentMonths": {
+            "type": "integer",
+            "description": "Mois de conservation de la trace d'un consentement retire."
+          },
+          "pingDays": {
+            "type": "integer",
+            "description": "Jours de conservation de la table ping."
+          }
+        },
+        "required": [
+          "accountInactivityMonths",
+          "sessionLogMonths",
+          "verificationGraceDays",
+          "contactMonths",
+          "favoriteMonths",
+          "notificationMonths",
+          "submittedAttemptMonths",
+          "abandonedAttemptDays",
+          "rejectedVideoDays",
+          "revokedConsentMonths",
+          "pingDays"
+        ],
+        "additionalProperties": false
+      },
+      "RetentionReport": {
+        "type": "object",
+        "properties": {
+          "ranAt": {
+            "type": "string",
+            "description": "Horodatage ISO 8601 de l'execution."
+          },
+          "deleted": {
+            "type": "object",
+            "properties": {
+              "accounts": {
+                "type": "integer"
+              },
+              "sessions": {
+                "type": "integer"
+              },
+              "verifications": {
+                "type": "integer"
+              },
+              "contacts": {
+                "type": "integer"
+              },
+              "favorites": {
+                "type": "integer"
+              },
+              "notifications": {
+                "type": "integer"
+              },
+              "attempts": {
+                "type": "integer"
+              },
+              "videos": {
+                "type": "integer"
+              },
+              "consentTraces": {
+                "type": "integer"
+              },
+              "pings": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "accounts",
+              "sessions",
+              "verifications",
+              "contacts",
+              "favorites",
+              "notifications",
+              "attempts",
+              "videos",
+              "consentTraces",
+              "pings"
+            ],
+            "additionalProperties": false,
+            "description": "Lignes reellement supprimees, par traitement du registre."
+          }
+        },
+        "required": [
+          "ranAt",
+          "deleted"
+        ],
+        "additionalProperties": false
+      },
       "ModerationQueue": {
         "type": "object",
         "properties": {
@@ -4254,6 +5404,21 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ModerationRow"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "VideoModerationQueue": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoModerationRow"
             }
           }
         },

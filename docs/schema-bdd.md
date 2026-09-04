@@ -2,9 +2,9 @@
 
 > Modèle **logique**, cardinalités et index.
 > Il décrit ce que produisent les migrations `drizzle/0000_complex_shriek.sql`
-> `drizzle/0001_far_shiva.sql` et `drizzle/0002_stale_post.sql`, pas des
-> intentions. Toute divergence entre
-> ce document et `src/db/schema.ts` est un bug de l'un des deux.
+> à `drizzle/0006_retention_last_seen.sql`, pas des intentions. Toute
+> divergence entre ce document et `src/db/schema.ts` est un bug de l'un des
+> deux.
 
 - **SGBD** : SQLite (fichier unique, `DATABASE_URL=file:…`).
 - **Migrations** : Drizzle Kit. Rejouées au démarrage par `src/instrumentation.ts`.
@@ -26,6 +26,7 @@
 ```mermaid
 erDiagram
     user ||--o| profile : "possède (si candidate)"
+    user ||--o| company : "déclare (si recruiter)"
     user ||--o{ session : ouvre
     user ||--o{ account : authentifie
     user ||--o{ certification_attempt : tente
@@ -85,6 +86,7 @@ renommer. `user.role` et `user.birth_date` sont les seuls ajouts maison.
 | `image` | text | NULL | — |
 | `role` | text (`candidate` \| `recruiter` \| `admin`) | NOT NULL | `'candidate'` |
 | `birth_date` | text (`AAAA-MM-JJ`) | NULL | — |
+| `last_seen_at` | timestamp | NULL | — dernière ouverture de session |
 | `created_at` | timestamp | NOT NULL | `unixepoch()` |
 | `updated_at` | timestamp | NOT NULL | `unixepoch()` |
 
@@ -98,6 +100,15 @@ exigence n'en portent pas. Toute inscription *nouvelle* la renseigne
 obligatoirement — le contrôle vit dans `src/lib/auth.ts` et non dans le seul
 formulaire, donc un appel direct à l'API ne le contourne pas. Voir
 `docs/verification-age.md` pour le traitement des comptes antérieurs.
+
+**`last_seen_at`** — date de la dernière ouverture de session, écrite par le
+hook `databaseHooks.session.create.after` (`src/lib/auth.ts`), jamais par le
+client. C'est la **seule** mesure d'inactivité du dispositif, et donc le point
+d'ancrage de la durée de conservation d'un compte (R.5) : `updated_at` bouge
+dès qu'on touche au profil, et les lignes `session` sont purgées à six mois,
+bien avant les vingt-quatre mois d'inactivité. Nullable — les comptes
+antérieurs à la colonne n'en portent pas, et la purge retombe alors sur
+`created_at`. Voir `docs/registre-traitements.md`.
 
 #### `session`
 
@@ -158,6 +169,10 @@ formulaire, donc un appel direct à l'API ne le contourne pas. Voir
 | `video_consent_at` | timestamp | NULL | — date de l'accord, conservee apres un retrait |
 | `video_consent_version` | text | NULL | — version du texte acceptee |
 | `video_consent_revoked_at` | timestamp | NULL | — date du retrait |
+| `video_status` | text (`pending` \| `approved` \| `rejected`) | NOT NULL | `'pending'` |
+| `video_review_reason` | text | NULL | — motif montré au candidat |
+| `video_reviewed_by` | text | NULL, **FK → `user.id`** (`SET NULL`) | — décideur |
+| `video_reviewed_at` | timestamp | NULL | — date de la décision |
 | `created_at` / `updated_at` | timestamp | NOT NULL | `unixepoch()` |
 
 Les quatre colonnes `video_consent_*` forment le registre de consentement a la
@@ -165,6 +180,13 @@ diffusion video (R.3) : un booleen seul ne permettrait pas d'etablir *ce qui* a
 ete accepte ni *quand*. Le retrait remet `granted` a false, date `revoked_at` et
 declenche la suppression physique du fichier ; `at` et `version` survivent, comme
 trace. Voir `docs/consentement-video.md`.
+
+Les quatre colonnes `video_*` de modération (R.2) portent un statut **propre à
+la vidéo**, distinct de `status` : une vidéo fraîchement déposée est `pending`
+et n'est servie qu'à son titulaire et à l'administration, même sur un profil
+déjà publié. `video_reviewed_by` est en `SET NULL` et non en `CASCADE` :
+supprimer un compte d'administration ne doit pas effacer les décisions prises,
+seulement leur auteur. Voir `docs/moderation-video.md`.
 
 `views` est tenu en base et incrémenté à chaque consultation, mais ne sort pas
 du serveur : il figure dans le seul schéma `MyProfile` et ne s'affiche que dans
@@ -184,6 +206,28 @@ classe pas des personnes par audience. Toute mesure d'audience ajoutée plus tar
 Table de jointure et non colonne JSON : le catalogue filtre en SQL sur
 « possède **toutes** ces compétences » (`GROUP BY … HAVING COUNT`). Le contrat
 d'API plafonne à 8 compétences par profil (règle applicative, pas en base).
+
+#### `company` — entreprise rattachée à un compte recruteur
+
+| Colonne | Type | Contraintes | Défaut |
+| --- | --- | --- | --- |
+| `id` | text | **PK** | — |
+| `user_id` | text | NOT NULL, **UNIQUE**, **FK → `user.id`** (CASCADE) | — |
+| `name` | text | NOT NULL | — raison sociale |
+| `siren` | text | NOT NULL, **UNIQUE** | — neuf chiffres, forme normalisée |
+| `position` | text | NOT NULL | — poste du titulaire dans l'entreprise |
+| `address` / `postal_code` / `city` | text | NOT NULL | — |
+| `sector` | text (7 secteurs) | NOT NULL | — |
+| `phone` / `website` | text | NULL | — facultatifs |
+| `created_at` / `updated_at` | timestamp | NOT NULL | `unixepoch()` |
+
+Table séparée et non des colonnes sur `user` : ces informations décrivent une
+**personne morale**, pas le compte. Les mélanger laisserait une dizaine de
+colonnes nulles sur chaque candidat. Relation **1–1** (`unique` sur `user_id`) :
+l'inscription recruteur crée le compte et l'entreprise dans la même requête —
+un recruteur sans entreprise ne doit pas exister. La clé de Luhn du SIREN est
+vérifiée à l'entrée (`src/lib/siren.ts`), pas en base. Voir
+`docs/inscription-roles.md`.
 
 #### `question` — question du questionnaire de certification (CDC 2.2)
 
@@ -285,11 +329,39 @@ lus ensemble, liste évolutive.
 
 ---
 
+### 2.3 Durées de conservation (R.5)
+
+Aucune colonne ne porte de date d'expiration : les durées sont appliquées par
+**suppression**, table par table, depuis `src/server/services/retention.ts`
+(exécutée au démarrage puis toutes les 24 heures par `src/instrumentation.ts`).
+
+| Table | Date de référence | Durée |
+| --- | --- | --- |
+| `user` (+ cascade : `profile`, `profile_skill`, `company`, `session`, `account`, `notification`, `certification_attempt`, `favorite`, `contact`) | `last_seen_at`, à défaut `created_at` | 24 mois — sauf `role = 'admin'` |
+| `session` | `created_at` | 6 mois |
+| `verification` | `expires_at` | 30 jours |
+| `contact` | `updated_at` | 24 mois |
+| `favorite` | `created_at` | 24 mois |
+| `notification` | `created_at` | 12 mois |
+| `certification_attempt` (`submitted`) | `submitted_at` | 24 mois |
+| `certification_attempt` (`in_progress`) | `created_at` | 30 jours |
+| Fichier vidéo `rejected` | `video_reviewed_at` | 30 jours (la décision, elle, reste) |
+| `video_consent_at` / `_version` / `_revoked_at` | `video_consent_revoked_at` | 36 mois |
+| `ping` | `created_at` | 7 jours |
+
+Le **fichier** vidéo ne connaît pas la base : aucune cascade ne l'atteint, il
+est effacé explicitement avant la ligne. Le registre complet — finalité, base
+légale, destinataires — est dans `docs/registre-traitements.md`, et les mêmes
+durées sont annoncées aux personnes dans `docs/cgu.md`.
+
+---
+
 ## 3. Cardinalités
 
 | Relation | Côté 1 | Côté N | Cardinalité | Support |
 | --- | --- | --- | --- | --- |
 | Compte ↔ profil | `user` | `profile` | **1 – 0..1** (exactement 1 si `role = candidate`, 0 sinon) | `profile.user_id` NOT NULL + UNIQUE |
+| Compte ↔ entreprise | `user` | `company` | **1 – 0..1** (exactement 1 si `role = recruiter`, 0 sinon) | `company.user_id` NOT NULL + UNIQUE |
 | Compte ↔ sessions | `user` | `session` | 1 – 0..N | `session.user_id` |
 | Compte ↔ comptes d'auth | `user` | `account` | 1 – 1..N | `account.user_id` |
 | Compte ↔ tentatives | `user` | `certification_attempt` | 1 – 0..N (≤ 1 `in_progress`) | `certification_attempt.user_id` |
@@ -313,6 +385,8 @@ lus ensemble, liste évolutive.
 | `session_token_unique` | `session` | `token` | UNIQUE | résolution de session à chaque requête authentifiée |
 | `profile_user_id_unique` | `profile` | `user_id` | UNIQUE | garantit la relation 1–1 compte ↔ profil ; jointure `user → profile` |
 | `contact_recruiter_profile` | `contact` | `(recruiter_id, profile_id)` | UNIQUE | un seul fil de suivi par couple ; cible de l'`UPSERT` |
+| `company_user_id_unique` | `company` | `user_id` | UNIQUE | garantit la relation 1–1 compte ↔ entreprise |
+| `company_siren_unique` | `company` | `siren` | UNIQUE | deux comptes ne déclarent pas la même entreprise |
 
 ### 4.2 Index implicites (SQLite)
 

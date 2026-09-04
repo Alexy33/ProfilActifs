@@ -59,6 +59,38 @@ export const auth = betterAuth({
   },
 
   databaseHooks: {
+    session: {
+      create: {
+        /**
+         * Horodate la derniere connexion sur le compte (R.5).
+         *
+         * Ici et pas dans la page de connexion : toute ouverture de session
+         * passe par better-auth, quel que soit le chemin (formulaire,
+         * `POST /api/register`, appel direct a l'API). Un compteur pose
+         * ailleurs raterait au moins un de ces chemins, et une purge par
+         * inactivite qui se trompe supprime des comptes vivants.
+         *
+         * La duree de conservation du compte se mesure sur cette date
+         * (`src/server/services/retention.ts`), pas sur les lignes `session`
+         * elles-memes : celles-ci sont un journal de connexion, purge a six
+         * mois, bien avant les vingt-quatre mois d'inactivite.
+         */
+        after: async (created) => {
+          const userId = (created as { userId?: string }).userId;
+          if (!userId) return;
+
+          const { db } = await import("@/db");
+          const { user: userTable } = await import("@/db/schema");
+          const { eq } = await import("drizzle-orm");
+
+          await db
+            .update(userTable)
+            .set({ lastSeenAt: new Date() })
+            .where(eq(userTable.id, userId));
+        },
+      },
+    },
+
     user: {
       create: {
         /**

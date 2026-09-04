@@ -20,6 +20,7 @@ se decouvre sur [`/api/docs`](http://localhost:3000/api/docs).
 | Composants | shadcn/ui | `src/components/ui/` |
 | Tests | Vitest (unitaire) + Playwright (e2e) | `src/**/*.test.ts`, `e2e/` |
 | Conteneurisation | Docker (profils dev / prod) | `Dockerfile`, `docker-compose.yml` |
+| Conservation des donnees | Durees appliquees par purge quotidienne, pas seulement declarees | `src/server/services/retention.ts`, `docs/registre-traitements.md` |
 
 ## Demarrer
 
@@ -99,7 +100,15 @@ Le catalogue des reponses d'erreur, avec les corps reels et des appels `curl`,
 est dans [`docs/api-erreurs.md`](docs/api-erreurs.md). Le schema de la base est
 dans [`docs/schema-bdd.md`](docs/schema-bdd.md). L'upload et la lecture des
 videos de presentation (routes binaires) sont dans
-[`docs/video.md`](docs/video.md).
+[`docs/video.md`](docs/video.md), et leur moderation avant publication dans
+[`docs/moderation-video.md`](docs/moderation-video.md). L'inscription
+multi-roles et les informations d'entreprise demandees a un recruteur sont dans
+[`docs/inscription-roles.md`](docs/inscription-roles.md). Le registre des
+traitements — une ligne par traitement, chacune renvoyee a sa table et a sa
+colonne — est dans
+[`docs/registre-traitements.md`](docs/registre-traitements.md), et le projet de
+CGU qui annonce les memes durees aux personnes dans
+[`docs/cgu.md`](docs/cgu.md).
 
 ### Une route se declare une seule fois
 
