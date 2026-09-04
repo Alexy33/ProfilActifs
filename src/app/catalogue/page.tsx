@@ -86,10 +86,15 @@ export default async function CataloguePage({
 
   return (
     <SiteShell>
-      <main className="lg:h-screen lg:overflow-y-hidden">
-        <div className="w-full px-5 pb-24 pt-10 md:px-10 md:pt-14 lg:flex lg:h-full lg:flex-col lg:pb-8 lg:pl-4">
+      {/* A partir de `lg`, la page tient dans l'ecran et les deux colonnes
+          defilent SEPAREMMENT : parcourir les cartes ne fait pas disparaitre
+          les filtres, et parcourir les filtres ne deplace pas les resultats.
+          Sous `lg`, une seule colonne : la page defile normalement, empiler
+          deux zones de defilement sur un telephone n'a pas de sens. */}
+      <main className="lg:h-screen lg:overflow-hidden">
+        <div className="w-full px-5 pb-24 pt-10 md:px-10 md:pt-14 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:pb-0 lg:pl-4">
           {/* En-tete */}
-          <div className="flex flex-wrap items-end justify-between gap-6 border-b border-[#1B3A6B]/15 pb-8">
+          <div className="flex flex-wrap items-end justify-between gap-6 border-b border-[#1B3A6B]/15 pb-8 lg:shrink-0">
             <div>
               <h1 className="text-4xl font-extrabold uppercase leading-tight tracking-tight text-[#2d3748] md:text-6xl">
                 Découvrez les
@@ -107,15 +112,25 @@ export default async function CataloguePage({
             </p>
           </div>
 
+          {/* `lg:min-h-0` sur la grille ET sur chaque colonne.
+              Sans lui, rien ne defile : un element de grille vaut
+              `min-height: auto`, refuse donc de se comprimer sous la hauteur de
+              son contenu, et la rangee deborde du conteneur bloque a `100vh`.
+              La colonne garde alors sa barre de defilement mais son bas passe
+              hors ecran, inatteignable — c'etait 285 px perdus en 1280x720,
+              pagination comprise. */}
           <div className="mt-10 grid gap-8 lg:min-h-0 lg:flex-1 lg:grid-cols-[320px_1fr] lg:gap-12">
-            <div className="lg:sticky lg:top-28 lg:self-start">
+            {/* Defilement propre des filtres : le panneau mesure 733 px, soit
+                plus que la hauteur utile d'un portable courant. Sans lui, son
+                dernier filtre resterait sous la ligne de flottaison. */}
+            <div className="lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pb-8 lg:pr-2">
               {/* useSearchParams impose une frontiere de suspense au prerendu. */}
               <Suspense fallback={<div className="h-[520px] border border-[#1B3A6B]/20 bg-white" />}>
                 <CatalogueFilters sectors={SECTORS} cities={CITIES} skills={SKILLS} />
               </Suspense>
             </div>
 
-            <div className="lg:overflow-y-auto lg:pr-3">
+            <div className="lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pb-8 lg:pr-3">
               {items.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   {items.map((profile) => (
