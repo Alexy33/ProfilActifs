@@ -35,7 +35,9 @@ export const authPaths: Record<string, Record<string, unknown>> = {
       summary: "Creer un compte",
       operationId: "authSignUpEmail",
       description:
-        "Un compte `candidate` cree aussi un profil vide, en attente de moderation. Un compte `recruiter` n'en cree pas.",
+        "Route better-auth brute : elle cree TOUJOURS un compte `candidate`, avec son profil vide en attente de moderation. " +
+        "Le role n'est pas un champ d'entree — personne ne se promeut recruteur ni administrateur par ici. " +
+        "Pour creer un compte recruteur, utiliser `POST /api/register`, qui exige la declaration de l'entreprise.",
       requestBody: {
         required: true,
         content: {
