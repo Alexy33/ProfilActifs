@@ -86,6 +86,9 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
     }
     const refreshed = await fetch("/api/me/profile");
     if (refreshed.ok) setProfile(await refreshed.json());
+    // Le retrait efface la video ET son lien : on vide le champ, sinon la
+    // prochaine sauvegarde reproposerait le lien et se ferait refuser.
+    if (!granted) setForm((current) => ({ ...current, videoUrl: "" }));
     setMessage(granted ? "Consentement enregistré." : "Consentement retiré : la vidéo a été supprimée du stockage.");
     setBusy(null);
   }

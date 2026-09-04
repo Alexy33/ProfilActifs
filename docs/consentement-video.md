@@ -46,9 +46,21 @@ faute à éviter.
 Le profil n'est **pas masqué** : il subsiste, avec son statut inchangé, seuls le
 fichier et l'URL qui y menait disparaissent.
 
-Symétriquement, `saveProfileVideo` refuse tout envoi sans accord en cours (403) :
-un fichier déposé avant le consentement serait déjà un hébergement non couvert,
-même bref.
+Symétriquement, rien ne se met en diffusion sans accord en cours (403). La garde
+est `assertVideoConsent`, et **les deux chemins y passent** :
+
+| Chemin | Route | Gardé par |
+| --- | --- | --- |
+| Fichier déposé chez nous | `PUT /api/me/profile/video` | `saveProfileVideo` |
+| Lien YouTube / Vimeo | `PATCH /api/me/profile` (`videoUrl`) | le handler, avant écriture |
+
+Le consentement porte sur la **diffusion**, pas sur le mode d'hébergement : un
+lien externe expose l'image et la voix exactement comme un fichier déposé, et le
+fait que l'octet vive ailleurs ne change rien pour la personne filmée. Ne garder
+que le chemin fichier laissait le consentement se contourner en collant une URL.
+
+Retirer le lien (`videoUrl: null`) reste permis sans accord : on n'exige pas de
+consentement pour *cesser* de diffuser.
 
 ## API
 

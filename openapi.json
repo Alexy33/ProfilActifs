@@ -2015,7 +2015,7 @@
             }
           },
           "403": {
-            "description": "Session valide, mais role insuffisant.",
+            "description": "Role insuffisant, ou diffusion video sans consentement en cours.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2024,7 +2024,7 @@
                 "example": {
                   "error": {
                     "code": "forbidden",
-                    "message": "Cette ressource est reservee au role « candidate »."
+                    "message": "Aucun consentement en cours pour la diffusion de la video. Acceptez le texte en vigueur avant de mettre une video en ligne ou d'en publier le lien."
                   }
                 }
               }

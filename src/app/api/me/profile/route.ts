@@ -6,12 +6,29 @@ import { defineRoute } from "@/server/openapi/routes";
 import { AUTH_RESPONSES, errorResponse } from "@/server/contracts/common";
 import { MyProfileSchema, UpdateMyProfileBody } from "@/server/contracts/profile";
 import { findProfileByUserId, replaceSkills } from "@/server/services/profiles";
+import { assertVideoConsent, MissingVideoConsentError } from "@/server/services/video";
 
 export const dynamic = "force-dynamic";
 
 const PROFILE_NOT_FOUND = {
   "404": errorResponse("Aucun profil rattache a ce compte.", {
     error: { code: "not_found", message: "Aucun profil rattache a ce compte." },
+  }),
+} as const;
+
+/**
+ * Ce 403 remplace celui d'`AUTH_RESPONSES` sur cette route, et doit donc en
+ * couvrir les deux causes : il se spread APRES lui. Documenter le seul cas du
+ * role laisserait la specification muette sur le refus le plus probable ici.
+ */
+const CONSENT_REQUIRED = {
+  "403": errorResponse("Role insuffisant, ou diffusion video sans consentement en cours.", {
+    error: {
+      code: "forbidden",
+      message:
+        "Aucun consentement en cours pour la diffusion de la video. " +
+        "Acceptez le texte en vigueur avant de mettre une video en ligne ou d'en publier le lien.",
+    },
   }),
 } as const;
 
@@ -58,6 +75,7 @@ export const { PATCH } = defineRoute({
     "200": { description: "Profil mis a jour.", schema: MyProfileSchema },
     ...PROFILE_VALIDATION,
     ...AUTH_RESPONSES,
+    ...CONSENT_REQUIRED,
     ...PROFILE_NOT_FOUND,
   },
   handler: async ({ session, body }) => {
@@ -70,6 +88,20 @@ export const { PATCH } = defineRoute({
         .update(user)
         .set({ name: body.name, updatedAt: new Date() })
         .where(eq(user.id, session.user.id));
+    }
+
+    // Poser un lien video, c'est mettre en diffusion : meme garde que l'envoi
+    // d'un fichier (R.3). Sans cette verification, un lien YouTube contournait
+    // le consentement — l'octet vit ailleurs, mais l'image et la voix diffusees
+    // sont les memes. Retirer le lien (`null`) reste toujours permis : on ne
+    // demande pas d'accord pour cesser de diffuser.
+    if (typeof body.videoUrl === "string" && body.videoUrl.trim() !== "") {
+      try {
+        await assertVideoConsent(owned.id);
+      } catch (error) {
+        if (error instanceof MissingVideoConsentError) throw ApiError.forbidden(error.message);
+        throw error;
+      }
     }
 
     const { name: _name, skills, ...columns } = body;

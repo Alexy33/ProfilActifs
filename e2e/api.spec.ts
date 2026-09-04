@@ -296,6 +296,31 @@ test.describe("Consentement video (R.3)", () => {
     })).status()).toBe(200);
     expect((await context.get(`/api/videos/${profileId}`)).status()).toBe(200);
 
+    // 3 bis. Un lien externe est une mise en diffusion comme une autre : la
+    // meme garde doit s'appliquer, sinon le consentement se contourne en
+    // collant une URL YouTube au lieu d'envoyer un fichier.
+    await context.delete("/api/me/profile/video/consent");
+    const lienRefuse = await context.patch("/api/me/profile", {
+      data: { videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+    });
+    expect(lienRefuse.status()).toBe(403);
+
+    // Retirer le lien reste permis sans accord : on n'exige pas de
+    // consentement pour cesser de diffuser.
+    expect((await context.patch("/api/me/profile", { data: { videoUrl: null } })).status()).toBe(200);
+
+    // Une fois l'accord redonne, le lien passe.
+    await context.post("/api/me/profile/video/consent");
+    expect((await context.patch("/api/me/profile", {
+      data: { videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+    })).status()).toBe(200);
+
+    // On remet un fichier pour la suite du scenario.
+    expect((await context.put("/api/me/profile/video", {
+      headers: { "Content-Type": "video/mp4" },
+      data: payload,
+    })).status()).toBe(200);
+
     // 4. Le retrait supprime le fichier : l'URL ne repond plus.
     const revoked = await (await context.delete("/api/me/profile/video/consent")).json();
     expect(revoked.granted).toBe(false);

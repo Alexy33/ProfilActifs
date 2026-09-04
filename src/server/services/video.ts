@@ -53,7 +53,7 @@ export class MissingVideoConsentError extends Error {
   constructor() {
     super(
       "Aucun consentement en cours pour la diffusion de la video. " +
-        "Acceptez le texte en vigueur avant d'envoyer un fichier.",
+        "Acceptez le texte en vigueur avant de mettre une video en ligne ou d'en publier le lien.",
     );
     this.name = "MissingVideoConsentError";
   }
@@ -65,6 +65,20 @@ export interface StoredVideo {
   extension: string;
 }
 
+/**
+ * Refuse toute mise en diffusion sans accord en cours.
+ *
+ * Le consentement porte sur la DIFFUSION, pas sur le mode d'hebergement. Un
+ * lien YouTube ou Vimeo expose l'image et la voix exactement comme un fichier
+ * depose chez nous : le fait que l'octet vive ailleurs ne change rien pour la
+ * personne filmee. Les deux chemins passent donc par la meme garde, et c'est
+ * pour cela qu'elle est exportee plutot que recopiee dans chaque route.
+ */
+export async function assertVideoConsent(profileId: string): Promise<void> {
+  const consent = await readVideoConsent(profileId);
+  if (!consent?.granted) throw new MissingVideoConsentError();
+}
+
 export async function saveProfileVideo(
   profileId: string,
   extension: string,
@@ -72,8 +86,7 @@ export async function saveProfileVideo(
 ): Promise<StoredVideo> {
   // Rien n'entre en stockage sans accord en cours : un fichier depose avant le
   // consentement serait deja un hebergement non couvert, meme bref.
-  const consent = await readVideoConsent(profileId);
-  if (!consent?.granted) throw new MissingVideoConsentError();
+  await assertVideoConsent(profileId);
 
   const dir = await ensureDir();
 
