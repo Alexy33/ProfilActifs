@@ -11,12 +11,10 @@ import { Button } from "@/components/ui/button";
  * connexion, session persistante) et l'ecriture en base.
  */
 export function StackPanel({
-  pings,
   users,
   sessionEmail,
   sessionName,
 }: {
-  pings: number;
   users: number;
   sessionEmail: string | null;
   sessionName: string | null;
@@ -52,18 +50,11 @@ export function StackPanel({
     refresh();
   }
 
-  async function sendPing() {
-    setBusy(true);
-    await fetch("/api/ping", { method: "POST" });
-    setBusy(false);
-    refresh();
-  }
-
   return (
     <div className="mt-9 flex flex-col gap-6">
       <ul className="flex flex-col border border-divider">
         <Row name="Next.js 16" detail="App Router · composants serveur" />
-        <Row name="SQLite + Drizzle" detail={`${users} comptes · ${pings} pings enregistres`} />
+        <Row name="SQLite + Drizzle" detail={`${users} comptes`} />
         <Row
           name="better-auth"
           detail={
@@ -122,16 +113,6 @@ export function StackPanel({
             {error}
           </p>
         )}
-
-        <div className="flex items-center gap-3 border-t border-divider pt-4">
-          <span className="text-sm text-text/70">Ecriture en base :</span>
-          <Button onClick={sendPing} disabled={busy}>
-            Ping la base
-          </Button>
-          <span className="font-mono text-[11px] text-text/55" data-testid="ping-count">
-            {pings} ping(s)
-          </span>
-        </div>
 
         <p className="font-mono text-[10.5px] text-text/50">
           Le compte de demo est cree automatiquement a la premiere connexion.

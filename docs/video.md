@@ -27,6 +27,8 @@ Le front traite les deux cas comme « une URL ».
 Un fichier par profil : `{profileId}.{mp4|webm|ogv|mov}`. Écriture dans un
 `.part` puis `rename` atomique — pas de demi-fichier servi.
 
+Si l'upload est interrompu avant sa fin, seul le fichier temporaire `.part` peut subsister ; le fichier vidéo final n'est créé qu'après un téléversement complet grâce au renommage atomique.
+
 Logique : `src/server/services/video.ts`.
 
 ## 3. Routes

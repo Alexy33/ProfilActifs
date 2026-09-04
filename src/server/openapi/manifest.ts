@@ -11,7 +11,6 @@
  */
 
 import "@/app/api/health/route";
-import "@/app/api/ping/route";
 import "@/app/api/reference/route";
 import "@/app/api/stats/route";
 
