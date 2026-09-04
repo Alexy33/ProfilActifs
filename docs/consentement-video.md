@@ -30,6 +30,13 @@ sienne.
 retrait** : ils disent ce qui avait été accepté et quand, et c'est ce qui rend le
 registre auditable.
 
+Conservés, mais pas indéfiniment : **36 mois après le retrait**, les trois
+colonnes sont remises à `NULL` par la purge (`src/server/services/retention.ts`).
+Passé ce délai, plus aucune diffusion n'est défendable ni contestable, et la
+preuve redevient une donnée gardée sans raison. Le délai est écrit au registre
+(`docs/registre-traitements.md`) et annoncé aux personnes dans les CGU
+(`docs/cgu.md`).
+
 ## Le retrait supprime le fichier
 
 `revokeVideoConsent` (`src/server/services/video.ts`) appelle
