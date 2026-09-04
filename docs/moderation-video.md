@@ -121,6 +121,38 @@ La migration porte un `UPDATE` explicite **en plus** du `DEFAULT 'pending'` de
 la colonne : la décision doit se lire dans la migration, pas se déduire d'une
 valeur par défaut.
 
+### Celles qui avaient déjà été consultées par un recruteur
+
+Trois options se présentaient : les retirer, les laisser, les signaler. **Nous
+les retirons**, sans exception ni traitement particulier.
+
+Les laisser aurait créé deux régimes selon un critère qui n'a rien à voir avec
+le contenu : une vidéo problématique serait restée en ligne parce qu'elle avait
+été vue, pendant qu'une vidéo irréprochable attendait parce qu'elle ne l'avait
+pas été. C'est l'inverse de ce que la modération a priori cherche à établir.
+
+Les signaler — les marquer « vue avant modération » et les laisser accessibles —
+revenait à laisser en ligne un contenu dont nous disons nous-mêmes qu'il n'a pas
+été examiné. Le signalement ne déplace pas la responsabilité, il la documente.
+
+Nous ne disposons d'ailleurs pas de l'information : le dispositif ne journalise
+pas qui a consulté quelle vidéo. `profile.views` est un compteur agrégé, privé
+au titulaire (R.4), sans identité ni date. Distinguer les vidéos « déjà vues »
+supposerait de créer ce journal, c'est-à-dire d'enregistrer qui regarde qui —
+une collecte que nous n'avons ni la finalité ni la base légale d'ouvrir, et que
+le registre des traitements ne prévoit pas.
+
+**Aucun recruteur n'est prévenu** qu'une vidéo qu'il avait consultée est
+redevenue indisponible. Une notification supposerait le même journal, et elle
+n'apporterait rien : le recruteur constate l'absence sur la fiche, et rien ne
+lui avait été promis quant à la permanence du contenu.
+
+**Le candidat, lui, voit le changement** : son espace affiche « Vidéo en attente
+de validation » et la vidéo reste lisible pour lui seul. Il n'est pas notifié pour
+autant — le lot migré concerne tout le monde en même temps, et une notification
+de masse annonçant un retour en attente serait plus inquiétante
+qu'informative. Il retrouve la diffusion dès la validation.
+
 Le jeu de démonstration (`npm run db:seed`) montre les trois états : la vidéo de
 **Marion Estève** reste en attente (profil pourtant publié), celle de **Yann
 Kervella** est refusée avec motif, les autres sont validées.
