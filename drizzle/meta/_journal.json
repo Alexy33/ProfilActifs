@@ -29,6 +29,13 @@
       "when": 1788460664261,
       "tag": "0003_red_moonstone",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788500906238,
+      "tag": "0004_chief_black_queen",
+      "breakpoints": true
     }
   ]
 }

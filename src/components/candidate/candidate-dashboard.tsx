@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BadgeCheck, Bell, Eye, FileVideo, Loader2, MessageSquare, Save, ShieldCheck, ShieldOff, Upload } from "lucide-react";
+import { BadgeCheck, Bell, CircleCheck, CircleX, Clock, Eye, FileVideo, Loader2, MessageSquare, Save, ShieldCheck, ShieldOff, Upload } from "lucide-react";
 
 import { ProfileVideo } from "@/components/catalogue/profile-video";
 import type { City, Sector, Skill } from "@/lib/vocabulary";
@@ -94,6 +94,7 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
   }
 
   const consent = profile.videoConsent;
+  const moderation = profile.videoModeration;
   const consentDate = (value: string | null) =>
     value ? new Date(value).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" }) : "—";
 
@@ -155,6 +156,46 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
               {form.videoUrl.trim() ? <button type="button" onClick={save} disabled={busy !== null} className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2d3748] px-4 text-sm font-semibold text-white hover:bg-[#1E293B] disabled:opacity-60"><Save className="size-4" /> Enregistrer le lien</button> : null}
             </div>
           </div>
+
+          {/* Moderation de la video (R.2) : ou en est la video, et — en cas de
+              refus — ce qui est reproche. Le motif est affiche tel qu'il a ete
+              saisi par l'administration : c'est ce qui permet de corriger. */}
+          {profile.videoUrl ? (
+            <div className={`mt-6 rounded-2xl border p-5 ${moderation.status === "approved" ? "border-[#17603a]/25 bg-[#dff7e9]" : moderation.status === "rejected" ? "border-[#8a3f5b]/25 bg-[#ffe8ef]" : "border-[#8a5208]/25 bg-[#fff0d9]"}`}>
+              <div className="flex items-center gap-3">
+                <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl bg-white ${moderation.status === "approved" ? "text-[#17603a]" : moderation.status === "rejected" ? "text-[#8a3f5b]" : "text-[#8a5208]"}`}>
+                  {moderation.status === "approved" ? <CircleCheck className="size-5" /> : moderation.status === "rejected" ? <CircleX className="size-5" /> : <Clock className="size-5" />}
+                </span>
+                <div>
+                  <h3 className="text-lg font-bold uppercase text-[#2d3748]">
+                    {moderation.status === "approved" ? "Vidéo validée" : moderation.status === "rejected" ? "Vidéo refusée" : "Vidéo en attente de validation"}
+                  </h3>
+                  <p className="text-sm text-[#4a5568]">
+                    {moderation.status === "approved"
+                      ? "Elle est visible des recruteurs sur votre profil public."
+                      : moderation.status === "rejected"
+                        ? "Elle n’est pas diffusée. Corrigez le point ci-dessous puis envoyez une nouvelle vidéo."
+                        : "Elle n’est visible que de vous et de l’administration tant qu’elle n’a pas été examinée."}
+                  </p>
+                </div>
+              </div>
+
+              {moderation.status === "rejected" && moderation.reason ? (
+                <p className="mt-4 rounded-xl bg-white p-4 text-sm text-[#2d3748]">
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#566274]">Motif du refus</span>
+                  <br />
+                  {moderation.reason}
+                </p>
+              ) : null}
+
+              {moderation.decidedAt ? (
+                <p className="mt-3 font-mono text-[11px] uppercase tracking-wider text-[#566274]">
+                  Décision du {consentDate(moderation.decidedAt)}
+                  {moderation.decidedBy ? ` — ${moderation.decidedBy}` : ""}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           {/* Consentement a la diffusion (R.3) : ce qui a ete accepte, quand, et
               sur quelle redaction — puis le retrait, qui efface le fichier. */}

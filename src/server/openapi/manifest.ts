@@ -39,6 +39,8 @@ import "@/app/api/me/contacts/[id]/route";
 import "@/app/api/admin/stats/route";
 import "@/app/api/admin/profiles/route";
 import "@/app/api/admin/profiles/[id]/route";
+import "@/app/api/admin/videos/route";
+import "@/app/api/admin/videos/[id]/route";
 import "@/app/api/admin/questions/route";
 import "@/app/api/admin/questions/[id]/route";
 import "@/app/api/admin/settings/route";

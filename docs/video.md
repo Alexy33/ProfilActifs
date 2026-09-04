@@ -33,6 +33,10 @@ Logique : `src/server/services/video.ts`.
 
 ### `PUT /api/me/profile/video` — téléverser
 
+> Un fichier déposé repart toujours en `video_status = pending` : il n'hérite
+> jamais de la décision prise sur celui qu'il remplace (R.2).
+
+
 - Accès : session **candidate**.
 - Le **corps de la requête est le fichier**. `Content-Type` obligatoire et
   déterminant : `video/mp4`, `video/webm`, `video/ogg`, `video/quicktime`.
@@ -63,8 +67,11 @@ Réponse `200` : `MyProfile`.
 ### `GET /api/videos/{id}` — lire
 
 - `id` = `profile.id`.
-- **Public** si le profil est `published` ; sinon réservé au titulaire ou à un
-  admin (même règle que la fiche).
+- **Public** si le profil est `published` **et** la vidéo validée par la
+  modération (`video_status = approved`, R.2) ; sinon réservé au titulaire ou à
+  un admin. Une vidéo tout juste déposée est donc en `404` pour tout le monde
+  d'autre, y compris par son URL directe — cf.
+  [`docs/moderation-video.md`](moderation-video.md).
 - Gère l'en-tête **`Range`** → `206 Partial Content` avec `Content-Range`, pour
   que la balise `<video>` puisse chercher dans la timeline sans re-télécharger.
 - En-têtes : `Content-Type`, `Accept-Ranges: bytes`, `Cache-Control: private`.
@@ -81,7 +88,9 @@ curl -H 'Range: bytes=0-1048575' http://localhost:3000/api/videos/<profileId>
   `src/server/openapi/video-paths.ts` → visible dans Scalar (`/api/docs`) et
   Swagger (`/api/swagger`).
 - Couverture e2e : `e2e/video.spec.ts` (upload, `Range`, plafond 100 Mo, type
-  refusé, 401/403, suppression, présence dans la spec).
+  refusé, 401/403, suppression, présence dans la spec) et
+  `e2e/video-moderation.spec.ts` (R.2 : attente, validation, refus motivé,
+  accès direct).
 
 ## 5. Ce qui n'est volontairement pas fait (démonstrateur)
 

@@ -65,7 +65,9 @@ export const videoPaths: Record<string, Record<string, unknown>> = {
         "Content** avec `Content-Range` quand le lecteur cherche dans la timeline",
         "(CDC §3.2, prévisionnement sans quitter la page).",
         "",
-        "Un profil non `published` n'est servi qu'à son titulaire ou à un admin.",
+        "Un profil non `published`, ou dont la vidéo n'est pas validée par la",
+        "modération (R.2), n'est servi qu'à son titulaire ou à un admin : la",
+        "réponse est **404** pour tout autre appelant, URL directe comprise.",
       ].join("\n"),
       parameters: [
         {

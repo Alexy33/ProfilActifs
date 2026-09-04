@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray, isNotNull, like, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { profile, profileSkill, user } from "@/db/schema";
-import type { City, ProfileStatus, Sector, Skill } from "@/lib/vocabulary";
+import type { City, ProfileStatus, Sector, Skill, VideoStatus } from "@/lib/vocabulary";
 import { MAJORITY_AGE, isMinor } from "@/lib/age";
 
 
@@ -43,6 +43,15 @@ export interface FullProfile extends ProfileCard {
  * montre au candidat dans son espace, mais ne sort jamais du serveur autrement
  * — ni fiche publique, ni catalogue, ni vue recruteur, ni export.
  */
+/** Moderation de la video telle qu'elle est servie au titulaire (R.2). */
+export interface VideoModerationView {
+  status: VideoStatus;
+  reason: string | null;
+  /** Nom de l'administrateur decideur, resolu ici : le front n'a pas d'annuaire. */
+  decidedBy: string | null;
+  decidedAt: string | null;
+}
+
 /** Consentement video tel qu'il est servi : dates en ISO, comme le reste du module. */
 export interface VideoConsentView {
   granted: boolean;
@@ -55,6 +64,8 @@ export interface OwnProfile extends FullProfile {
   views: number;
   /** Etat du consentement a la diffusion video (R.3). Ne sort pas de l'espace du titulaire. */
   videoConsent: VideoConsentView;
+  /** Etat de moderation de la video (R.2), motif de refus compris. Idem. */
+  videoModeration: VideoModerationView;
 }
 
 /** « Sonia Delaunay-Frey » -> « SD ». Calcule ici pour que le front n'ait rien a deviner. */
@@ -99,11 +110,19 @@ function toFull(
   birthDate: string | null,
   viewer: ProfileViewer,
 ): FullProfile {
-  // Video d'un mineur : masquee a tout le monde sauf au titulaire et a
-  // l'administration (R.1). On retire l'URL du contrat plutot que de compter
-  // sur la route /api/videos/{id} pour repondre 404 : la fiche afficherait
-  // sinon un lecteur qui ne charge jamais.
-  const hideVideo = isMinor(birthDate) && viewer !== "owner" && viewer !== "admin";
+  // Deux masquages, une seule regle : l'URL ne sort du contrat que pour le
+  // titulaire et l'administration des lors que
+  //
+  // - le titulaire est mineur (16-18 ans), sa video n'etant pas diffusee
+  //   publiquement par defaut (R.1) ;
+  // - la video n'est pas encore validee par la moderation (R.2).
+  //
+  // On retire l'URL du contrat plutot que de compter sur la route
+  // /api/videos/{id} pour repondre 404 : la fiche afficherait sinon un lecteur
+  // qui ne charge jamais. La route refuse quand meme — c'est elle qui garde le
+  // fichier, le contrat ne fait qu'eviter d'annoncer ce qui ne sera pas servi.
+  const privileged = viewer === "owner" || viewer === "admin";
+  const hideVideo = !privileged && (isMinor(birthDate) || row.videoStatus !== "approved");
 
   return {
     ...toCard(row, name, skills),
@@ -340,6 +359,20 @@ async function findOne(
   // « le candidat regarde sa propre fiche » de « un tiers la regarde ».
   const viewer = viewerOf(session, row.profile.userId);
   const skills = await skillsByProfile([row.profile.id]);
+
+  // Nom du moderateur resolu ici : le candidat lit « refusee par X », pas un
+  // identifiant technique. Requete separee et non jointure, parce qu'elle ne
+  // concerne que les profils deja moderes.
+  const decidedBy = row.profile.videoReviewedBy
+    ? ((
+        await db
+          .select({ name: user.name })
+          .from(user)
+          .where(eq(user.id, row.profile.videoReviewedBy))
+          .limit(1)
+      )[0]?.name ?? null)
+    : null;
+
   return {
     ...toFull(row.profile, row.name, skills.get(row.profile.id) ?? [], row.birthDate, viewer),
     views: row.profile.views,
@@ -348,6 +381,12 @@ async function findOne(
       grantedAt: row.profile.videoConsentAt?.toISOString() ?? null,
       version: row.profile.videoConsentVersion,
       revokedAt: row.profile.videoConsentRevokedAt?.toISOString() ?? null,
+    },
+    videoModeration: {
+      status: row.profile.videoStatus,
+      reason: row.profile.videoReviewReason,
+      decidedBy,
+      decidedAt: row.profile.videoReviewedAt?.toISOString() ?? null,
     },
   };
 }
@@ -365,7 +404,7 @@ export async function findProfileById(
 ): Promise<FullProfile | null> {
   const found = await findOne(eq(profile.id, id), session);
   if (!found) return null;
-  const { views: _views, videoConsent: _consent, ...pub } = found;
+  const { views: _views, videoConsent: _consent, videoModeration: _moderation, ...pub } = found;
   return pub;
 }
 

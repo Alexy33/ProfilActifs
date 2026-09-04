@@ -7,6 +7,7 @@ import {
   QueryBoolean,
   SectorSchema,
   SkillSchema,
+  VideoStatusSchema,
   pageOf,
 } from "./common";
 
@@ -40,6 +41,30 @@ export const VideoConsentNoticeSchema = named(
     version: z.string(),
     text: z.string(),
     consent: VideoConsentSchema,
+  }),
+);
+
+/**
+ * Etat de moderation de la video (R.2), tel que le voit son titulaire.
+ *
+ * Rattache au seul `MyProfile`, comme le consentement : le motif d'un refus est
+ * une correspondance entre l'administration et le candidat, pas un attribut
+ * public de la fiche. Un recruteur n'a pas a savoir ce qui a ete reproche a une
+ * video — il ne voit que celles qui sont validees.
+ */
+export const VideoModerationSchema = named(
+  "VideoModeration",
+  z.object({
+    status: VideoStatusSchema,
+    reason: z
+      .string()
+      .nullable()
+      .meta({ description: "Motif de la decision. Renseigne pour tout refus." }),
+    decidedBy: z
+      .string()
+      .nullable()
+      .meta({ description: "Nom de l'administrateur qui a decide." }),
+    decidedAt: z.iso.datetime().nullable().meta({ description: "Horodatage de la decision." }),
   }),
 );
 
@@ -93,6 +118,7 @@ export const MyProfileSchema = named(
       description: "Nombre de consultations. Visible du seul titulaire du profil.",
     }),
     videoConsent: VideoConsentSchema,
+    videoModeration: VideoModerationSchema,
   }),
 );
 

@@ -7,6 +7,7 @@ import {
   SECTORS,
   SKILLS,
   USER_ROLES,
+  VIDEO_STATUSES,
   mutable,
 } from "@/lib/vocabulary";
 
@@ -41,6 +42,21 @@ export const user = sqliteTable("user", {
   // Nullable a dessein : les comptes crees avant cette exigence n'en ont pas.
   // Toute inscription NOUVELLE la renseigne obligatoirement (cf. src/lib/auth.ts).
   birthDate: text("birth_date"),
+
+  // Derniere ouverture de session (R.5). Ecrite par le hook
+  // `databaseHooks.session.create.after` de src/lib/auth.ts, jamais par le
+  // client.
+  //
+  // Sans cette colonne, aucune duree de conservation du compte n'est
+  // mesurable : `updatedAt` bouge des qu'on touche au profil, et les lignes
+  // `session` sont elles-memes purgees a six mois. Il faut donc un point fixe
+  // qui dise « ce compte sert encore » et qui survive a la purge du journal de
+  // connexion.
+  //
+  // Nullable : les comptes anterieurs a la colonne n'en portent pas. La purge
+  // retombe alors sur `createdAt` (cf. `src/server/services/retention.ts`), ce
+  // qui ne supprime jamais un compte plus tot que la regle annoncee.
+  lastSeenAt: integer("last_seen_at", { mode: "timestamp" }),
 
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
@@ -171,6 +187,24 @@ export const profile = sqliteTable("profile", {
   videoConsentVersion: text("video_consent_version"),
   videoConsentRevokedAt: integer("video_consent_revoked_at", { mode: "timestamp" }),
 
+  // Moderation de la video avant publication (R.2).
+  //
+  // Statut propre a la video, separe de `status` : une video nouvellement
+  // deposee est `pending` et n'est servie a personne d'autre que son titulaire
+  // et l'administration, meme si le profil est deja publie.
+  //
+  // Le motif, le decideur et la date de decision sont conserves ensemble : une
+  // moderation qui ne dit ni qui ni quand ni pourquoi n'est pas opposable, et
+  // c'est le motif qui est montre au candidat sur son espace.
+  videoStatus: text("video_status", { enum: mutable(VIDEO_STATUSES) })
+    .notNull()
+    .default("pending"),
+  videoReviewReason: text("video_review_reason"),
+  // `set null` et non `cascade` : la suppression d'un compte d'administration
+  // ne doit pas effacer les decisions prises, seulement leur auteur.
+  videoReviewedBy: text("video_reviewed_by").references(() => user.id, { onDelete: "set null" }),
+  videoReviewedAt: integer("video_reviewed_at", { mode: "timestamp" }),
+
   status: text("status", { enum: mutable(PROFILE_STATUSES) })
     .notNull()
     .default("pending"),
@@ -210,6 +244,65 @@ export const profileSkill = sqliteTable(
   },
   (table) => [primaryKey({ columns: [table.profileId, table.skill] })],
 );
+
+/**
+ * Entreprise rattachee a un compte recruteur.
+ *
+ * Table separee et non des colonnes sur `user` : ces informations decrivent une
+ * PERSONNE MORALE, pas le compte. Les melanger a l'identite du titulaire
+ * obligerait a laisser une dizaine de colonnes nulles sur chaque candidat, et
+ * rendrait impossible de dire ce qu'on sait de l'entreprise sans lire le
+ * compte.
+ *
+ * Relation 1-1 avec `user` (`unique`) : l'inscription recruteur cree le compte
+ * et l'entreprise dans la meme requete. Un recruteur sans entreprise ne doit
+ * pas exister — c'est ce qui identifie la personne qui contacte des candidats.
+ */
+export const company = sqliteTable("company", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => user.id, { onDelete: "cascade" }),
+
+  /** Raison sociale, telle qu'elle figure a l'annuaire des entreprises. */
+  name: text("name").notNull(),
+
+  /**
+   * SIREN : neuf chiffres, forme normalisee (sans espaces).
+   *
+   * `unique` : deux comptes ne declarent pas la meme entreprise. Cette
+   * contrainte est ce qui empeche un compte de se faire passer pour une
+   * entreprise deja inscrite.
+   *
+   * Valide par `isValidSiren` (cle de Luhn) a l'entree, pas ici : SQLite ne
+   * porte pas cette regle, et la faire vivre dans le contrat la rend visible
+   * dans la documentation.
+   */
+  siren: text("siren").notNull().unique(),
+
+  /** Poste occupe par le titulaire du compte DANS l'entreprise. */
+  position: text("position").notNull(),
+
+  address: text("address").notNull(),
+  postalCode: text("postal_code").notNull(),
+  city: text("city").notNull(),
+
+  sector: text("sector", { enum: mutable(SECTORS) }).notNull(),
+
+  // Facultatifs : utiles pour joindre l'entreprise, jamais exiges a
+  // l'inscription — un formulaire qui reclame tout fait fuir plus qu'il ne
+  // renseigne.
+  phone: text("phone"),
+  website: text("website"),
+
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
 
 /* --- Certification (CDC 2.2) --------------------------------------------- */
 
