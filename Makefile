@@ -1,6 +1,6 @@
 # Raccourcis pour l'equipe. `make` seul affiche l'aide.
 .DEFAULT_GOAL := help
-.PHONY: help dev prod build stop clean logs shell migrate seed openapi test backup
+.PHONY: help dev prod build stop clean logs shell migrate seed openapi test backup video
 
 help: ## Affiche cette aide
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
@@ -45,3 +45,10 @@ backup: ## Sauvegarde la base dans ./backups/
 		alpine sh -c "apk add --no-cache sqlite >/dev/null && \
 		sqlite3 /data/profilsactifs.db \".backup /backup/profilsactifs-$$(date +%Y%m%d-%H%M%S).db\""
 	@echo "Sauvegarde ecrite dans ./backups/"
+
+video: ## Tourne la video de presentation (serveur deja lance) + sous-titres
+	npx playwright test --config=scripts/demo/playwright.tournage.ts
+	ffmpeg -y -i docs/captures/video/presentation-brut.webm \
+	  -vf "subtitles=docs/captures/video/sous-titres.srt:force_style='FontName=DejaVu Sans,FontSize=11,Bold=1,PrimaryColour=&HFFFFFF&,BackColour=&HB0201A14&,BorderStyle=4,Outline=0,Shadow=0,MarginV=22,MarginL=90,MarginR=90,Alignment=2'" \
+	  -c:v libx264 -preset medium -crf 23 -pix_fmt yuv420p -movflags +faststart \
+	  docs/captures/video/presentation.mp4

@@ -1,0 +1,78 @@
+1
+00:00:00,489 --> 00:00:04,993
+Un CV dit ce qu'on a fait. Il ne montre pas comment on le fait.
+
+2
+00:00:06,073 --> 00:00:12,075
+ProfilsActifs ajoute au dossier ce que le papier ne porte pas :
+une vidéo de présentation, et une certification des compétences.
+
+3
+00:00:12,713 --> 00:00:15,217
+Le catalogue est public.
+
+4
+00:00:17,829 --> 00:00:21,332
+On filtre par métier, secteur, ville, compétence.
+
+5
+00:00:21,390 --> 00:00:26,894
+Et on tombe sur un profil qui se présente lui-même, en vidéo,
+avec son badge de certification.
+
+6
+00:00:27,764 --> 00:00:33,266
+Côté demandeur, tout tient sur un écran :
+le profil, la vidéo, les vues, les contacts reçus.
+
+7
+00:00:34,326 --> 00:00:37,831
+La vidéo part en modération avant d'être diffusable.
+
+8
+00:00:38,532 --> 00:00:42,034
+Aucune vidéo n'est hébergée sans accord explicite.
+
+9
+00:00:43,094 --> 00:00:48,603
+L'accord se retire d'un clic. Le retrait supprime le fichier —
+la page le dit avant de le faire.
+
+10
+00:00:49,730 --> 00:00:53,737
+Et garde la trace de ce qui avait été consenti, pour trente-six mois.
+
+11
+00:00:54,405 --> 00:00:57,406
+Un questionnaire, un barème pondéré, un badge.
+
+12
+00:00:57,433 --> 00:01:02,938
+La certification n'est pas déclarative : elle est passée sur la plateforme,
+et le score s'affiche sur le profil public.
+
+13
+00:01:03,842 --> 00:01:07,844
+Le recruteur met de côté, contacte, et suit chaque échange.
+
+14
+00:01:08,951 --> 00:01:13,958
+Le demandeur reçoit la notification dans son espace :
+la mise en relation est tracée des deux côtés.
+
+15
+00:01:14,850 --> 00:01:18,353
+L'administration modère les vidéos avant diffusion.
+
+16
+00:01:20,282 --> 00:01:23,785
+Elle gère le questionnaire et pilote la plateforme.
+
+17
+00:01:27,398 --> 00:01:32,403
+Et toute l'API est documentée et essayable,
+générée depuis les routes elles-mêmes.
+
+18
+00:01:32,615 --> 00:01:36,617
+ProfilsActifs. La compétence se voit, et se certifie.
