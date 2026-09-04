@@ -5,6 +5,43 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ---------------------------------------------------------------------------
+ * Charte graphique ministerielle (R.10)
+ *
+ * Marianne pour les titres, Spectral pour le corps. Marianne n'est pas sur
+ * Google Fonts : c'est le caractere propre de l'Etat, distribue avec le DSFR
+ * (@gouvfr/dsfr 1.15.2, Licence Ouverte 2.0). Les fichiers sont donc
+ * auto-heberges dans public/fonts plutot que charges depuis un tiers — ce qui
+ * evite aussi une requete vers un domaine externe sur chaque page publique.
+ *
+ * `font-display: swap` : le texte reste lisible pendant le chargement plutot
+ * que de laisser un bloc invisible, ce qui compte pour un service public
+ * consulte sur des connexions lentes.
+ * ------------------------------------------------------------------------ */
+@font-face {
+  font-family: "Marianne";
+  src: url("/fonts/Marianne-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Marianne";
+  src: url("/fonts/Marianne-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Marianne";
+  src: url("/fonts/Marianne-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------------------------------------------------------------------------
  * Systeme "Industry" (cf. maquette + ds/styles.css) porte dans Tailwind v4.
  * Tout est declare ici : v4 n'a plus de tailwind.config.js. Chaque entree
  * @theme genere l'utilitaire correspondant (bg-accent, text-accent-700...).
@@ -15,16 +52,67 @@
   --color-text: #1d1f20;
   --color-divider: color-mix(in srgb, #1d1f20 16%, transparent);
 
+  /* -------------------------------------------------------------------------
+   * Echelle de bleus institutionnels.
+   *
+   * Le #1B3A6B de la charte est le primaire ; les degres autour de lui servent
+   * a batir l'interface en nuances de bleu plutot qu'en « un bleu + des gris ».
+   * La marche 600 valait #355159 (une teinte tirant vers le canard, etrangere
+   * a la gamme) : remise a #2F4A6B, elle rend la progression reguliere.
+   *
+   * Lisibilite du texte sur le fond de page #ebf0f7 :
+   *   accent (#1B3A6B) 9.84:1 · 700 9.82:1 · 500 4.88:1  -> texte
+   *   400 (#6B8CB5) 3.03:1                               -> decor / aplats seulement
+   * ---------------------------------------------------------------------- */
   --color-accent: #1B3A6B;
   --color-accent-100: #E8F0F8;
   --color-accent-200: #D1DEF0;
   --color-accent-300: #A8C5E0;
   --color-accent-400: #6B8CB5;
   --color-accent-500: #4A6B8A;
-  --color-accent-600: #355159;
+  --color-accent-600: #2F4A6B;
   --color-accent-700: #273D4F;
   --color-accent-800: #1B2D3E;
   --color-accent-900: #0F1D2A;
+
+  /* Textes : bleutes plutot que gris neutres, pour que l'ensemble se lise
+     comme une interface bleue. Le contraste y gagne au passage — le
+     secondaire monte de 5.4:1 a 6.67:1 sur le fond de page. */
+  --color-texte: #22334D;
+  --color-texte-secondaire: #41556E;
+
+  /* -------------------------------------------------------------------------
+   * Couleur d'action secondaire (R.10).
+   *
+   * La charte interdit le bleu institutionnel en fond de bouton : il faut donc
+   * une couleur portant l'action. Anthracite #2d3748 — un neutre sombre, deja
+   * la couleur de texte du produit, choisi pour NE PAS concurrencer l'echelle
+   * de bleus : l'interface se lit comme entierement bleue, et le bouton comme
+   * un element neutre pose dessus.
+   *
+   * Mesures (memes formules que scripts/a11y-audit.mjs) :
+   *   - blanc sur anthracite ............ 11.99:1 (AA, seuil 4.5)
+   *   - blanc sur survol #1E293B ........ 14.63:1
+   *   - anthracite sur blanc ............ 11.99:1
+   *   - anthracite sur fond page ........ 10.47:1
+   *
+   * « Elle doit tenir sur fond blanc comme sur fond bleu » : sur les fonds
+   * clairs le bouton se detache seul (8.8:1 au pire, sur accent-200). Sur un
+   * aplat bleu en revanche, anthracite et bleu ne different que de 1.06:1 — le
+   * libelle blanc reste lisible mais la FORME du bouton se perdrait. D'ou
+   * `--color-action-contour`, pose en bordure des que le bouton est sur fond
+   * bleu : blanc contre bleu 11.27:1 et contre anthracite 11.99:1, soit
+   * au-dessus des 3:1 exiges pour un element non textuel, des deux cotes.
+   * La classe `.bouton-action-sur-bleu` en bas de fichier applique la variante.
+   *
+   * Remarque : aucune couleur sombre ne se detache du bleu institutionnel par
+   * elle-meme (tous les candidats mesures sont sous 1.6:1). Le contour n'est
+   * donc pas un defaut de cette teinte, il est structurel des qu'un bouton
+   * sombre est pose sur l'aplat bleu.
+   * ---------------------------------------------------------------------- */
+  --color-action: #2d3748;
+  --color-action-hover: #1E293B;
+  --color-action-contour: #ffffff;
 
   --color-neutral-100: #f5f5f8;
   --color-neutral-200: #e7e7ea;
@@ -32,8 +120,10 @@
   --color-neutral-800: #424244;
   --color-neutral-900: #2b2b2d;
 
-  --font-heading: var(--font-geist-sans), system-ui, sans-serif;
-  --font-body: var(--font-geist-sans), system-ui, sans-serif;
+  /* Marianne pour les titres, Spectral pour le corps (R.10). Le mono reste
+     reserve aux surtitres et libelles techniques, pas au texte courant. */
+  --font-heading: "Marianne", system-ui, sans-serif;
+  --font-body: "Spectral", Georgia, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
@@ -61,13 +151,14 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* La charte fixe Spectral pour le corps de texte : le `font-mono` qui etait
+     pose ici imposait le monospace a toute la page et prenait le pas sur elle. */
   html {
-    @apply font-mono;
+    font-family: var(--font-body);
   }
 }
 
 @theme inline {
-  --font-heading: var(--font-mono);
   --font-mono: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -209,14 +300,16 @@
   outline-offset: 2px;
 }
 
-/* Lien d'evitement : hors ecran tant qu'il n'a pas le focus, puis visible. */
+/* Lien d'evitement : hors ecran tant qu'il n'a pas le focus, puis visible.
+   Il se presente comme un bouton : il porte donc la couleur d'action de la
+   charte et non le bleu institutionnel (blanc sur #8A3F5B = 7.14:1). */
 .lien-evitement {
   position: absolute;
   left: 1rem;
   top: -100%;
   z-index: 100;
   border-radius: 0.75rem;
-  background: #1b3a6b;
+  background: var(--color-action);
   padding: 0.75rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -226,6 +319,36 @@
 
 .lien-evitement:focus {
   top: 1rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Bouton d'action (R.10)
+ *
+ * Le bleu institutionnel etant interdit en fond de bouton, l'action passe par
+ * le bordeaux. Deux classes plutot que des utilitaires repetes dans 30
+ * composants : la charte peut ainsi etre corrigee en un seul endroit, et un
+ * bouton ne peut pas repasser au bleu par recopie d'une classe voisine.
+ * ------------------------------------------------------------------------ */
+.bouton-action {
+  background: var(--color-action);
+  color: #ffffff;
+}
+
+.bouton-action:hover {
+  background: var(--color-action-hover);
+}
+
+/* Sur fond bleu institutionnel, le bordeaux seul ne se distingue du fond qu'a
+   1.58:1 : le contour blanc redonne au bouton sa forme (11.27:1 contre le
+   bleu, 7.14:1 contre le bordeaux, au-dela des 3:1 exiges). */
+.bouton-action-sur-bleu {
+  background: var(--color-action);
+  color: #ffffff;
+  border: 2px solid var(--color-action-contour);
+}
+
+.bouton-action-sur-bleu:hover {
+  background: var(--color-action-hover);
 }
 
 /* Respect de « prefers-reduced-motion » : aucune animation imposee. */

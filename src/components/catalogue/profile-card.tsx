@@ -42,7 +42,7 @@ export function ProfileCard({
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-lg font-bold uppercase leading-tight tracking-tight text-[#2d3748]">
+            <h3 className="text-lg font-bold uppercase leading-tight tracking-tight text-[#22334D]">
               {profile.name}
             </h3>
             {profile.certified ? (
@@ -56,9 +56,9 @@ export function ProfileCard({
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm leading-snug text-[#4a5568]">{profile.title}</p>
+          <p className="mt-1 text-sm leading-snug text-[#41556E]">{profile.title}</p>
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-[#566274]">
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-[#41556E]">
             <span className="flex items-center gap-1.5">
               <MapPin aria-hidden="true" className="size-3.5 text-[#1B3A6B]" />
               {profile.city}
@@ -93,7 +93,7 @@ export function ProfileCard({
       <Link
         href={`/profils/${profile.id}`}
         aria-label={`Consulter le profil de ${profile.name}`}
-        className="group/link inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#1B3A6B] text-white transition-colors hover:bg-[#273D4F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3A6B] sm:w-auto sm:gap-2 sm:px-4"
+        className="group/link inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#2d3748] text-white transition-colors hover:bg-[#1E293B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3A6B] sm:w-auto sm:gap-2 sm:px-4"
       >
         <span className="hidden text-sm font-semibold sm:inline">Voir le profil</span>
         <ArrowRight aria-hidden="true" className="size-4 transition-transform group-hover/link:translate-x-0.5" />

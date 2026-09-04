@@ -18,6 +18,7 @@ import {
 
 import { authClient } from "@/lib/auth-client";
 import type { UserRole } from "@/lib/vocabulary";
+import { BlocMarque } from "./bloc-marque";
 
 /**
  * Navigation laterale du site.
@@ -97,16 +98,15 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
 
   const panel = (variant: "fixe" | "tiroir") => (
     <div className="flex h-full flex-col bg-[#ebf0f7] px-5 py-7">
-      <div className="flex items-center justify-between">
-        <Link href="/" className="text-xl font-extrabold tracking-tight text-[#2d3748]">
-          Profils<span className="text-[#1B3A6B]">Actifs.</span>
-        </Link>
+      {/* Bloc-marque : premier element, en haut a gauche (charte R.10). */}
+      <div className="flex items-start justify-between gap-2">
+        <BlocMarque />
         {variant === "tiroir" ? (
           <button
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Fermer le menu"
-            className="rounded-xl p-2 text-[#4a5568] transition-colors hover:text-[#273D4F]"
+            className="rounded-xl p-2 text-[#41556E] transition-colors hover:text-[#273D4F]"
           >
             <X aria-hidden="true" className="size-5" />
           </button>
@@ -131,7 +131,7 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
               className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all ${
                 active
                   ? "bg-[#1B3A6B] text-white"
-                  : "text-[#4a5568] hover:bg-white/70 hover:text-[#273D4F]"
+                  : "text-[#41556E] hover:bg-white/70 hover:text-[#273D4F]"
               }`}
             >
               <Icon aria-hidden="true" className="size-5 stroke-[1.7]" />
@@ -149,8 +149,8 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
                 <BadgeCheck aria-hidden="true" className="size-5 stroke-[1.7]" />
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-[#2d3748]">{session.name}</p>
-                <p className="truncate font-mono text-[10px] font-semibold uppercase tracking-wider text-[#566274]">
+                <p className="truncate text-sm font-bold text-[#22334D]">{session.name}</p>
+                <p className="truncate font-mono text-[10px] font-semibold uppercase tracking-wider text-[#41556E]">
                   {ROLE_LABELS[session.role]}
                 </p>
               </div>
@@ -160,7 +160,7 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
               type="button"
               onClick={handleSignOut}
               disabled={signingOut}
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#ebf0f7] px-4 py-2.5 text-xs font-semibold text-[#2d3748] transition-colors hover:text-[#273D4F] disabled:opacity-60"
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#ebf0f7] px-4 py-2.5 text-xs font-semibold text-[#22334D] transition-colors hover:text-[#273D4F] disabled:opacity-60"
             >
               <LogOut aria-hidden="true" className="size-4" />
               {signingOut ? "Déconnexion…" : "Déconnexion"}
@@ -170,13 +170,13 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
           <div className="flex flex-col gap-3">
             <Link
               href="/login"
-              className="rounded-2xl bg-[#ebf0f7] px-4 py-3 text-center text-sm font-semibold text-[#2d3748] shadow-[5px_5px_10px_#c5d1e0,-5px_-5px_10px_#ffffff] transition-all hover:shadow-[inset_3px_3px_6px_#c5d1e0,inset_-3px_-3px_6px_#ffffff] active:scale-[0.97]"
+              className="rounded-2xl bg-[#ebf0f7] px-4 py-3 text-center text-sm font-semibold text-[#22334D] shadow-[5px_5px_10px_#c5d1e0,-5px_-5px_10px_#ffffff] transition-all hover:shadow-[inset_3px_3px_6px_#c5d1e0,inset_-3px_-3px_6px_#ffffff] active:scale-[0.97]"
             >
               Connexion
             </Link>
             <Link
               href="/register"
-              className="rounded-2xl bg-[#1B3A6B] px-4 py-3 text-center text-sm font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] transition-all hover:bg-[#273D4F] active:scale-[0.97]"
+              className="rounded-2xl bg-[#2d3748] px-4 py-3 text-center text-sm font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] transition-all hover:bg-[#1E293B] active:scale-[0.97]"
             >
               Créer un profil
             </Link>
@@ -200,11 +200,11 @@ export function SiteSidebar({ session }: SiteSidebarProps) {
           onClick={() => setOpen(true)}
           aria-label="Ouvrir le menu"
           aria-expanded={open}
-          className="rounded-xl p-2 text-[#2d3748] transition-colors hover:text-[#273D4F]"
+          className="rounded-xl p-2 text-[#22334D] transition-colors hover:text-[#273D4F]"
         >
           <Menu aria-hidden="true" className="size-6" />
         </button>
-        <Link href="/" className="text-lg font-extrabold tracking-tight text-[#2d3748]">
+        <Link href="/" className="text-lg font-extrabold tracking-tight text-[#22334D]">
           Profils<span className="text-[#1B3A6B]">Actifs.</span>
         </Link>
       </div>

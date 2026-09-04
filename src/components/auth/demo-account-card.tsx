@@ -43,7 +43,7 @@ export function DemoAccountCard({ role, email, color, destination }: DemoAccount
       <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${color}`}>
         {role}
       </span>
-      <span className="mt-5 block break-all font-mono text-sm font-semibold text-[#2d3748]">
+      <span className="mt-5 block break-all font-mono text-sm font-semibold text-[#22334D]">
         {email}
       </span>
       <span className="mt-5 flex items-center gap-2 text-sm font-semibold text-[#1B3A6B] group-hover:text-[#273D4F]">

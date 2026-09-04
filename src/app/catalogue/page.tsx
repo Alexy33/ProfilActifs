@@ -96,11 +96,11 @@ export default async function CataloguePage({
           {/* En-tete */}
           <div className="flex flex-wrap items-end justify-between gap-6 border-b border-[#1B3A6B]/15 pb-8 lg:shrink-0">
             <div>
-              <h1 className="text-4xl font-extrabold uppercase leading-tight tracking-tight text-[#2d3748] md:text-6xl">
+              <h1 className="text-4xl font-extrabold uppercase leading-tight tracking-tight text-[#22334D] md:text-6xl">
                 Découvrez les
                 <span className="text-[#1B3A6B]"> talents.</span>
               </h1>
-              <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#566274]">
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#41556E]">
                 Parcourez les compétences des demandeurs d&apos;emploi et repérez
                 les profils dont les aptitudes ont été certifiées par le
                 dispositif JEB.
@@ -147,10 +147,10 @@ export default async function CataloguePage({
                   <div className="flex size-16 items-center justify-center border border-[#1B3A6B]/25 bg-[#E8F0F8] text-[#1B3A6B]">
                     <SearchX aria-hidden="true" className="size-7 stroke-[1.6]" />
                   </div>
-                  <h2 className="mt-8 text-xl font-bold uppercase tracking-tight text-[#2d3748]">
+                  <h2 className="mt-8 text-xl font-bold uppercase tracking-tight text-[#22334D]">
                     Aucun profil ne correspond
                   </h2>
-                  <p className="mt-3 max-w-md text-sm leading-relaxed text-[#566274]">
+                  <p className="mt-3 max-w-md text-sm leading-relaxed text-[#41556E]">
                     Élargissez la recherche en retirant une compétence, un secteur
                     ou le filtre de certification.
                   </p>

@@ -24,7 +24,7 @@ export function LandingSessionActions({ connected }: { connected: boolean }) {
       <div className="flex items-center gap-3">
         <Button
           asChild
-          className="rounded-2xl bg-[#1B3A6B] px-5 font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#273D4F] active:scale-[0.97]"
+          className="rounded-2xl bg-[#2d3748] px-5 font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#1E293B] active:scale-[0.97]"
         >
           <Link href="/catalogue">
             <LayoutGrid aria-hidden="true" className="size-4" />
@@ -36,7 +36,7 @@ export function LandingSessionActions({ connected }: { connected: boolean }) {
           variant="ghost"
           onClick={signOut}
           disabled={signingOut}
-          className="rounded-2xl bg-[#ebf0f7] px-5 font-semibold text-[#2d3748] shadow-[5px_5px_10px_#c5d1e0,-5px_-5px_10px_#ffffff] hover:bg-[#ebf0f7] hover:shadow-[inset_3px_3px_6px_#c5d1e0,inset_-3px_-3px_6px_#ffffff] disabled:opacity-60"
+          className="rounded-2xl bg-[#ebf0f7] px-5 font-semibold text-[#22334D] shadow-[5px_5px_10px_#c5d1e0,-5px_-5px_10px_#ffffff] hover:bg-[#ebf0f7] hover:shadow-[inset_3px_3px_6px_#c5d1e0,inset_-3px_-3px_6px_#ffffff] disabled:opacity-60"
         >
           <LogOut aria-hidden="true" className="size-4" />
           {signingOut ? "Déconnexion…" : "Déconnexion"}
@@ -49,7 +49,7 @@ export function LandingSessionActions({ connected }: { connected: boolean }) {
     <div className="flex items-center gap-3">
       <Button
         asChild
-        className="rounded-2xl bg-[#1B3A6B] px-5 font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#273D4F] active:scale-[0.97]"
+        className="rounded-2xl bg-[#2d3748] px-5 font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#1E293B] active:scale-[0.97]"
       >
         <Link href="/catalogue">
           <LayoutGrid aria-hidden="true" className="size-4" />
@@ -59,13 +59,13 @@ export function LandingSessionActions({ connected }: { connected: boolean }) {
       <Button
         asChild
         variant="ghost"
-        className="rounded-2xl bg-[#ebf0f7] px-5 font-semibold text-[#2d3748] shadow-[5px_5px_10px_#c5d1e0,-5px_-5px_10px_#ffffff] hover:bg-[#ebf0f7] hover:shadow-[inset_3px_3px_6px_#c5d1e0,inset_-3px_-3px_6px_#ffffff] active:scale-[0.97]"
+        className="rounded-2xl bg-[#ebf0f7] px-5 font-semibold text-[#22334D] shadow-[5px_5px_10px_#c5d1e0,-5px_-5px_10px_#ffffff] hover:bg-[#ebf0f7] hover:shadow-[inset_3px_3px_6px_#c5d1e0,inset_-3px_-3px_6px_#ffffff] active:scale-[0.97]"
       >
         <Link href="/login">Connexion</Link>
       </Button>
       <Button
         asChild
-        className="rounded-2xl bg-[#1B3A6B] px-6 font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#273D4F] active:scale-[0.97]"
+        className="rounded-2xl bg-[#2d3748] px-6 font-semibold text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#1E293B] active:scale-[0.97]"
       >
         <Link href="/register">Créer un profil</Link>
       </Button>

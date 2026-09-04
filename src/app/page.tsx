@@ -12,6 +12,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { LandingSessionActions } from "@/components/layout/landing-session-actions";
+import { BlocMarque } from "@/components/layout/bloc-marque";
 import { DemoAccountCard } from "@/components/auth/demo-account-card";
 import { getCurrentSession } from "@/lib/auth-session";
 
@@ -72,35 +73,30 @@ export default async function HomePage() {
   const session = await getCurrentSession();
 
   return (
-    <main className="min-h-screen bg-[#ebf0f7] text-[#2d3748] selection:bg-[#1B3A6B] selection:text-white antialiased">
+    <main className="min-h-screen bg-[#ebf0f7] text-[#22334D] selection:bg-[#1B3A6B] selection:text-white antialiased">
       {/* Navigation */}
       <header className="sticky top-0 z-50 bg-[#ebf0f7]/80 backdrop-blur-md">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 md:px-10">
-          <Link
-            href="/"
-            className="flex items-center gap-3 transition-transform active:scale-[0.98]"
-          >
-            <span className="text-lg font-bold tracking-wider text-[#2d3748]">
-              PROFILSACTIFS
-            </span>
-          </Link>
+          {/* Bloc-marque de l'Etat, en haut a gauche (charte R.10). La landing
+              n'utilise pas SiteShell : elle porte donc le bloc elle-meme. */}
+          <BlocMarque />
 
           <nav className="hidden items-center gap-2 rounded-full bg-[#ebf0f7] p-2 shadow-[inset_3px_3px_6px_#c5d1e0,inset_-3px_-3px_6px_#ffffff] md:flex">
             <Link
               href="#concept"
-              className="rounded-full px-5 py-2 text-sm font-semibold text-[#4a5568] transition-all hover:text-[#273D4F]"
+              className="rounded-full px-5 py-2 text-sm font-semibold text-[#41556E] transition-all hover:text-[#273D4F]"
             >
               Le concept
             </Link>
             <Link
               href="#fonctionnement"
-              className="rounded-full px-5 py-2 text-sm font-semibold text-[#4a5568] transition-all hover:text-[#273D4F]"
+              className="rounded-full px-5 py-2 text-sm font-semibold text-[#41556E] transition-all hover:text-[#273D4F]"
             >
               Fonctionnement
             </Link>
             <Link
               href="#recruteurs"
-              className="rounded-full px-5 py-2 text-sm font-semibold text-[#4a5568] transition-all hover:text-[#273D4F]"
+              className="rounded-full px-5 py-2 text-sm font-semibold text-[#41556E] transition-all hover:text-[#273D4F]"
             >
               Recruteurs
             </Link>
@@ -115,7 +111,7 @@ export default async function HomePage() {
         <div className="mx-auto grid max-w-[1440px] gap-12 px-6 md:px-10 lg:grid-cols-2 lg:items-center lg:gap-24 xl:gap-40">
           <div className="flex flex-col justify-center">
 
-            <h1 className="text-4xl font-extrabold uppercase leading-tight tracking-tight text-[#2d3748] sm:text-6xl lg:text-7xl">
+            <h1 className="text-4xl font-extrabold uppercase leading-tight tracking-tight text-[#22334D] sm:text-6xl lg:text-7xl">
               La compétence
               <br />
               se voit,
@@ -123,14 +119,14 @@ export default async function HomePage() {
               <span className="text-[#1B3A6B]"> se certifie.</span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-[#4a5568] md:text-lg">
+            <p className="mt-6 max-w-xl text-base leading-relaxed text-[#41556E] md:text-lg">
               ProfilsActifs transforme le CV traditionnel en une présentation
               professionnelle plus vivante : compétences, vidéo et
               certification réunies dans un profil clair et accessible aux
               recruteurs.
             </p>
 
-            <p className="mt-4 font-mono text-xs font-semibold uppercase tracking-wider text-[#566274]">
+            <p className="mt-4 font-mono text-xs font-semibold uppercase tracking-wider text-[#41556E]">
               Un outil de mise en relation professionnelle, pas un réseau social.
             </p>
 
@@ -138,7 +134,7 @@ export default async function HomePage() {
               <Button
                 asChild
                 size="lg"
-                className="group h-14 rounded-2xl bg-[#1B3A6B] px-8 text-base font-semibold text-white shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff] transition-all hover:bg-[#273D4F] active:scale-[0.97]"
+                className="group h-14 rounded-2xl bg-[#2d3748] px-8 text-base font-semibold text-white shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff] transition-all hover:bg-[#1E293B] active:scale-[0.97]"
               >
                 <Link href="/register">
                   Créer mon profil
@@ -150,7 +146,7 @@ export default async function HomePage() {
                 asChild
                 size="lg"
                 variant="ghost"
-                className="h-14 rounded-2xl bg-[#ebf0f7] px-8 text-base font-semibold text-[#2d3748] shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff] hover:bg-[#ebf0f7] hover:shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] active:scale-[0.97]"
+                className="h-14 rounded-2xl bg-[#ebf0f7] px-8 text-base font-semibold text-[#22334D] shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff] hover:bg-[#ebf0f7] hover:shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] active:scale-[0.97]"
               >
                 <Link href="/catalogue">Consulter les profils</Link>
               </Button>
@@ -161,16 +157,16 @@ export default async function HomePage() {
           <div className="flex items-center justify-center">
             <div className="w-full rounded-3xl border border-[#273D4F]/15 bg-white p-8 md:p-10">
               {/* Card Header */}
-              <div className="flex items-start justify-between gap-4 border-b border-[#2d3748]/10 pb-6">
+              <div className="flex items-start justify-between gap-4 border-b border-[#1B3A6B]/12 pb-6">
                 <div className="flex items-center gap-4">
                   <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[#1B3A6B] text-white">
                     <LuUserRound aria-hidden="true" className="size-6" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-[#2d3748]">
+                    <h2 className="text-lg font-bold text-[#22334D]">
                       Votre profil, en un coup d’œil
                     </h2>
-                    <p className="mt-1 text-sm text-[#566274]">
+                    <p className="mt-1 text-sm text-[#41556E]">
                       Tout ce qui aide un recruteur à vous comprendre
                     </p>
                   </div>
@@ -191,10 +187,10 @@ export default async function HomePage() {
                         <Icon aria-hidden="true" className="size-5" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-base font-bold text-[#2d3748]">
+                        <h3 className="text-base font-bold text-[#22334D]">
                           {profileModule.title}
                         </h3>
-                        <p className="mt-1 text-sm leading-snug text-[#566274]">
+                        <p className="mt-1 text-sm leading-snug text-[#41556E]">
                           {profileModule.description}
                         </p>
                       </div>
@@ -206,7 +202,7 @@ export default async function HomePage() {
                 })}
               </div>
 
-              <p className="mt-6 border-t border-[#2d3748]/10 pt-5 text-base leading-relaxed text-[#566274]">
+              <p className="mt-6 border-t border-[#1B3A6B]/12 pt-5 text-base leading-relaxed text-[#41556E]">
                 Un profil unique pour présenter vos compétences aux recruteurs
                 et faire reconnaître vos aptitudes par des certificateurs.
               </p>
@@ -221,12 +217,12 @@ export default async function HomePage() {
           {/* Header */}
           <div className="mx-auto max-w-3xl text-center">
 
-            <h2 className="mt-5 text-3xl font-bold uppercase tracking-tight text-[#2d3748] md:text-5xl">
+            <h2 className="mt-5 text-3xl font-bold uppercase tracking-tight text-[#22334D] md:text-5xl">
               Votre profil en
               <span className="text-[#1B3A6B]"> 3 étapes.</span>
             </h2>
 
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-[#566274]">
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-[#41556E]">
               Créez votre profil, valorisez vos compétences et rendez-vous visible
               auprès des recruteurs.
             </p>
@@ -244,7 +240,7 @@ export default async function HomePage() {
                     <div className="absolute left-0 top-0 h-1 w-0 bg-[#1B3A6B] transition-all duration-500 group-hover:w-full" />
 
                     {/* Number */}
-                    <span className="absolute right-6 top-6 font-mono text-4xl font-bold text-[#566274]/35 transition-all duration-500 group-hover:text-[#566274]/60">
+                    <span className="absolute right-6 top-6 font-mono text-4xl font-bold text-accent-500/45 transition-all duration-500 group-hover:text-accent-500/75">
                       {feature.number}
                     </span>
 
@@ -255,11 +251,11 @@ export default async function HomePage() {
 
                     {/* Content */}
                     <div className="mt-10">
-                      <h3 className="text-xl font-bold uppercase tracking-tight text-[#2d3748]">
+                      <h3 className="text-xl font-bold uppercase tracking-tight text-[#22334D]">
                         {feature.title}
                       </h3>
 
-                      <p className="mt-3 text-sm leading-relaxed text-[#566274]">
+                      <p className="mt-3 text-sm leading-relaxed text-[#41556E]">
                         {feature.description}
                       </p>
                     </div>
@@ -309,12 +305,12 @@ export default async function HomePage() {
             <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
               {/* Left */}
               <div className="relative flex flex-col justify-center p-8 md:p-12 lg:p-14">
-                <h2 className="mt-6 max-w-xl text-3xl font-bold uppercase leading-tight tracking-tight text-[#2d3748] md:text-5xl">
+                <h2 className="mt-6 max-w-xl text-3xl font-bold uppercase leading-tight tracking-tight text-[#22334D] md:text-5xl">
                   Trouvez les bons profils
                   <span className="text-[#1B3A6B]"> plus rapidement.</span>
                 </h2>
 
-                <p className="mt-6 max-w-xl text-base leading-relaxed text-[#566274]">
+                <p className="mt-6 max-w-xl text-base leading-relaxed text-[#41556E]">
                   Recherchez des candidats selon leurs compétences, leur secteur et
                   leur localisation, puis consultez directement les profils qui
                   correspondent à vos besoins.
@@ -323,7 +319,7 @@ export default async function HomePage() {
                 <div className="mt-8">
                   <Button
                     asChild
-                    className="group h-12 rounded-2xl bg-[#1B3A6B] px-6 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#273D4F]"
+                    className="group h-12 rounded-2xl bg-[#2d3748] px-6 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#1E293B]"
                   >
                     <Link href="/catalogue">
                       Parcourir le catalogue
@@ -337,7 +333,7 @@ export default async function HomePage() {
               <div className="grid border-t border-[#1B3A6B]/10 sm:grid-cols-2 lg:border-l lg:border-t-0">
                 {/* Search card */}
                 <div className="group relative overflow-hidden border-b border-[#1B3A6B]/10 p-8 transition-all duration-500 hover:bg-[#1B3A6B]/5 sm:border-b-0 sm:border-r">
-                  <div className="absolute right-6 top-6 font-mono text-5xl font-bold text-[#566274]/35 transition-all duration-500 group-hover:text-[#566274]/60">
+                  <div className="absolute right-6 top-6 font-mono text-5xl font-bold text-accent-500/45 transition-all duration-500 group-hover:text-accent-500/75">
                     01
                   </div>
 
@@ -345,11 +341,11 @@ export default async function HomePage() {
                     <BriefcaseBusiness className="size-6 stroke-[1.6]" />
                   </div>
 
-                  <h3 className="mt-10 text-xl font-bold uppercase tracking-tight text-[#2d3748]">
+                  <h3 className="mt-10 text-xl font-bold uppercase tracking-tight text-[#22334D]">
                     Recherche ciblée
                   </h3>
 
-                  <p className="mt-3 text-sm leading-relaxed text-[#566274]">
+                  <p className="mt-3 text-sm leading-relaxed text-[#41556E]">
                     Filtrez les profils par secteur, localisation et compétences pour
                     aller directement aux candidats les plus pertinents.
                   </p>
@@ -361,7 +357,7 @@ export default async function HomePage() {
 
                 {/* Certified profiles card */}
                 <div className="group relative overflow-hidden p-8 transition-all duration-500 hover:bg-[#1B3A6B]/5">
-                  <div className="absolute right-6 top-6 font-mono text-5xl font-bold text-[#566274]/35 transition-all duration-500 group-hover:text-[#566274]/60">
+                  <div className="absolute right-6 top-6 font-mono text-5xl font-bold text-accent-500/45 transition-all duration-500 group-hover:text-accent-500/75">
                     02
                   </div>
 
@@ -369,11 +365,11 @@ export default async function HomePage() {
                     <ShieldCheck className="size-6 stroke-[1.6]" />
                   </div>
 
-                  <h3 className="mt-10 text-xl font-bold uppercase tracking-tight text-[#2d3748]">
+                  <h3 className="mt-10 text-xl font-bold uppercase tracking-tight text-[#22334D]">
                     Profils certifiés
                   </h3>
 
-                  <p className="mt-3 text-sm leading-relaxed text-[#566274]">
+                  <p className="mt-3 text-sm leading-relaxed text-[#41556E]">
                     Identifiez rapidement les candidats ayant validé leur
                     certification et consultez leurs aptitudes professionnelles.
                   </p>
@@ -387,7 +383,7 @@ export default async function HomePage() {
 
             {/* Bottom flow */}
             <div className="border-t border-[#1B3A6B]/10 px-8 py-5 md:px-12">
-              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold uppercase tracking-wider text-[#566274]">
+              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold uppercase tracking-wider text-[#41556E]">
                 <span className="transition-colors hover:text-[#1B3A6B]">
                   Rechercher
                 </span>
@@ -413,14 +409,14 @@ export default async function HomePage() {
           <div className="rounded-[2rem] bg-[#ebf0f7] p-7 shadow-[10px_10px_20px_#c5d1e0,-10px_-10px_20px_#ffffff] md:p-10">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <h2 className="text-3xl font-bold uppercase tracking-tight text-[#2d3748]">
+                <h2 className="text-3xl font-bold uppercase tracking-tight text-[#22334D]">
                   Comptes de <span className="text-[#1B3A6B]">démonstration.</span>
                 </h2>
-                <p className="mt-2 text-sm text-[#566274]">
+                <p className="mt-2 text-sm text-[#41556E]">
                   Utilisez ces accès pour découvrir chaque espace de la plateforme.
                 </p>
               </div>
-              <p className="rounded-full bg-white px-4 py-2 font-mono text-xs font-semibold text-[#4a5568]">
+              <p className="rounded-full bg-white px-4 py-2 font-mono text-xs font-semibold text-[#41556E]">
                 Mot de passe : demo1234
               </p>
             </div>
@@ -447,18 +443,18 @@ export default async function HomePage() {
             <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
               <div>
 
-                <h2 className="mt-6 max-w-3xl text-3xl font-bold uppercase leading-tight tracking-tight text-[#2d3748] md:text-5xl">
+                <h2 className="mt-6 max-w-3xl text-3xl font-bold uppercase leading-tight tracking-tight text-[#22334D] md:text-5xl">
                   Montrez ce que votre CV
                   <span className="text-[#1B3A6B]"> ne peut pas montrer.</span>
                 </h2>
 
-                <p className="mt-5 max-w-2xl text-base leading-relaxed text-[#566274]">
+                <p className="mt-5 max-w-2xl text-base leading-relaxed text-[#41556E]">
                   Créez votre profil, mettez en avant vos compétences et commencez
                   votre parcours de certification.
                 </p>
 
                 {/* Mini flow */}
-                <div className="mt-8 flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider text-[#566274]">
+                <div className="mt-8 flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider text-[#41556E]">
                   <span className="transition-colors duration-300 hover:text-[#1B3A6B]">
                     Créer
                   </span>
@@ -479,7 +475,7 @@ export default async function HomePage() {
                 <Button
                   asChild
                   size="lg"
-                  className="group/button h-14 rounded-2xl bg-[#1B3A6B] px-8 text-base font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#273D4F]"
+                  className="group/button h-14 rounded-2xl bg-[#2d3748] px-8 text-base font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#1E293B]"
                 >
                   <Link href="/register">
                     Commencer
@@ -491,7 +487,7 @@ export default async function HomePage() {
                   asChild
                   size="lg"
                   variant="ghost"
-                  className="h-14 rounded-2xl border border-[#1B3A6B]/15 bg-transparent px-8 text-base font-semibold text-[#2d3748] transition-all duration-300 hover:-translate-y-1 hover:bg-[#1B3A6B]/5"
+                  className="h-14 rounded-2xl border border-[#1B3A6B]/15 bg-transparent px-8 text-base font-semibold text-[#22334D] transition-all duration-300 hover:-translate-y-1 hover:bg-[#1B3A6B]/5"
                 >
                   <Link href="/login">Se connecter</Link>
                 </Button>

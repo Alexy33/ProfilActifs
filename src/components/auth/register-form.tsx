@@ -80,7 +80,7 @@ export function RegisterForm() {
         ) : null}
 
         <div className="grid gap-2">
-          <Label htmlFor="name" className="text-sm text-[#2d3748]">Nom complet</Label>
+          <Label htmlFor="name" className="text-sm text-[#22334D]">Nom complet</Label>
 
           <Input
             id="name"
@@ -93,12 +93,12 @@ export function RegisterForm() {
             autoCorrect="off"
             disabled={loading}
             required
-            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#566274] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#41556E] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
           />
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="email" className="text-sm text-[#2d3748]">Adresse e-mail</Label>
+          <Label htmlFor="email" className="text-sm text-[#22334D]">Adresse e-mail</Label>
 
           <Input
             id="email"
@@ -111,12 +111,12 @@ export function RegisterForm() {
             autoCorrect="off"
             disabled={loading}
             required
-            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#566274] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#41556E] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
           />
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="birthDate" className="text-sm text-[#2d3748]">Date de naissance</Label>
+          <Label htmlFor="birthDate" className="text-sm text-[#22334D]">Date de naissance</Label>
 
           <Input
             id="birthDate"
@@ -129,10 +129,10 @@ export function RegisterForm() {
             required
             aria-describedby="birthDate-help"
             aria-invalid={tooYoung || undefined}
-            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#566274] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#41556E] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
           />
 
-          <p id="birthDate-help" className="text-sm text-[#566274]">
+          <p id="birthDate-help" className="text-sm text-[#41556E]">
             L&apos;inscription est réservée aux personnes de {MINIMUM_AGE} ans et plus.
           </p>
 
@@ -150,7 +150,7 @@ export function RegisterForm() {
           {isMinorApplicant ? (
             <div
               role="note"
-              className="rounded-lg border border-[#1B3A6B]/20 bg-[#1B3A6B]/5 px-4 py-3 text-sm text-[#2d3748]"
+              className="rounded-lg border border-[#1B3A6B]/20 bg-[#1B3A6B]/5 px-4 py-3 text-sm text-[#22334D]"
             >
               <p className="font-medium">Vous avez moins de {MAJORITY_AGE} ans</p>
               <p className="mt-1 text-[#4A6B8A]">
@@ -163,7 +163,7 @@ export function RegisterForm() {
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="password" className="text-sm text-[#2d3748]">Mot de passe</Label>
+          <Label htmlFor="password" className="text-sm text-[#22334D]">Mot de passe</Label>
 
           <Input
             id="password"
@@ -175,9 +175,9 @@ export function RegisterForm() {
             minLength={8}
             disabled={loading}
             required
-            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#566274] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#41556E] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
           />
-          <p className="text-sm text-[#566274]">
+          <p className="text-sm text-[#41556E]">
             Doit contenir au moins 8 caractères.
           </p>
         </div>
@@ -186,7 +186,7 @@ export function RegisterForm() {
           type="submit"
           size="lg"
           disabled={loading || tooYoung}
-          className="mt-1 h-11 w-full rounded-xl bg-[#1B3A6B] text-base text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#273D4F] hover:shadow-[inset_3px_3px_6px_#273D4F,inset_-3px_-3px_6px_#4A6B8A]"
+          className="mt-1 h-11 w-full rounded-xl bg-[#2d3748] text-base text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#1E293B] hover:shadow-[inset_3px_3px_6px_#273D4F,inset_-3px_-3px_6px_#4A6B8A]"
         >
           {loading ? (
             <Loader2 aria-hidden="true" className="animate-spin" />
@@ -194,7 +194,7 @@ export function RegisterForm() {
           {loading ? "Création du compte..." : "Créer le compte"}
         </Button>
       </form>
-      <p className="text-center text-base text-[#566274]">
+      <p className="text-center text-base text-[#41556E]">
         Vous avez déjà un compte ?{" "}
         <Link
           href="/login"

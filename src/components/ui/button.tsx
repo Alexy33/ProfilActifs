@@ -19,6 +19,12 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        /* Bouton d'action de la charte ministerielle (R.10) : le bleu
+           institutionnel etant interdit en fond de bouton, l'action porte le
+           bordeaux. `action-sur-bleu` ajoute le contour blanc qui redonne au
+           bouton sa forme quand il est pose sur un aplat bleu. */
+        action: "bouton-action",
+        "action-sur-bleu": "bouton-action-sur-bleu",
       },
       size: {
         default:

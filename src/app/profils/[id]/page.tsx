@@ -89,13 +89,13 @@ export default async function ProfilePage({
           </Link>
 
           <div className="mt-7 border-b border-[#1B3A6B]/15 pb-7">
-            <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#566274]">
+            <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#41556E]">
               Profil public · présentation vidéo
             </p>
-            <h1 className="mt-3 text-4xl font-extrabold uppercase leading-tight tracking-tight text-[#2d3748] md:text-5xl">
+            <h1 className="mt-3 text-4xl font-extrabold uppercase leading-tight tracking-tight text-[#22334D] md:text-5xl">
               {profile.name}
             </h1>
-            <p className="mt-2 text-lg text-[#4a5568]">{profile.title}</p>
+            <p className="mt-2 text-lg text-[#41556E]">{profile.title}</p>
           </div>
 
           <div className="mt-8 grid items-start gap-8 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.75fr)] xl:gap-10">
@@ -110,8 +110,8 @@ export default async function ProfilePage({
 
               {profile.bio ? (
                 <div className="mt-6 rounded-3xl border border-[#A8C5E0] bg-[#F5F9FE] p-6">
-                  <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-[#566274]">Présentation</h2>
-                  <p className="mt-3 max-w-[70ch] text-[15.5px] leading-[1.65] text-[#4a5568]">
+                  <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-[#41556E]">Présentation</h2>
+                  <p className="mt-3 max-w-[70ch] text-[15.5px] leading-[1.65] text-[#41556E]">
                     {profile.bio}
                   </p>
                 </div>
@@ -119,7 +119,7 @@ export default async function ProfilePage({
 
               {profile.skills.length > 0 ? (
                 <div className="mt-6 rounded-3xl border border-[#A8C5E0] bg-[#F5F9FE] p-6">
-                  <h2 className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#566274]">
+                  <h2 className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#41556E]">
                     Compétences déclarées
                   </h2>
                   <ul className="mt-3 flex flex-wrap gap-1.5">
@@ -159,13 +159,13 @@ export default async function ProfilePage({
                 </div>
               ) : (
                 <div className="rounded-3xl bg-[#ebf0f7] p-7 shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff]">
-                  <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#566274]">
+                  <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#41556E]">
                     Certification JEB
                   </span>
-                  <p className="mt-5 text-lg font-bold uppercase tracking-tight text-[#2d3748]">
+                  <p className="mt-5 text-lg font-bold uppercase tracking-tight text-[#22334D]">
                     Non certifié
                   </p>
-                  <p className="mt-3 text-sm leading-relaxed text-[#566274]">
+                  <p className="mt-3 text-sm leading-relaxed text-[#41556E]">
                     Ce candidat n&apos;a pas encore validé le questionnaire de
                     certification des aptitudes professionnelles.
                   </p>
@@ -175,10 +175,10 @@ export default async function ProfilePage({
               <div className="rounded-3xl bg-[#ebf0f7] p-7 shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff]">
                 <div className="grid grid-cols-1 gap-5">
                 <div>
-                  <p className="text-3xl font-bold leading-none text-[#2d3748]">
+                  <p className="text-3xl font-bold leading-none text-[#22334D]">
                     {profile.contactCount}
                   </p>
-                  <p className="mt-1 text-xs text-[#566274]">
+                  <p className="mt-1 text-xs text-[#41556E]">
                     contacts reçus
                   </p>
                 </div>

@@ -13,7 +13,7 @@ type Notice = { id: string; text: string; createdAt: string };
 type ConsentNotice = { version: string; text: string };
 type Props = { initialProfile: OwnProfile; sectors: readonly Sector[]; cities: readonly City[]; skills: readonly Skill[] };
 
-const field = "mt-2 h-11 w-full rounded-xl border border-[#1B3A6B]/20 bg-white px-4 text-sm text-[#2d3748] outline-none transition-colors focus:border-[#1B3A6B]";
+const field = "mt-2 h-11 w-full rounded-xl border border-[#1B3A6B]/20 bg-white px-4 text-sm text-[#22334D] outline-none transition-colors focus:border-[#1B3A6B]";
 
 export function CandidateDashboard({ initialProfile, sectors, cities, skills }: Props) {
   const [profile, setProfile] = useState(initialProfile);
@@ -108,9 +108,9 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
   return (
     <main className="mx-auto w-full max-w-[1480px] px-5 pb-24 pt-8 md:px-10 md:pt-12 lg:px-6">
       <header className="flex flex-wrap items-end justify-between gap-5 border-b border-[#1B3A6B]/15 pb-7">
-        <div><p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#566274]">Espace demandeur d&apos;emploi</p>
-          <h1 className="mt-3 text-4xl font-extrabold uppercase tracking-tight text-[#2d3748] md:text-5xl">Bonjour, <span className="text-[#1B3A6B]">{profile.name.split(" ")[0]}.</span></h1></div>
-        {profile.status === "published" && <Link href={`/profils/${profile.id}`} className="inline-flex h-11 items-center rounded-xl bg-[#1B3A6B] px-5 text-sm font-semibold text-white hover:bg-[#273D4F]">Voir mon profil public</Link>}
+        <div><p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#41556E]">Espace demandeur d&apos;emploi</p>
+          <h1 className="mt-3 text-4xl font-extrabold uppercase tracking-tight text-[#22334D] md:text-5xl">Bonjour, <span className="text-[#1B3A6B]">{profile.name.split(" ")[0]}.</span></h1></div>
+        {profile.status === "published" && <Link href={`/profils/${profile.id}`} className="inline-flex h-11 items-center rounded-xl bg-[#2d3748] px-5 text-sm font-semibold text-white hover:bg-[#1E293B]">Voir mon profil public</Link>}
       </header>
 
       {message && (
@@ -122,15 +122,15 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
       <section className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map(({ label, value, icon: Icon, tone }) => <article key={label} className="flex items-center gap-4 rounded-2xl border border-[#1B3A6B]/15 bg-white p-4 sm:p-5">
           <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${tone}`}><Icon className="size-4" /></div>
-          <div className="min-w-0"><p className="truncate text-xl font-extrabold text-[#2d3748]">{value}</p><p className="mt-0.5 text-xs text-[#566274]">{label}</p></div>
+          <div className="min-w-0"><p className="truncate text-xl font-extrabold text-[#22334D]">{value}</p><p className="mt-0.5 text-xs text-[#41556E]">{label}</p></div>
         </article>)}
       </section>
 
       <div className="mt-7 grid items-start gap-7 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-7">
         <section className="rounded-3xl bg-[#ebf0f7] p-6 shadow-[10px_10px_20px_#c5d1e0,-10px_-10px_20px_#ffffff] md:p-8">
-          <div className="flex items-center justify-between gap-4"><div><h2 className="text-2xl font-bold uppercase text-[#2d3748]">Mon profil</h2><p className="mt-1 text-sm text-[#566274]">Informations visibles dans le catalogue.</p></div>
-            <button type="button" onClick={save} disabled={busy !== null} className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#1B3A6B] px-4 text-sm font-semibold text-white hover:bg-[#273D4F] disabled:opacity-60">{busy === "save" ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} Enregistrer</button></div>
+          <div className="flex items-center justify-between gap-4"><div><h2 className="text-2xl font-bold uppercase text-[#22334D]">Mon profil</h2><p className="mt-1 text-sm text-[#41556E]">Informations visibles dans le catalogue.</p></div>
+            <button type="button" onClick={save} disabled={busy !== null} className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#2d3748] px-4 text-sm font-semibold text-white hover:bg-[#1E293B] disabled:opacity-60">{busy === "save" ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} Enregistrer</button></div>
 
           <div className="mt-7 grid gap-5 md:grid-cols-2">
             <Field label="Nom affiché"><input className={field} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
@@ -140,19 +140,19 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
           </div>
           <Field label="Présentation" className="mt-5 block"><textarea className={`${field} min-h-32 resize-y py-3`} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} /></Field>
 
-          <div className="mt-5"><p className="text-xs font-semibold uppercase tracking-wider text-[#566274]">Compétences</p><div className="mt-3 flex flex-wrap gap-2">
-            {skills.map((skill) => <button key={skill} type="button" onClick={() => toggleSkill(skill)} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${form.skills.includes(skill) ? "bg-[#1B3A6B] text-white" : "bg-white text-[#4a5568] hover:bg-[#D1DEF0]"}`}>{skill}</button>)}
+          <div className="mt-5"><p className="text-xs font-semibold uppercase tracking-wider text-[#41556E]">Compétences</p><div className="mt-3 flex flex-wrap gap-2">
+            {skills.map((skill) => <button key={skill} type="button" onClick={() => toggleSkill(skill)} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${form.skills.includes(skill) ? "bg-[#2d3748] text-white" : "bg-white text-[#41556E] hover:bg-[#D1DEF0]"}`}>{skill}</button>)}
           </div></div>
 
         </section>
 
         <section className="rounded-3xl border border-[#A8C5E0] bg-[#F5F9FE] p-6 md:p-8">
-          <div><h2 className="text-2xl font-bold uppercase text-[#2d3748]">Vidéo de présentation</h2><p className="mt-1 text-sm text-[#566274]">Ajoutez un lien ou importez directement votre vidéo.</p></div>
+          <div><h2 className="text-2xl font-bold uppercase text-[#22334D]">Vidéo de présentation</h2><p className="mt-1 text-sm text-[#41556E]">Ajoutez un lien ou importez directement votre vidéo.</p></div>
           <div className="mt-5 grid items-start gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(260px,0.75fr)]">
             <ProfileVideo videoUrl={profile.videoUrl} name={profile.name} />
-            <div><Field label="URL YouTube ou Vimeo"><input className={field} placeholder="https://…" value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} /></Field><p className="my-3 text-center text-xs text-[#566274]">ou</p>
+            <div><Field label="URL YouTube ou Vimeo"><input className={field} placeholder="https://…" value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} /></Field><p className="my-3 text-center text-xs text-[#41556E]">ou</p>
               <label className="flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-[#1B3A6B]/40 bg-white px-4 text-center text-sm font-semibold text-[#273D4F] hover:bg-[#E8F0F8]">{busy === "upload" ? <Loader2 className="mb-2 size-5 animate-spin" /> : <Upload className="mb-2 size-5" />}Importer une vidéo (100 Mo max.)<input type="file" accept="video/mp4,video/webm,video/ogg,video/quicktime" className="sr-only" disabled={busy !== null} onChange={(e) => { const file = e.target.files?.[0]; if (file) void upload(file); }} /></label>
-              {form.videoUrl.trim() ? <button type="button" onClick={save} disabled={busy !== null} className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#1B3A6B] px-4 text-sm font-semibold text-white hover:bg-[#273D4F] disabled:opacity-60"><Save className="size-4" /> Enregistrer le lien</button> : null}
+              {form.videoUrl.trim() ? <button type="button" onClick={save} disabled={busy !== null} className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2d3748] px-4 text-sm font-semibold text-white hover:bg-[#1E293B] disabled:opacity-60"><Save className="size-4" /> Enregistrer le lien</button> : null}
             </div>
           </div>
 
@@ -164,23 +164,23 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
                 {consent.granted ? <ShieldCheck className="size-5" /> : <ShieldOff className="size-5" />}
               </span>
               <div>
-                <h3 className="text-lg font-bold uppercase text-[#2d3748]">Consentement à la diffusion</h3>
-                <p className="text-sm text-[#566274]">{consent.granted ? "Accord en cours." : "Aucun accord en cours : aucune vidéo ne peut être hébergée."}</p>
+                <h3 className="text-lg font-bold uppercase text-[#22334D]">Consentement à la diffusion</h3>
+                <p className="text-sm text-[#41556E]">{consent.granted ? "Accord en cours." : "Aucun accord en cours : aucune vidéo ne peut être hébergée."}</p>
               </div>
             </div>
 
             <dl className="mt-4 grid gap-3 sm:grid-cols-3">
               <div className="rounded-xl bg-[#F5F9FE] p-3">
-                <dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#566274]">État</dt>
-                <dd className="mt-1 text-sm font-semibold text-[#2d3748]">{consent.granted ? "Accordé" : consent.revokedAt ? "Retiré" : "Jamais donné"}</dd>
+                <dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#41556E]">État</dt>
+                <dd className="mt-1 text-sm font-semibold text-[#22334D]">{consent.granted ? "Accordé" : consent.revokedAt ? "Retiré" : "Jamais donné"}</dd>
               </div>
               <div className="rounded-xl bg-[#F5F9FE] p-3">
-                <dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#566274]">Accordé le</dt>
-                <dd className="mt-1 text-sm font-semibold text-[#2d3748]">{consentDate(consent.grantedAt)}</dd>
+                <dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#41556E]">Accordé le</dt>
+                <dd className="mt-1 text-sm font-semibold text-[#22334D]">{consentDate(consent.grantedAt)}</dd>
               </div>
               <div className="rounded-xl bg-[#F5F9FE] p-3">
-                <dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#566274]">Version acceptée</dt>
-                <dd className="mt-1 text-sm font-semibold text-[#2d3748]">{consent.version ?? "—"}</dd>
+                <dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#41556E]">Version acceptée</dt>
+                <dd className="mt-1 text-sm font-semibold text-[#22334D]">{consent.version ?? "—"}</dd>
               </div>
             </dl>
 
@@ -191,8 +191,8 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
             ) : null}
 
             {notice ? (
-              <p className="mt-4 rounded-xl bg-[#F5F9FE] p-3 text-xs leading-relaxed text-[#4a5568]">
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#566274]">Texte en vigueur ({notice.version})</span>
+              <p className="mt-4 rounded-xl bg-[#F5F9FE] p-3 text-xs leading-relaxed text-[#41556E]">
+                <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#41556E]">Texte en vigueur ({notice.version})</span>
                 <br />
                 {notice.text}
               </p>
@@ -206,7 +206,7 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
               </button>
             ) : (
               <button type="button" onClick={() => void setConsent(true)} disabled={busy !== null}
-                className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1B3A6B] px-5 text-sm font-semibold text-white hover:bg-[#273D4F] disabled:opacity-60">
+                className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2d3748] px-5 text-sm font-semibold text-white hover:bg-[#1E293B] disabled:opacity-60">
                 {busy === "consent" ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
                 {consent.revokedAt ? "Redonner mon consentement" : "Donner mon consentement"}
               </button>
@@ -216,8 +216,8 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
         </div>
 
         <aside className="space-y-6 xl:sticky xl:top-6">
-          <Panel title="Certification JEB" icon={<BadgeCheck className="size-5" />}><p className="mt-5 text-4xl font-extrabold text-[#1B3A6B]">{certification?.score ?? profile.score ?? "—"}<span className="text-lg text-[#566274]"> / 100</span></p><p className="mt-3 text-sm leading-relaxed text-[#566274]">{certification?.status === "in_progress" ? `Questionnaire en cours : ${certification.answered}/${certification.questionCount} réponses.` : certification?.passed ? "Badge obtenu et visible sur votre profil public." : "Passez le questionnaire pour certifier vos aptitudes professionnelles."}</p><Link href="/candidate/certification" className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#1B3A6B] px-4 text-sm font-semibold text-white hover:bg-[#273D4F]">{certification?.status === "in_progress" ? "Reprendre le questionnaire" : certification?.status === "submitted" ? "Voir mon résultat" : "Commencer le questionnaire"}</Link></Panel>
-          <section className="rounded-3xl border border-[#A8C5E0] bg-[#F5F9FE] p-6"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-xl bg-[#D1DEF0] text-[#1B2D3E]"><Bell className="size-5" /></span><h2 className="text-xl font-bold uppercase text-[#2d3748]">Notifications</h2></div><div className="mt-5 space-y-3">{notices.length ? notices.slice(0, 5).map((notice) => <article key={notice.id} className="rounded-xl bg-white p-4"><p className="text-sm text-[#4a5568]">{notice.text}</p><time className="mt-2 block font-mono text-[10px] text-[#566274]">{new Date(notice.createdAt).toLocaleDateString("fr-FR")}</time></article>) : <p className="text-sm text-[#566274]">Aucune interaction reçue pour le moment.</p>}</div></section>
+          <Panel title="Certification JEB" icon={<BadgeCheck className="size-5" />}><p className="mt-5 text-4xl font-extrabold text-[#1B3A6B]">{certification?.score ?? profile.score ?? "—"}<span className="text-lg text-[#41556E]"> / 100</span></p><p className="mt-3 text-sm leading-relaxed text-[#41556E]">{certification?.status === "in_progress" ? `Questionnaire en cours : ${certification.answered}/${certification.questionCount} réponses.` : certification?.passed ? "Badge obtenu et visible sur votre profil public." : "Passez le questionnaire pour certifier vos aptitudes professionnelles."}</p><Link href="/candidate/certification" className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#2d3748] px-4 text-sm font-semibold text-white hover:bg-[#1E293B]">{certification?.status === "in_progress" ? "Reprendre le questionnaire" : certification?.status === "submitted" ? "Voir mon résultat" : "Commencer le questionnaire"}</Link></Panel>
+          <section className="rounded-3xl border border-[#A8C5E0] bg-[#F5F9FE] p-6"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-xl bg-[#D1DEF0] text-[#1B2D3E]"><Bell className="size-5" /></span><h2 className="text-xl font-bold uppercase text-[#22334D]">Notifications</h2></div><div className="mt-5 space-y-3">{notices.length ? notices.slice(0, 5).map((notice) => <article key={notice.id} className="rounded-xl bg-white p-4"><p className="text-sm text-[#41556E]">{notice.text}</p><time className="mt-2 block font-mono text-[10px] text-[#41556E]">{new Date(notice.createdAt).toLocaleDateString("fr-FR")}</time></article>) : <p className="text-sm text-[#41556E]">Aucune interaction reçue pour le moment.</p>}</div></section>
         </aside>
       </div>
     </main>
@@ -225,9 +225,9 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
 }
 
 function Field({ label, className = "", children }: { label: string; className?: string; children: React.ReactNode }) {
-  return <label className={`${className} text-xs font-semibold uppercase tracking-wider text-[#566274]`}>{label}{children}</label>;
+  return <label className={`${className} text-xs font-semibold uppercase tracking-wider text-[#41556E]`}>{label}{children}</label>;
 }
 
 function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
-  return <section className="rounded-3xl bg-[#ebf0f7] p-6 shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff]"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-xl bg-[#eee7ff] text-[#65449b]">{icon}</span><h2 className="text-xl font-bold uppercase text-[#2d3748]">{title}</h2></div>{children}</section>;
+  return <section className="rounded-3xl bg-[#ebf0f7] p-6 shadow-[8px_8px_16px_#c5d1e0,-8px_-8px_16px_#ffffff]"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-xl bg-[#eee7ff] text-[#65449b]">{icon}</span><h2 className="text-xl font-bold uppercase text-[#22334D]">{title}</h2></div>{children}</section>;
 }

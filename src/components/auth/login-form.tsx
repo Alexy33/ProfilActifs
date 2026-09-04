@@ -70,7 +70,7 @@ export function LoginForm() {
         ) : null}
 
         <div className="grid gap-2">
-          <Label htmlFor="email" className="text-sm text-[#2d3748]">Adresse e-mail</Label>
+          <Label htmlFor="email" className="text-sm text-[#22334D]">Adresse e-mail</Label>
           <Input
             id="email"
             name="email"
@@ -84,12 +84,12 @@ export function LoginForm() {
             disabled={loading}
             aria-invalid={Boolean(error)}
             required
-            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#566274] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#41556E] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
           />
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="password" className="text-sm text-[#2d3748]">Mot de passe</Label>
+          <Label htmlFor="password" className="text-sm text-[#22334D]">Mot de passe</Label>
           <Input
             id="password"
             name="password"
@@ -100,7 +100,7 @@ export function LoginForm() {
             disabled={loading}
             aria-invalid={Boolean(error)}
             required
-            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#566274] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
+            className="h-11 rounded-xl border-0 bg-[#ebf0f7] px-3.5 text-base shadow-[inset_4px_4px_8px_#c5d1e0,inset_-4px_-4px_8px_#ffffff] placeholder:text-[#41556E] focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-[#1B3A6B]/30 md:text-base"
           />
         </div>
 
@@ -108,7 +108,7 @@ export function LoginForm() {
           type="submit"
           size="lg"
           disabled={loading}
-          className="mt-1 h-11 w-full rounded-xl bg-[#1B3A6B] text-base text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#273D4F] hover:shadow-[inset_3px_3px_6px_#273D4F,inset_-3px_-3px_6px_#4A6B8A]"
+          className="mt-1 h-11 w-full rounded-xl bg-[#2d3748] text-base text-white shadow-[6px_6px_12px_#c5d1e0,-6px_-6px_12px_#ffffff] hover:bg-[#1E293B] hover:shadow-[inset_3px_3px_6px_#273D4F,inset_-3px_-3px_6px_#4A6B8A]"
         >
           {loading ? (
             <Loader2 aria-hidden="true" className="animate-spin" />
@@ -117,7 +117,7 @@ export function LoginForm() {
         </Button>
       </form>
 
-      <p className="text-center text-base text-[#566274]">
+      <p className="text-center text-base text-[#41556E]">
         Vous n&apos;avez pas encore de compte ?{" "}
         <Link
           href="/register"
