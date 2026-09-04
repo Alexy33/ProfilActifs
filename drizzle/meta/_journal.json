@@ -43,6 +43,13 @@
       "when": 1788502846681,
       "tag": "0005_solid_sinister_six",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1788511073008,
+      "tag": "0006_small_killmonger",
+      "breakpoints": true
     }
   ]
 }
