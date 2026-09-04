@@ -21,7 +21,8 @@ const TAGS = [
   { name: "Certification", description: "Questionnaire et badge JEB (CDC 2.2)." },
   {
     name: "Espace recruteur",
-    description: "Favoris, prise de contact et suivi des candidats (CDC 2.1).",
+    description:
+      "Entreprise declaree a l'inscription, favoris, prise de contact et suivi des candidats (CDC 2.1, 3.1).",
   },
   {
     name: "Administration",

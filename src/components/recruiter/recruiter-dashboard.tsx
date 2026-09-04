@@ -2,27 +2,34 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { BriefcaseBusiness, CalendarCheck, Heart, Loader2, Search, Trash2 } from "lucide-react";
+import { Building2, BriefcaseBusiness, CalendarCheck, Heart, Loader2, Search, Trash2 } from "lucide-react";
 import { CONTACT_STATUSES, type ContactStatus } from "@/lib/vocabulary";
+import { formatSiren } from "@/lib/siren";
 
 type Profile = { id: string; name: string; title: string; city: string; sector: string; score: number | null; certified: boolean };
 type Contact = { id: string; profile: Profile; message: string; status: ContactStatus; updatedAt: string };
 type Favorite = { profile: Profile; createdAt: string };
 type Stats = { contacted: number; favorites: number; interviewsPlanned: number };
+type Company = { name: string; siren: string; position: string; address: string; postalCode: string; city: string; sector: string; phone: string | null; website: string | null };
 
 export function RecruiterDashboard() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const [contactResponse, favoriteResponse, statsResponse] = await Promise.all([
-      fetch("/api/me/contacts"), fetch("/api/me/favorites"), fetch("/api/me/stats"),
+    const [contactResponse, favoriteResponse, statsResponse, companyResponse] = await Promise.all([
+      fetch("/api/me/contacts"), fetch("/api/me/favorites"), fetch("/api/me/stats"), fetch("/api/me/company"),
     ]);
     if (contactResponse.ok) setContacts(((await contactResponse.json()) as { items: Contact[] }).items);
     if (favoriteResponse.ok) setFavorites(((await favoriteResponse.json()) as { items: Favorite[] }).items);
     if (statsResponse.ok) setStats(await statsResponse.json());
+    // 404 possible : les comptes recruteurs crees avant la declaration
+    // d'entreprise (CDC 3.1) n'en ont pas. L'encart le dit plutot que de
+    // laisser une carte vide.
+    if (companyResponse.ok) setCompany(await companyResponse.json());
     setLoading(false);
   }, []);
 
@@ -49,7 +56,18 @@ export function RecruiterDashboard() {
     <section className="mt-6 grid gap-3 sm:grid-cols-3">{cards.map(({ label, value, icon: Icon, tone }) => <article key={label} className="flex items-center gap-4 rounded-2xl border border-[#1B3A6B]/15 bg-white p-5"><span className={`flex size-10 items-center justify-center rounded-xl ${tone}`}><Icon className="size-5" /></span><div><p className="text-2xl font-extrabold text-[#2d3748]">{value}</p><p className="text-xs text-[#566274]">{label}</p></div></article>)}</section>
     {loading ? <div className="flex justify-center py-24"><Loader2 className="size-7 animate-spin text-[#1B3A6B]" /></div> : <div className="mt-7 grid items-start gap-7 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.6fr)]">
       <section className="rounded-3xl bg-[#ebf0f7] p-6 shadow-[10px_10px_20px_#c5d1e0,-10px_-10px_20px_#ffffff] md:p-8"><h2 className="text-2xl font-bold uppercase text-[#2d3748]">Candidats contactés</h2><p className="mt-1 text-sm text-[#566274]">Faites avancer chaque profil dans votre suivi.</p><div className="mt-6 space-y-3">{contacts.length ? contacts.map((item) => <article key={item.id} className="grid gap-4 rounded-2xl bg-white p-4 md:grid-cols-[minmax(0,1fr)_190px_auto] md:items-center"><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-bold text-[#2d3748]">{item.profile.name}</h3>{item.profile.certified && <span className="rounded-full bg-[#dff7e9] px-2 py-1 text-[10px] font-bold text-[#17603a]">JEB {item.profile.score}</span>}</div><p className="mt-1 text-sm text-[#566274]">{item.profile.title} · {item.profile.city}</p><p className="mt-2 line-clamp-1 text-xs text-[#4a5568]">{item.message}</p></div><select value={item.status} onChange={(event) => void updateStatus(item.id, event.target.value as ContactStatus)} className="h-10 rounded-xl border border-[#1B3A6B]/20 bg-[#F5F9FE] px-3 text-sm outline-none focus:border-[#1B3A6B]">{CONTACT_STATUSES.map((status) => <option key={status}>{status}</option>)}</select><Link href={`/profils/${item.profile.id}`} className="text-sm font-semibold text-[#1B3A6B] hover:text-[#273D4F]">Ouvrir</Link></article>) : <Empty text="Aucun candidat contacté pour le moment." />}</div></section>
+      <div className="space-y-7">
+      {/* Entreprise declaree a l'inscription (CDC 3.1) : le recruteur agit au
+          nom d'une personne morale, l'espace doit dire laquelle. */}
+      <section className="rounded-3xl border border-[#A8C5E0] bg-[#F5F9FE] p-6"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-xl bg-[#D1DEF0] text-[#1B2D3E]"><Building2 className="size-5" /></span><h2 className="text-xl font-bold uppercase text-[#2d3748]">Mon entreprise</h2></div>
+        {company ? <dl className="mt-5 space-y-3 text-sm">
+          <div className="rounded-xl bg-white p-4"><dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#566274]">Raison sociale</dt><dd className="mt-1 font-bold text-[#2d3748]">{company.name}</dd><dd className="mt-1 font-mono text-xs text-[#566274]">SIREN {formatSiren(company.siren)}</dd></div>
+          <div className="rounded-xl bg-white p-4"><dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#566274]">Votre poste</dt><dd className="mt-1 text-[#2d3748]">{company.position}</dd></div>
+          <div className="rounded-xl bg-white p-4"><dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#566274]">Adresse</dt><dd className="mt-1 text-[#2d3748]">{company.address}<br />{company.postalCode} {company.city}</dd><dd className="mt-2 text-xs text-[#566274]">{company.sector}{company.phone ? ` · ${company.phone}` : ""}</dd>{company.website ? <dd className="mt-1 truncate text-xs"><a href={company.website} className="text-[#1B3A6B] underline underline-offset-2" rel="noreferrer noopener" target="_blank">{company.website}</a></dd> : null}</div>
+        </dl> : <p className="mt-5 rounded-xl bg-white p-4 text-sm text-[#566274]">Aucune entreprise déclarée sur ce compte.</p>}
+      </section>
       <section className="rounded-3xl border border-[#A8C5E0] bg-[#F5F9FE] p-6"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-xl bg-[#ffe8ef] text-[#8a3f5b]"><Heart className="size-5" /></span><h2 className="text-xl font-bold uppercase text-[#2d3748]">Favoris</h2></div><div className="mt-5 space-y-3">{favorites.length ? favorites.map(({ profile }) => <article key={profile.id} className="flex items-center gap-3 rounded-xl bg-white p-4"><div className="min-w-0 flex-1"><p className="truncate font-bold text-[#2d3748]">{profile.name}</p><p className="truncate text-xs text-[#566274]">{profile.title}</p></div><Link href={`/profils/${profile.id}`} className="text-xs font-semibold text-[#1B3A6B]">Voir</Link><button onClick={() => void removeFavorite(profile.id)} aria-label={`Retirer ${profile.name} des favoris`} className="text-[#8a3f5b]"><Trash2 className="size-4" /></button></article>) : <Empty text="Aucun profil enregistré." />}</div></section>
+      </div>
     </div>}
   </main>;
 }
