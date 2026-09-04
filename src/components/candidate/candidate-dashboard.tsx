@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BadgeCheck, Bell, CircleCheck, CircleX, Clock, Eye, FileVideo, Loader2, MessageSquare, Save, ShieldCheck, ShieldOff, Upload } from "lucide-react";
+import { ArrowRight, BadgeCheck, Bell, CircleCheck, CircleX, Clock, Eye, FileVideo, Loader2, MessageSquare, Save, ShieldCheck, ShieldOff, Upload } from "lucide-react";
 
 import { ProfileVideo } from "@/components/catalogue/profile-video";
+import { formatDay, formatTimestamp } from "@/lib/dates";
 import type { City, Sector, Skill } from "@/lib/vocabulary";
 import type { OwnProfile } from "@/server/services/profiles";
 
 type Certification = { status: "not_started" | "in_progress" | "submitted"; answered: number; questionCount: number; score: number | null; passed: boolean | null };
 type Notice = { id: string; text: string; createdAt: string };
-type ConsentNotice = { version: string; text: string };
 type Props = { initialProfile: OwnProfile; sectors: readonly Sector[]; cities: readonly City[]; skills: readonly Skill[] };
 
 const field = "mt-2 h-11 w-full rounded-xl border border-[#1B3A6B]/20 bg-white px-4 text-sm text-[#22334D] outline-none transition-colors focus:border-[#1B3A6B]";
@@ -25,8 +25,7 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
   });
   const [certification, setCertification] = useState<Certification | null>(null);
   const [notices, setNotices] = useState<Notice[]>([]);
-  const [notice, setNotice] = useState<ConsentNotice | null>(null);
-  const [busy, setBusy] = useState<"save" | "upload" | "consent" | null>(null);
+  const [busy, setBusy] = useState<"save" | "upload" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,7 +33,6 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
     void fetch("/api/me/notifications").then(async (r) => {
       if (r.ok) setNotices(((await r.json()) as { items: Notice[] }).items);
     });
-    void fetch("/api/me/profile/video/consent").then(async (r) => r.ok && setNotice(await r.json()));
   }, []);
 
   function toggleSkill(skill: Skill) {
@@ -64,39 +62,8 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
     setBusy(null);
   }
 
-  /**
-   * Donner ou retirer le consentement.
-   *
-   * Le retrait supprime le fichier : on le fait confirmer, et on rafraichit le
-   * profil complet plutot que le seul consentement, parce que `videoUrl` tombe
-   * en meme temps que la video.
-   */
-  async function setConsent(granted: boolean) {
-    if (!granted && !window.confirm(
-      "Retirer votre consentement supprime définitivement votre vidéo du stockage. Continuer ?",
-    )) return;
-
-    setBusy("consent"); setMessage(null);
-    const response = await fetch("/api/me/profile/video/consent", { method: granted ? "POST" : "DELETE" });
-    const data = await response.json();
-    if (!response.ok) {
-      setMessage(data?.error?.message ?? "Impossible de modifier le consentement.");
-      setBusy(null);
-      return;
-    }
-    const refreshed = await fetch("/api/me/profile");
-    if (refreshed.ok) setProfile(await refreshed.json());
-    // Le retrait efface la video ET son lien : on vide le champ, sinon la
-    // prochaine sauvegarde reproposerait le lien et se ferait refuser.
-    if (!granted) setForm((current) => ({ ...current, videoUrl: "" }));
-    setMessage(granted ? "Consentement enregistré." : "Consentement retiré : la vidéo a été supprimée du stockage.");
-    setBusy(null);
-  }
-
   const consent = profile.videoConsent;
   const moderation = profile.videoModeration;
-  const consentDate = (value: string | null) =>
-    value ? new Date(value).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" }) : "—";
 
   const status = { pending: "En attente", published: "Publié", removed: "Retiré" }[profile.status];
   const stats = [
@@ -190,75 +157,47 @@ export function CandidateDashboard({ initialProfile, sectors, cities, skills }: 
 
               {moderation.decidedAt ? (
                 <p className="mt-3 font-mono text-[11px] uppercase tracking-wider text-[#566274]">
-                  Décision du {consentDate(moderation.decidedAt)}
+                  Décision du {formatTimestamp(moderation.decidedAt)}
                   {moderation.decidedBy ? ` — ${moderation.decidedBy}` : ""}
                 </p>
               ) : null}
             </div>
           ) : null}
 
-          {/* Consentement a la diffusion (R.3) : ce qui a ete accepte, quand, et
-              sur quelle redaction — puis le retrait, qui efface le fichier. */}
+          {/* Consentement a la diffusion (R.3) : le tableau de bord n'en montre
+              que l'etat. La redaction soumise, sa portee et les actions qui
+              engagent vivent sur /candidate/consentement. */}
           <div className="mt-6 rounded-2xl border border-[#A8C5E0] bg-white p-5" id="consentement">
-            <div className="flex items-center gap-3">
-              <span className={`flex size-10 items-center justify-center rounded-xl ${consent.granted ? "bg-[#dff7e9] text-[#17603a]" : "bg-[#ffe8ef] text-[#8a3f5b]"}`}>
-                {consent.granted ? <ShieldCheck className="size-5" /> : <ShieldOff className="size-5" />}
-              </span>
-              <div>
-                <h3 className="text-lg font-bold uppercase text-[#22334D]">Consentement à la diffusion</h3>
-                <p className="text-sm text-[#41556E]">{consent.granted ? "Accord en cours." : "Aucun accord en cours : aucune vidéo ne peut être hébergée."}</p>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className={`flex size-10 items-center justify-center rounded-xl ${consent.granted ? "bg-[#dff7e9] text-[#17603a]" : "bg-[#ffe8ef] text-[#8a3f5b]"}`}>
+                  {consent.granted ? <ShieldCheck className="size-5" /> : <ShieldOff className="size-5" />}
+                </span>
+                <div>
+                  <h3 className="text-lg font-bold uppercase text-[#22334D]">Consentement à la diffusion</h3>
+                  <p className="text-sm text-[#41556E]">
+                    {consent.granted
+                      ? `Accord en cours depuis le ${formatTimestamp(consent.grantedAt)} (version ${consent.version ?? "—"}).`
+                      : consent.revokedAt
+                        ? `Retiré le ${formatTimestamp(consent.revokedAt)} : aucune vidéo ne peut être hébergée.`
+                        : "Jamais donné : aucune vidéo ne peut être hébergée."}
+                  </p>
+                </div>
               </div>
+
+              <Link href="/candidate/consentement"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2d3748] px-5 text-sm font-semibold text-white hover:bg-[#1E293B]">
+                {consent.granted ? "Gérer mon consentement" : "Donner mon consentement"}
+                <ArrowRight className="size-4" />
+              </Link>
             </div>
-
-            <dl className="mt-4 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl bg-[#F5F9FE] p-3">
-                <dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#41556E]">État</dt>
-                <dd className="mt-1 text-sm font-semibold text-[#22334D]">{consent.granted ? "Accordé" : consent.revokedAt ? "Retiré" : "Jamais donné"}</dd>
-              </div>
-              <div className="rounded-xl bg-[#F5F9FE] p-3">
-                <dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#41556E]">Accordé le</dt>
-                <dd className="mt-1 text-sm font-semibold text-[#22334D]">{consentDate(consent.grantedAt)}</dd>
-              </div>
-              <div className="rounded-xl bg-[#F5F9FE] p-3">
-                <dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#41556E]">Version acceptée</dt>
-                <dd className="mt-1 text-sm font-semibold text-[#22334D]">{consent.version ?? "—"}</dd>
-              </div>
-            </dl>
-
-            {consent.revokedAt ? (
-              <p className="mt-3 font-mono text-[11px] uppercase tracking-wider text-[#8a3f5b]">
-                Retiré le {consentDate(consent.revokedAt)} — vidéo supprimée du stockage
-              </p>
-            ) : null}
-
-            {notice ? (
-              <p className="mt-4 rounded-xl bg-[#F5F9FE] p-3 text-xs leading-relaxed text-[#41556E]">
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#41556E]">Texte en vigueur ({notice.version})</span>
-                <br />
-                {notice.text}
-              </p>
-            ) : null}
-
-            {consent.granted ? (
-              <button type="button" onClick={() => void setConsent(false)} disabled={busy !== null}
-                className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#8a3f5b] px-5 text-sm font-semibold text-white hover:bg-[#6f314a] disabled:opacity-60">
-                {busy === "consent" ? <Loader2 className="size-4 animate-spin" /> : <ShieldOff className="size-4" />}
-                Retirer mon consentement et supprimer ma vidéo
-              </button>
-            ) : (
-              <button type="button" onClick={() => void setConsent(true)} disabled={busy !== null}
-                className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2d3748] px-5 text-sm font-semibold text-white hover:bg-[#1E293B] disabled:opacity-60">
-                {busy === "consent" ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
-                {consent.revokedAt ? "Redonner mon consentement" : "Donner mon consentement"}
-              </button>
-            )}
           </div>
         </section>
         </div>
 
         <aside className="space-y-6 xl:sticky xl:top-6">
           <Panel title="Certification JEB" icon={<BadgeCheck className="size-5" />}><p className="mt-5 text-4xl font-extrabold text-[#1B3A6B]">{certification?.score ?? profile.score ?? "—"}<span className="text-lg text-[#41556E]"> / 100</span></p><p className="mt-3 text-sm leading-relaxed text-[#41556E]">{certification?.status === "in_progress" ? `Questionnaire en cours : ${certification.answered}/${certification.questionCount} réponses.` : certification?.passed ? "Badge obtenu et visible sur votre profil public." : "Passez le questionnaire pour certifier vos aptitudes professionnelles."}</p><Link href="/candidate/certification" className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#2d3748] px-4 text-sm font-semibold text-white hover:bg-[#1E293B]">{certification?.status === "in_progress" ? "Reprendre le questionnaire" : certification?.status === "submitted" ? "Voir mon résultat" : "Commencer le questionnaire"}</Link></Panel>
-          <section className="rounded-3xl border border-[#A8C5E0] bg-[#F5F9FE] p-6"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-xl bg-[#D1DEF0] text-[#1B2D3E]"><Bell className="size-5" /></span><h2 className="text-xl font-bold uppercase text-[#22334D]">Notifications</h2></div><div className="mt-5 space-y-3">{notices.length ? notices.slice(0, 5).map((notice) => <article key={notice.id} className="rounded-xl bg-white p-4"><p className="text-sm text-[#41556E]">{notice.text}</p><time className="mt-2 block font-mono text-[10px] text-[#41556E]">{new Date(notice.createdAt).toLocaleDateString("fr-FR")}</time></article>) : <p className="text-sm text-[#41556E]">Aucune interaction reçue pour le moment.</p>}</div></section>
+          <section className="rounded-3xl border border-[#A8C5E0] bg-[#F5F9FE] p-6"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-xl bg-[#D1DEF0] text-[#1B2D3E]"><Bell className="size-5" /></span><h2 className="text-xl font-bold uppercase text-[#22334D]">Notifications</h2></div><div className="mt-5 space-y-3">{notices.length ? notices.slice(0, 5).map((notice) => <article key={notice.id} className="rounded-xl bg-white p-4"><p className="text-sm text-[#41556E]">{notice.text}</p><time className="mt-2 block font-mono text-[10px] text-[#41556E]">{formatDay(notice.createdAt)}</time></article>) : <p className="text-sm text-[#41556E]">Aucune interaction reçue pour le moment.</p>}</div></section>
         </aside>
       </div>
     </main>

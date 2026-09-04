@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Loader2, ShieldQuestion, X } from "lucide-react";
 
 import { ProfileVideo } from "@/components/catalogue/profile-video";
+import { formatTimestamp } from "@/lib/dates";
 import type { ProfileStatus, VideoStatus } from "@/lib/vocabulary";
 
 export type VideoRow = {
@@ -30,9 +31,6 @@ const TONE: Record<VideoStatus, string> = {
   approved: "bg-[#dff7e9] text-[#17603a]",
   rejected: "bg-[#ffe8ef] text-[#8a3f5b]",
 };
-
-const stamp = (value: string) =>
-  new Date(value).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" });
 
 /**
  * File de moderation des videos (R.2).
@@ -105,13 +103,13 @@ export function VideoModeration({
                 </div>
                 <p className="mt-1 text-sm text-[#566274]">{row.title}</p>
                 <p className="mt-1 font-mono text-[11px] uppercase tracking-wider text-[#566274]">
-                  Déposée le {stamp(row.submittedAt)}
+                  Déposée le {formatTimestamp(row.submittedAt)}
                 </p>
 
                 {row.decidedAt && (
                   <div className="mt-3 rounded-xl bg-[#F5F9FE] p-3 text-xs text-[#4a5568]">
                     <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#566274]">
-                      Décision — {row.decidedBy ?? "administrateur supprimé"}, le {stamp(row.decidedAt)}
+                      Décision — {row.decidedBy ?? "administrateur supprimé"}, le {formatTimestamp(row.decidedAt)}
                     </p>
                     {row.reason && <p className="mt-1">Motif : {row.reason}</p>}
                   </div>
