@@ -55,12 +55,3 @@ export const { GET } = defineRoute({
     };
   },
 });
-
-      );
-    }
-    const version = process.env.npm_package_version || "unknown";
-    return {
-      status: "ok" as const,
-      version,
-      db: "up" as const,
-      ts: new Date().toISOString(),
